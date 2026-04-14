@@ -44,7 +44,7 @@ export async function compressImageFile(file: File, maxDim = 1200, quality = 0.7
 /** Upload de arquivo para Supabase Storage. Retorna a URL pública. */
 export async function uploadDocFile(file: File, folder: string, label: string): Promise<string> {
   const ext = file.name.split('.').pop() || 'jpg';
-  const path = `${folder}/${label}-${Date.now()}.${ext}`;
+  const path = `${folder}/${label}-${crypto.randomUUID()}.${ext}`;
 
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: true });
   if (error) throw error;
@@ -58,4 +58,17 @@ export async function uploadDoc(file: File | null, folder: string, label: string
   if (!file) return null;
   const compressed = await compressImageFile(file);
   return uploadDocFile(compressed, folder, label);
+}
+
+/** Remove uma lista de URLs do Storage. Silencioso em caso de erro (melhor esforço). */
+export async function deleteUploadedDocs(urls: (string | null | undefined)[]): Promise<void> {
+  const paths = urls.flatMap(url => {
+    if (!url) return [];
+    try {
+      const match = url.match(/\/object\/public\/[^/]+\/(.+)$/);
+      return match ? [match[1]] : [];
+    } catch { return []; }
+  });
+  if (paths.length === 0) return;
+  await supabase.storage.from(BUCKET).remove(paths).catch(() => {});
 }

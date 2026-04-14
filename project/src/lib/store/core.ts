@@ -74,8 +74,9 @@ export interface Sailor {
   restricao_medica?:    string;
   outras_informacoes?:  string;
   // Declaração
-  declaracao_data?:     string;
-  aceitou_termos?:      boolean;
+  declaracao_data?:       string;
+  aceitou_termos?:        boolean;
+  declarou_verdadeira?:   boolean;
   // Status
   status:         'pending' | 'approved';
   blocked?:       boolean;

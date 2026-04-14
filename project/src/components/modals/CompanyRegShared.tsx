@@ -5,12 +5,106 @@ import { ChevronDown } from 'lucide-react';
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
-export const SETORES = [
-  'Charter Náutico', 'Construção Naval', 'Marina / Porto de Recreio',
-  'Transporte Marítimo', 'Pesca Comercial', 'Equipamentos Náuticos',
-  'Turismo Náutico', 'Seguros Marítimos', 'Escola Náutica',
-  'Manutenção & Reparação Naval', 'Logística Marítima', 'Outro',
+export const SETORES_GRUPOS = [
+  {
+    grupo: 'Charter & Aluguer',
+    setores: [
+      'Charter de Veleiro',
+      'Charter a Motor',
+      'Charter de Catamarã',
+      'Charter de Iate de Luxo',
+      'Charter de Barco a Remo / Kayak',
+      'Pesca Desportiva (Charter)',
+    ],
+  },
+  {
+    grupo: 'Turismo Náutico',
+    setores: [
+      'Cruzeiros Turísticos',
+      'Passeios de Barco',
+      'Observação de Cetáceos',
+      'Turismo de Mergulho & Snorkeling',
+    ],
+  },
+  {
+    grupo: 'Construção & Reparação Naval',
+    setores: [
+      'Construção Naval (Fibra / Compósitos)',
+      'Construção Naval (Madeira)',
+      'Construção Naval (Alumínio / Aço)',
+      'Manutenção & Reparação Naval',
+      'Refit & Reforma de Embarcações',
+      'Pintura Naval',
+      'Motorização & Instalação de Motores',
+    ],
+  },
+  {
+    grupo: 'Marina & Infraestrutura',
+    setores: [
+      'Marina / Porto de Recreio',
+      'Estaleiro / Doca Seca',
+      'Posto de Combustível Marítimo',
+    ],
+  },
+  {
+    grupo: 'Venda de Embarcações & Equipamentos',
+    setores: [
+      'Venda de Embarcações Novas',
+      'Venda de Embarcações Usadas',
+      'Electrónica Náutica & Navegação',
+      'Acessórios Náuticos',
+      'Velas & Cordame',
+      'Equipamentos de Segurança Marítima',
+      'Vestuário & Equipamento Náutico',
+    ],
+  },
+  {
+    grupo: 'Transporte & Logística Marítima',
+    setores: [
+      'Transporte Marítimo de Passageiros',
+      'Transporte Marítimo de Mercadorias',
+      'Ferry / Travessia',
+      'Logística Portuária',
+      'Rebocagem & Salvamento Marítimo',
+    ],
+  },
+  {
+    grupo: 'Pesca & Aquacultura',
+    setores: [
+      'Pesca Comercial',
+      'Aquacultura & Maricultura',
+      'Processamento de Pescado',
+    ],
+  },
+  {
+    grupo: 'Educação & Formação',
+    setores: [
+      'Escola Náutica',
+      'Formação & Certificação Marítima',
+      'Simulação & Treino Náutico',
+    ],
+  },
+  {
+    grupo: 'Serviços Profissionais',
+    setores: [
+      'Seguros Marítimos',
+      'Corretagem de Embarcações (Broker)',
+      'Consultoria & Engenharia Naval',
+      'Agência de Tripulação (Crew Agency)',
+      'Gestão de Frotas & Charter',
+      'Catering a Bordo',
+      'Fotografia & Vídeo Náutico',
+      'Direito Marítimo',
+    ],
+  },
+  {
+    grupo: 'Outro',
+    setores: ['Outro'],
+  },
 ];
+
+// Lista plana para compatibilidade
+export const SETORES = SETORES_GRUPOS.flatMap(g => g.setores);
 
 export function fiscalLabel(pais: string): string {
   if (pais === 'BR') return 'CNPJ';
@@ -53,13 +147,14 @@ export const PAISES = [
   { code: 'OTHER', name: 'Outro',     flag: '🌍' },
 ];
 
-import { Building2, ShieldCheck, Phone, User } from 'lucide-react';
+import { Building2, ShieldCheck, Phone, User, Camera } from 'lucide-react';
 
 export const STEPS_META = [
   { icon: Building2,   label: 'Empresa',      sub: 'Informações básicas e localização' },
   { icon: ShieldCheck, label: 'Fiscal',        sub: 'Identificação e registro' },
   { icon: Phone,       label: 'Contato',       sub: 'Comunicação e redes sociais' },
   { icon: User,        label: 'Responsável',   sub: 'Representante legal' },
+  { icon: Camera,      label: 'Fotos',         sub: 'Logotipo e álbum da empresa' },
 ];
 
 // ── Tipo do formulário ────────────────────────────────────────────────────────
@@ -73,6 +168,7 @@ export interface Form {
   username: string;
   resp_nome: string; resp_cargo: string; resp_email: string; resp_ddi: string; resp_telefone: string;
   declarou_veracidade: boolean; aceitou_termos: boolean;
+  profile_photo: string; album: string[];
 }
 
 export const EMPTY: Form = {
@@ -84,6 +180,7 @@ export const EMPTY: Form = {
   username: '',
   resp_nome: '', resp_cargo: '', resp_email: '', resp_ddi: '+351', resp_telefone: '',
   declarou_veracidade: false, aceitou_termos: false,
+  profile_photo: '', album: [],
 };
 
 // ── Máscara de telefone por DDI ────────────────────────────────────────────────

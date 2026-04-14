@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { updateBoat, getAllBoats, type Boat, type Sailor } from '../../lib/localStore';
 import { DossierSailor } from './DossierSailor';
-import { CrewManager }   from './CrewManager';
 
 import {
   isBoatComplete, fmtDate,
@@ -241,16 +240,6 @@ export function DossierBoat({
               <PhotoGallery photos={currentBoat.photos || []} cover={currentBoat.cover_photo || ''} />
             </Section>
 
-            {/* 9. Gestão de tripulação */}
-<Section title="Tripulação">
-  <CrewManager
-    boat={currentBoat}
-    onBoatUpdate={updated => {
-      setCurrentBoat(updated);
-      onBoatsChange?.(getAllBoats());
-    }}
-  />
-</Section>
 
             {/* ── Ações — modo pending ── */}
             {mode === 'pending' && (

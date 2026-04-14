@@ -11,14 +11,14 @@ import { TermosModal }        from '../modals/TermosModal';
 
 import { COUNTRIES, STCW_CERTS, type Country } from '../../constants/sailorConstants';
 import { saveSailor, checkDuplicates, formatProfileNumber } from '../../lib/localStore';
-import { uploadDoc } from '../../lib/storage';
+import { uploadDoc, deleteUploadedDocs } from '../../lib/storage';
 import type { DocTypeValue } from '../../lib/localStore';
 
 type TabN = 1 | 2 | 3 | 4;
 
 interface Form1 {
   nomeCompleto: string; email: string; idioma: string; username: string;
-  cpfNif: string; endereco: string; funcao: string[]; funcaoOutro: string; cadernetaNumero: string;
+  cpfNif: string; funcao: string[]; funcaoOutro: string; cadernetaNumero: string;
 }
 interface Form2 {
   docNumero: string; docEmissao: string; docValidade: string;
@@ -54,15 +54,25 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
   const [phoneRaw,     setPhoneRaw]     = useState('');
   const [form1, setForm1] = useState<Form1>({
     nomeCompleto: '', email: '', idioma: 'pt-PT', username: '',
-    cpfNif: '', endereco: '', funcao: [], funcaoOutro: '', cadernetaNumero: '',
+    cpfNif: '', funcao: [], funcaoOutro: '', cadernetaNumero: '',
   });
+  // Endereço estruturado
+  const [addressCountry,     setAddressCountry]     = useState<Country>(COUNTRIES[1]);
+  const [addressState,       setAddressState]       = useState('');
+  const [addressCity,        setAddressCity]        = useState('');
+  const [addressZip,         setAddressZip]         = useState('');
+  const [addressRua,         setAddressRua]         = useState('');
+  const [addressNumero,      setAddressNumero]      = useState('');
+  const [addressComplemento, setAddressComplemento] = useState('');
   const [birthDay,   setBirthDay]   = useState('');
   const [birthMonth, setBirthMonth] = useState('');
   const [birthYear,  setBirthYear]  = useState('');
   // Caderneta upload (step 1)
   const [cadernetaValidade, setCadernetaValidade] = useState('');
-  const [cadernetaFile, setCadernetaFile] = useState<File | null>(null);
-  const [cadernetaPrev, setCadernetaPrev] = useState<string | null>(null);
+  const [cadernetaFile,     setCadernetaFile]     = useState<File | null>(null);
+  const [cadernetaPrev,     setCadernetaPrev]     = useState<string | null>(null);
+  const [cadernetaBackFile, setCadernetaBackFile] = useState<File | null>(null);
+  const [cadernetaBackPrev, setCadernetaBackPrev] = useState<string | null>(null);
   // Comprovante de endereço (step 1)
   const [comprovanteFile, setComprovanteFile] = useState<File | null>(null);
   const [comprovantePrev, setComprovantePrev] = useState<string | null>(null);
@@ -107,8 +117,9 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
   const [tempoEmbarque,    setTempoEmbarque]    = useState('');
   const [restricaoMedica,  setRestricaoMedica]  = useState('');
   const [outrasInformacoes, setOutrasInformacoes] = useState('');
-  const [declaracaoData,   setDeclaracaoData]   = useState('');
-  const [aceitouTermos,    setAceitouTermos]    = useState(false);
+  const [declaracaoData,      setDeclaracaoData]      = useState('');
+  const [aceitouTermos,       setAceitouTermos]       = useState(false);
+  const [declarouVerdadeira,  setDeclarouVerdadeira]  = useState(false);
 
   // Auto-fill declaracao date when entering step 4
   useEffect(() => {
@@ -133,6 +144,11 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
     if (y < 1900 || y > new Date().getFullYear() - 16) { showErr('Ano inválido (mínimo 16 anos).'); return; }
     if (!form1.funcao.length) { showErr('Selecione pelo menos uma função pretendida.'); return; }
     if (!cadernetaValidade) { showErr('Preencha a validade da caderneta marítima.'); return; }
+    if (!cadernetaFile)    { showErr('Faça o upload da foto/digitalização da caderneta marítima.'); return; }
+    if (!addressState.trim() || !addressCity.trim() || !addressZip.trim() || !addressRua.trim() || !addressNumero.trim()) {
+      showErr('Preencha o endereço completo (Rua, Nº, Cidade, Estado e CEP).'); return;
+    }
+    if (!comprovanteFile)  { showErr('Faça o upload do comprovante de endereço.'); return; }
     const dup = await checkDuplicates({ email: form1.email });
     if (dup) { showErr(dup.message); return; }
     advance(1, 2);
@@ -153,19 +169,23 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
     if (possuiMedico && !form4.medicoValidade) {
       showErr('Preencha a data de validade do certificado médico.'); return;
     }
-    if (!declaracaoData) { showErr('Preencha a data da declaração.'); return; }
-    if (!aceitouTermos)  { showErr('É necessário aceitar os termos e condições.'); return; }
+    if (!declaracaoData)       { showErr('Preencha a data da declaração.'); return; }
+    if (!declarouVerdadeira)   { showErr('É necessário declarar que as informações são verdadeiras.'); return; }
+    if (!aceitouTermos)        { showErr('É necessário aceitar os termos e condições.'); return; }
     setLoading(true);
+    let uploadedUrls: (string | null)[] = [];
     try {
-      const [cadernetaUrl, comprovanteUrl, docFrontUrl, docBackUrl, cartaFrontUrl, cartaBackUrl, medicoUrl] = await Promise.all([
-        uploadDoc(cadernetaFile,   'sailors', 'caderneta'),
-        uploadDoc(comprovanteFile, 'sailors', 'comprovante-endereco'),
+      const [cadernetaUrl, cadernetaBackUrl, comprovanteUrl, docFrontUrl, docBackUrl, cartaFrontUrl, cartaBackUrl, medicoUrl] = await Promise.all([
+        uploadDoc(cadernetaFile,     'sailors', 'caderneta'),
+        uploadDoc(cadernetaBackFile, 'sailors', 'caderneta-verso'),
+        uploadDoc(comprovanteFile,   'sailors', 'comprovante-endereco'),
         uploadDoc(docIdFrontFile,  'sailors', 'id-front'),
         uploadDoc(docIdBackFile,   'sailors', 'id-back'),
         uploadDoc(cartaFrontFile,  'sailors', 'carta-front'),
         uploadDoc(cartaBackFile,   'sailors', 'carta-back'),
         uploadDoc(medicoFile,      'sailors', 'medico'),
       ]);
+      uploadedUrls = [cadernetaUrl, cadernetaBackUrl, comprovanteUrl, docFrontUrl, docBackUrl, cartaFrontUrl, cartaBackUrl, medicoUrl];
 
       const fullPhone = `${phoneCountry.ddi} ${phoneRaw}`;
 
@@ -175,11 +195,10 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
         phone:         fullPhone,
         email:         form1.email,
         language:      form1.idioma,
-        timezone:      country.tz,
         nacionalidade: country.name,
         birth_date:    `${birthDay.padStart(2,'0')}/${birthMonth.padStart(2,'0')}/${birthYear}`,
         cpf_nif:       form1.cpfNif || undefined,
-        endereco:      form1.endereco || undefined,
+        endereco:      [addressRua, addressNumero, addressComplemento, addressCity, addressState, addressZip, addressCountry.name].filter(Boolean).join(', ') || undefined,
         funcao:        Array.isArray(form1.funcao) ? form1.funcao.join(', ') : form1.funcao,
         funcao_outro:  form1.funcaoOutro || undefined,
         caderneta_maritima: {
@@ -187,6 +206,7 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
           numero: form1.cadernetaNumero || undefined,
           validade: cadernetaValidade || undefined,
           doc_url: cadernetaUrl ?? undefined,
+          doc_back_url: cadernetaBackUrl ?? undefined,
         } as any,
         comprovante_endereco_url: comprovanteUrl ?? undefined,
         passaporte: {
@@ -219,12 +239,14 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
         outras_informacoes:       outrasInformacoes || undefined,
         declaracao_data:          declaracaoData,
         aceitou_termos:           aceitouTermos,
+        declarou_verdadeira:      declarouVerdadeira,
       } as any);
 
       setProfileNumber(sailor.profile_number);
       setSubmitted(true);
 
     } catch (err: any) {
+      deleteUploadedDocs(uploadedUrls);
       if (err.message === 'DUPLICATE_EMAIL')         { showErr('Este e-mail já está cadastrado.'); goTo(1); }
       else if (err.message === 'DUPLICATE_DOCUMENT') { showErr('Este documento já está cadastrado.'); goTo(2); }
       else if (err.name === 'QuotaExceededError' || err.code === 22) {
@@ -232,7 +254,7 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
           const fullPhone = `${phoneCountry.ddi} ${phoneRaw}`;
           const sailor = await saveSailor({
             name: form1.nomeCompleto, phone: fullPhone, email: form1.email,
-            language: form1.idioma, timezone: country.tz, nacionalidade: country.name,
+            language: form1.idioma, nacionalidade: country.name,
             funcao: Array.isArray(form1.funcao) ? form1.funcao.join(', ') : form1.funcao,
             passaporte:     { tipo: docIdType, numero: form2.docNumero, emissao: form2.docEmissao, validade: form2.docValidade, doc_url: null, doc_back_url: null },
             cartahabitacao: { tipo: cartaType, numero: form2.cartaNumero, emissao: form2.cartaEmissao, validade: form2.cartaValidade, doc_url: null, doc_back_url: null },
@@ -320,7 +342,11 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
               birthDay={birthDay} birthMonth={birthMonth} birthYear={birthYear}
               cadernetaValidade={cadernetaValidade}
               cadernetaFile={cadernetaFile} cadernetaPrev={cadernetaPrev}
+              cadernetaBackFile={cadernetaBackFile} cadernetaBackPrev={cadernetaBackPrev}
               comprovanteFile={comprovanteFile} comprovantePrev={comprovantePrev}
+              addressCountry={addressCountry} addressState={addressState} addressCity={addressCity}
+              addressZip={addressZip} addressRua={addressRua} addressNumero={addressNumero}
+              addressComplemento={addressComplemento}
               onCountryChange={c => { setCountry(c); setPhoneCountry(c); setPhoneRaw(''); }}
               onPhoneCountryChange={c => { setPhoneCountry(c); setPhoneRaw(''); }}
               onPhoneRawChange={setPhoneRaw}
@@ -329,15 +355,24 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
               onCadernetaValidadeChange={setCadernetaValidade}
               onCadernetaSelect={(f, p) => { setCadernetaFile(f); setCadernetaPrev(p); }}
               onCadernetaClear={() => { setCadernetaFile(null); setCadernetaPrev(null); }}
+              onCadernetaBackSelect={(f, p) => { setCadernetaBackFile(f); setCadernetaBackPrev(p); }}
+              onCadernetaBackClear={() => { setCadernetaBackFile(null); setCadernetaBackPrev(null); }}
               onComprovanteSelect={(f, p) => { setComprovanteFile(f); setComprovantePrev(p); }}
               onComprovanteClear={() => { setComprovanteFile(null); setComprovantePrev(null); }}
+              onAddressCountryChange={setAddressCountry}
+              onAddressStateChange={setAddressState}
+              onAddressCityChange={setAddressCity}
+              onAddressZipChange={setAddressZip}
+              onAddressRuaChange={setAddressRua}
+              onAddressNumeroChange={setAddressNumero}
+              onAddressComplementoChange={setAddressComplemento}
               onNext={handleNext1}
             />
           )}
 
           {tab === 2 && (
             <Step2Documentos
-              country={country} phoneCountry={phoneCountry} phoneRaw={phoneRaw}
+              phoneCountry={phoneCountry} phoneRaw={phoneRaw}
               nomeCompleto={form1.nomeCompleto}
               docIdType={docIdType}
               docIdFrontFile={docIdFrontFile} docIdFrontPrev={docIdFrontPrev}
@@ -346,7 +381,6 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
               cartaFrontFile={cartaFrontFile} cartaFrontPrev={cartaFrontPrev}
               cartaBackFile={cartaBackFile}   cartaBackPrev={cartaBackPrev}
               form2={form2}
-              onCountryChange={setCountry}
               onDocIdTypeChange={setDocIdType}
               onDocIdFront={(f,p)    => { setDocIdFrontFile(f); setDocIdFrontPrev(p); }}
               onDocIdFrontClear={() => { setDocIdFrontFile(null); setDocIdFrontPrev(null); }}
@@ -395,6 +429,7 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
               outrasInformacoes={outrasInformacoes}
               declaracaoData={declaracaoData}
               aceitouTermos={aceitouTermos}
+              declarouVerdadeira={declarouVerdadeira}
               loading={loading}
               onPossuiMedicoChange={v => { setPossuiMedico(v); if (!v) setForm4({ medicoNumero: '', medicoEmissao: '', medicoValidade: '' }); }}
               onForm4Change={patch => setForm4(p => ({ ...p, ...patch }))}
@@ -407,6 +442,7 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
               onOutrasInfoChange={setOutrasInformacoes}
               onDeclaracaoDataChange={setDeclaracaoData}
               onAceitouTermosChange={setAceitouTermos}
+              onDeclarouVerdadeiraChange={setDeclarouVerdadeira}
               onOpenTermos={() => setTermosOpen(true)}
               onBack={() => goTo(3)} onSubmit={handleSubmit}
             />

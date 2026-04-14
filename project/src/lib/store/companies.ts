@@ -35,6 +35,8 @@ export interface Company {
   block_reason?:       string;
   declarou_veracidade: boolean;
   aceitou_termos:      boolean;
+  profile_photo?:      string;
+  album?:              string[];
   status:              'pending' | 'active' | 'inactive' | 'suspended';
   created_at:          string;
   updated_at:          string;

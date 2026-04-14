@@ -3,7 +3,7 @@ import { useState } from 'react';
 import {
   Building2, Globe, Phone, Mail, MapPin, Search,
   ExternalLink, Instagram, Linkedin, Facebook,
-  ShieldCheck, Filter, Copy, KeyRound, ChevronDown, ChevronUp,
+  ShieldCheck, Filter, Copy, KeyRound, ChevronDown, ChevronUp, X, Star,
 } from 'lucide-react';
 import { usePagination } from '../../../hooks/usePagination';
 import { Pagination }    from '../../shared/Pagination';
@@ -34,12 +34,13 @@ function StatusBadge({ status }: { status: Company['status'] }) {
   return <span className={`text-[10px] font-semibold uppercase px-2.5 py-1 ${cls}`}>{label}</span>;
 }
 
-function CompanyCard({ company, onStatusChange, onDelete }: {
+function CompanyCard({ company, onStatusChange, onDelete, defaultExpanded = false }: {
   company: Company;
   onStatusChange: (id: string, status: Company['status']) => void;
   onDelete: (id: string) => void;
+  defaultExpanded?: boolean;
 }) {
-  const [expanded,   setExpanded]   = useState(false);
+  const [expanded,   setExpanded]   = useState(defaultExpanded);
   const [showCreds,  setShowCreds]  = useState(false);
   const [confirmDel, setConfirmDel] = useState(false);
 
@@ -70,7 +71,7 @@ function CompanyCard({ company, onStatusChange, onDelete }: {
   }
 
   return (
-    <div className="bg-white border-2 border-gray-100 overflow-hidden hover:border-[#c9a96e]/30 transition-all">
+    <div className="bg-white overflow-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-amber-700 to-amber-500 px-6 py-4 flex items-center gap-4">
         <div className="w-12 h-12 bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -278,13 +279,86 @@ function CompanyCard({ company, onStatusChange, onDelete }: {
   );
 }
 
+// ── Linha compacta na lista ───────────────────────────────────────────────────
+
+function CompanyRow({ company, onClick }: { company: Company; onClick: () => void }) {
+  const initials = company.nome_fantasia.substring(0, 2).toUpperCase();
+  const rating   = (company as any).rating;
+
+  return (
+    <div
+      onClick={onClick}
+      className="flex items-center gap-4 px-5 py-4 hover:bg-amber-50/40 cursor-pointer border-b border-gray-100 transition-all group last:border-b-0"
+    >
+      <div className="w-11 h-11 bg-gradient-to-br from-amber-700 to-amber-500 flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
+        {initials}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-[#1a2b4a] uppercase text-sm truncate group-hover:text-amber-700 transition-colors">
+          {company.nome_fantasia}
+        </p>
+        <p className="text-xs font-bold text-gray-400 truncate">
+          {company.setor.split(',')[0].trim()} · {company.cidade}
+        </p>
+      </div>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {rating != null && (
+          <span className="flex items-center gap-0.5 text-[10px] font-bold text-amber-600">
+            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+            {Number(rating).toFixed(1)}
+          </span>
+        )}
+        <span className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold px-2 py-0.5">
+          #{company.profile_number}
+        </span>
+        <StatusBadge status={company.status} />
+        <ChevronDown className="w-3.5 h-3.5 text-gray-300 group-hover:text-amber-500 transition-colors" />
+      </div>
+    </div>
+  );
+}
+
+// ── Modal de detalhe ──────────────────────────────────────────────────────────
+
+function CompanyDetailModal({ company, onClose, onStatusChange, onDelete }: {
+  company: Company;
+  onClose: () => void;
+  onStatusChange: (id: string, status: Company['status']) => void;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+      style={{ background: 'rgba(4,10,24,0.88)', backdropFilter: 'blur(8px)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-[#c9a96e]/30 animate-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50">
+          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Detalhe da empresa</span>
+          <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 p-1.5 transition-all">
+            <X className="w-4 h-4 text-gray-600" />
+          </button>
+        </div>
+        <CompanyCard
+          company={company}
+          defaultExpanded={true}
+          onStatusChange={(id, status) => { onStatusChange(id, status); }}
+          onDelete={id => { onDelete(id); onClose(); }}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ── Componente principal ──────────────────────────────────────────────────────
 
 export function EmpresasTab({ onGoToSolicitacoes }: { onGoToSolicitacoes: () => void }) {
-  const [search,       setSearch]       = useState('');
-  const [filterSetor,  setFilterSetor]  = useState('');
-  const [filterStatus, setFilterStatus] = useState('active');
-  const [renderKey,    setRenderKey]    = useState(0);
+  const [search,          setSearch]          = useState('');
+  const [filterSetor,     setFilterSetor]     = useState('');
+  const [filterStatus,    setFilterStatus]    = useState('active');
+  const [setoresOpen,     setSetoresOpen]     = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [renderKey,       setRenderKey]       = useState(0);
 
   const allCompanies = getCompanies().filter(c => c.status !== 'pending');
   const pendingCount = getCompanies().filter(c => c.status === 'pending').length;
@@ -299,11 +373,21 @@ export function EmpresasTab({ onGoToSolicitacoes }: { onGoToSolicitacoes: () => 
   });
 
   const sorted = [...filtered].sort((a, b) => a.nome_fantasia.localeCompare(b.nome_fantasia, 'pt'));
-  const pg     = usePagination(sorted, 12);
+  const pg     = usePagination(sorted, 20);
 
-  const totalAtivas    = allCompanies.filter(c => c.status === 'active').length;
-  const totalInativas  = allCompanies.filter(c => c.status === 'inactive').length;
-  const totalSuspensas = allCompanies.filter(c => c.status === 'suspended').length;
+  function handleStatusChange(id: string, status: Company['status']) {
+    updateCompany(id, { status });
+    setRenderKey(k => k + 1);
+    if (selectedCompany?.id === id) {
+      setSelectedCompany(prev => prev ? { ...prev, status } : null);
+    }
+  }
+
+  function handleDelete(id: string) {
+    deleteCompany(id);
+    setRenderKey(k => k + 1);
+    if (selectedCompany?.id === id) setSelectedCompany(null);
+  }
 
   return (
     <div className="space-y-6" key={renderKey}>
@@ -321,56 +405,85 @@ export function EmpresasTab({ onGoToSolicitacoes }: { onGoToSolicitacoes: () => 
         )}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: 'Total',     value: allCompanies.length, emoji: '🏢', cls: 'border-gray-100' },
-          { label: 'Ativas',    value: totalAtivas,          emoji: '✅', cls: 'border-green-100' },
-          { label: 'Inativas',  value: totalInativas,        emoji: '⏸',  cls: 'border-gray-100' },
-          { label: 'Suspensas', value: totalSuspensas,       emoji: '🚫', cls: 'border-red-100' },
-        ].map(s => (
-          <div key={s.label} className={`bg-white border-2 ${s.cls} px-5 py-4 flex items-center gap-3 shadow-sm`}>
-            <span className="text-2xl">{s.emoji}</span>
-            <div>
-              <p className="text-2xl font-bold text-[#1a2b4a]">{s.value}</p>
-              <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">{s.label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
+      {/* Filtros */}
       <div className="bg-white border-2 border-gray-100 p-4 space-y-3">
         <div className="flex items-center gap-2 text-[11px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">
           <Filter className="w-3.5 h-3.5" /> Filtros
         </div>
+
+        {/* Busca — live por cada letra */}
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome, cidade, e-mail…"
-            className="w-full bg-gray-50 border-2 border-gray-100 py-3.5 pl-11 pr-5 font-bold text-[#1a2b4a] focus:border-[#c9a96e] outline-none text-sm placeholder:text-gray-300" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar por nome, cidade, e-mail…"
+            className="w-full bg-gray-50 border-2 border-gray-100 py-3.5 pl-11 pr-5 font-bold text-[#1a2b4a] focus:border-[#c9a96e] outline-none text-sm placeholder:text-gray-300"
+          />
         </div>
-        <div className="flex flex-wrap gap-2">
-          {[{v:'',l:'Todas'},{v:'active',l:'✅ Ativas'},{v:'inactive',l:'⏸ Inativas'},{v:'suspended',l:'🚫 Suspensas'}].map(({v,l}) => (
+
+        {/* Filtros de status + setor na mesma linha */}
+        <div className="relative flex flex-wrap gap-2 items-start">
+          {/* Todas */}
+          <button onClick={() => setFilterStatus('')}
+            className={`px-3 py-2 text-xs font-semibold border-2 transition-all ${filterStatus === '' ? 'bg-[#0a1628] text-white border-[#0a1628]' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-[#c9a96e]/30'}`}>
+            Todas
+          </button>
+
+          {/* Setor — colapsável, entre Todas e Ativas */}
+          {setores.length > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setSetoresOpen(v => !v)}
+                className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-2 transition-all ${
+                  filterSetor
+                    ? 'bg-amber-700 text-white border-amber-700'
+                    : setoresOpen
+                      ? 'bg-[#0a1628] text-white border-[#0a1628]'
+                      : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-amber-400'
+                }`}
+              >
+                🏭 {filterSetor || 'Setor'}
+                {setoresOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </button>
+
+              {setoresOpen && (
+                <div className="absolute left-0 top-full mt-1 z-10 flex flex-wrap gap-2 border border-gray-100 p-3 bg-white shadow-lg min-w-[220px] animate-in fade-in duration-150">
+                  <button
+                    onClick={() => { setFilterSetor(''); setSetoresOpen(false); }}
+                    className={`px-3 py-2 text-xs font-semibold border-2 transition-all ${
+                      filterSetor === '' ? 'bg-amber-700 text-white border-amber-700' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-amber-400'
+                    }`}
+                  >
+                    Todos
+                  </button>
+                  {setores.map(s => (
+                    <button
+                      key={s}
+                      onClick={() => { setFilterSetor(filterSetor === s ? '' : s); setSetoresOpen(false); }}
+                      className={`px-3 py-2 text-xs font-semibold border-2 transition-all ${
+                        filterSetor === s ? 'bg-amber-700 text-white border-amber-700' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-amber-400'
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Ativas / Inativas / Suspensas */}
+          {[{v:'active',l:'✅ Ativas'},{v:'inactive',l:'⏸ Inativas'},{v:'suspended',l:'🚫 Suspensas'}].map(({v,l}) => (
             <button key={v} onClick={() => setFilterStatus(v)}
               className={`px-3 py-2 text-xs font-semibold border-2 transition-all ${filterStatus === v ? 'bg-[#0a1628] text-white border-[#0a1628]' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-[#c9a96e]/30'}`}>
               {l}
             </button>
           ))}
         </div>
-        {setores.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => setFilterSetor('')}
-              className={`px-3 py-2 text-xs font-semibold border-2 transition-all ${filterSetor === '' ? 'bg-amber-700 text-white border-amber-700' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-amber-400'}`}>
-              🏭 Todos
-            </button>
-            {setores.map(s => (
-              <button key={s} onClick={() => setFilterSetor(filterSetor === s ? '' : s)}
-                className={`px-3 py-2 text-xs font-semibold border-2 transition-all ${filterSetor === s ? 'bg-amber-700 text-white border-amber-700' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-amber-400'}`}>
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
+      {/* Lista */}
       {sorted.length === 0 ? (
         <div className="bg-white p-16 text-center border-2 border-dashed border-gray-200">
           <div className="text-5xl mb-4">🏢</div>
@@ -378,24 +491,48 @@ export function EmpresasTab({ onGoToSolicitacoes }: { onGoToSolicitacoes: () => 
             {allCompanies.length === 0 ? 'Nenhuma empresa cadastrada ainda' : 'Nenhuma empresa corresponde aos filtros'}
           </p>
           {(search || filterSetor || filterStatus) && (
-            <button onClick={() => { setSearch(''); setFilterSetor(''); setFilterStatus('active'); }}
-              className="mt-4 text-[#1a2b4a] font-semibold text-sm underline">Limpar filtros</button>
+            <button
+              onClick={() => { setSearch(''); setFilterSetor(''); setFilterStatus('active'); }}
+              className="mt-4 text-[#1a2b4a] font-semibold text-sm underline"
+            >
+              Limpar filtros
+            </button>
           )}
         </div>
       ) : (
         <div className="space-y-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="bg-white border-2 border-gray-100 overflow-hidden">
+            {/* Cabeçalho da tabela */}
+            <div className="px-5 py-2.5 bg-[#0a1628]/5 border-b border-gray-100 flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                {sorted.length} empresa{sorted.length !== 1 ? 's' : ''}
+              </span>
+              <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                Nº Perfil · Status
+              </span>
+            </div>
             {pg.paged.map(c => (
-              <CompanyCard key={c.id} company={c}
-                onStatusChange={(id, status) => { updateCompany(id, { status }); setRenderKey(k => k+1); }}
-                onDelete={(id) => { deleteCompany(id); setRenderKey(k => k+1); }}
+              <CompanyRow
+                key={c.id}
+                company={c}
+                onClick={() => setSelectedCompany(c)}
               />
             ))}
           </div>
-          <div className="bg-white border-2 border-[#0a1628]/5 mt-4">
+          <div className="bg-white border-2 border-[#0a1628]/5 mt-0 border-t-0">
             <Pagination {...pg} onPrev={pg.prev} onNext={pg.next} onPage={pg.setPage} />
           </div>
         </div>
+      )}
+
+      {/* Modal de detalhe */}
+      {selectedCompany && (
+        <CompanyDetailModal
+          company={selectedCompany}
+          onClose={() => setSelectedCompany(null)}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
+        />
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 // src/components/modals/CompanyRegStep1.tsx — Empresa + Localização
-import { Check } from 'lucide-react';
-import { type Form, SETORES, CountrySelect, Label, Input, Textarea } from './CompanyRegShared';
+import { useState } from 'react';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { type Form, SETORES_GRUPOS, CountrySelect, Label, Input, Textarea } from './CompanyRegShared';
 
 interface Props {
   form: Form;
@@ -9,6 +10,7 @@ interface Props {
 
 export function CompanyRegStep1({ form, setForm }: Props) {
   const f = (k: keyof Form, v: string | boolean) => setForm(p => ({ ...p, [k]: v }));
+  const [setoresOpen, setSetoresOpen] = useState(false);
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -45,44 +47,107 @@ export function CompanyRegStep1({ form, setForm }: Props) {
       </div>
 
       <div>
-        <Label>Setor / Indústria * <span className="text-gray-400 normal-case font-bold">(pode escolher vários)</span></Label>
-        <div className="flex flex-wrap gap-2">
-          {SETORES.map(s => {
-            const selected = form.setores.includes(s);
-            return (
-              <button key={s} type="button"
-                onClick={() => {
-                  const newSetores = selected
-                    ? form.setores.filter(x => x !== s)
-                    : [...form.setores, s];
-                  setForm(p => ({ ...p, setores: newSetores }));
-                }}
-                className={`px-3 py-2 rounded-[14px] text-xs font-black border-2 transition-all flex items-center gap-1.5 ${
-                  selected
-                    ? 'bg-[#0a1628] text-white border-[#c9a96e]'
-                    : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-[#c9a96e]/50'
-                }`}>
-                {selected && <Check className="w-3 h-3" />}
-                {s}
-              </button>
-            );
-          })}
-        </div>
-        {form.setores.length > 0 && (
-          <p className="text-[10px] font-bold text-[#c9a96e] mt-2 ml-1">
-            ✓ {form.setores.length} setor{form.setores.length > 1 ? 'es' : ''} selecionado{form.setores.length > 1 ? 's' : ''}
+        <Label>Setor / Indústria *</Label>
+
+        {/* Aviso ao cliente */}
+        <div className="bg-amber-50 border border-amber-200 px-4 py-3 mb-3 flex items-start gap-2">
+          <span className="text-amber-500 text-base leading-none mt-0.5">⚠</span>
+          <p className="text-[11px] font-semibold text-amber-700 leading-relaxed">
+            Seja específico na escolha dos setores — eles serão usados como <strong>filtro de busca</strong> para que clientes encontrem a sua empresa na plataforma.
           </p>
-        )}
-        {form.setores.includes('Outro') && (
-          <div className="mt-3">
-            <Input value={form.setor_outro} onChange={e => f('setor_outro', e.target.value)}
-              placeholder="Descreva o setor" />
+        </div>
+
+        {/* Botão de abrir/fechar */}
+        <button
+          type="button"
+          onClick={() => setSetoresOpen(o => !o)}
+          className="w-full flex items-center justify-between bg-gray-50 border border-gray-200 py-4 px-5 hover:border-[#c9a96e]/60 transition-all"
+        >
+          <span className={`text-sm font-semibold ${form.setores.length > 0 ? 'text-[#c9a96e]' : 'text-gray-400'}`}>
+            {form.setores.length === 0
+              ? 'Escolher setor(s)'
+              : `${form.setores.length} setor${form.setores.length > 1 ? 'es' : ''} selecionado${form.setores.length > 1 ? 's' : ''}`}
+          </span>
+          {setoresOpen
+            ? <ChevronUp className="w-4 h-4 text-gray-400" />
+            : <ChevronDown className="w-4 h-4 text-gray-400" />}
+        </button>
+
+        {/* Badges dos selecionados (quando fechado) */}
+        {!setoresOpen && form.setores.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2 px-1">
+            {form.setores.map(s => (
+              <span key={s} className="px-3 py-1.5 rounded-[14px] text-xs font-black bg-[#0a1628] text-white border-2 border-[#c9a96e] flex items-center gap-1.5">
+                <Check className="w-3 h-3" />{s}
+              </span>
+            ))}
           </div>
         )}
+
+        {/* Painel expandido com grupos */}
+        {setoresOpen && (
+          <div className="border border-t-0 border-gray-200 bg-white px-4 pt-4 pb-3 space-y-4">
+            {SETORES_GRUPOS.map(({ grupo, setores }) => (
+              <div key={grupo}>
+                <p className="text-[10px] font-bold text-[#c9a96e] uppercase tracking-wider mb-2 border-b border-gray-100 pb-1">{grupo}</p>
+                <div className="flex flex-wrap gap-2">
+                  {setores.map(s => {
+                    const selected = form.setores.includes(s);
+                    const isOutro = s === 'Outro';
+                    return (
+                      <div key={s} className={`flex items-center gap-2 ${isOutro && selected ? 'w-full' : ''}`}>
+                        <button type="button"
+                          onClick={() => {
+                            const newSetores = selected
+                              ? form.setores.filter(x => x !== s)
+                              : [...form.setores, s];
+                            setForm(p => ({ ...p, setores: newSetores }));
+                          }}
+                          className={`px-3 py-2 rounded-[14px] text-xs font-black border-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                            selected
+                              ? 'bg-[#0a1628] text-white border-[#c9a96e]'
+                              : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-[#c9a96e]/50'
+                          }`}>
+                          {selected && <Check className="w-3 h-3" />}
+                          {s}
+                        </button>
+                        {isOutro && selected && (
+                          <input
+                            autoFocus
+                            type="text"
+                            value={form.setor_outro}
+                            onChange={e => f('setor_outro', e.target.value)}
+                            placeholder="Descreva o setor…"
+                            className="flex-1 bg-gray-50 border border-gray-200 py-2 px-3 text-xs font-medium text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all placeholder:text-gray-300"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => setSetoresOpen(false)}
+              className="w-full mt-2 py-2.5 text-xs font-bold text-[#c9a96e] border border-[#c9a96e]/40 hover:border-[#c9a96e] hover:bg-[#c9a96e]/5 transition-all"
+            >
+              ✓ Confirmar seleção {form.setores.length > 0 ? `(${form.setores.length})` : ''}
+            </button>
+          </div>
+        )}
+
       </div>
 
       <div>
         <Label>Descrição da Empresa (opcional)</Label>
+        <div className="bg-blue-50 border border-blue-200 px-4 py-2.5 mb-2 flex items-center gap-2">
+          <span className="text-blue-400 text-base leading-none">👁</span>
+          <p className="text-[11px] font-semibold text-blue-600">
+            Este texto será exibido no <strong>perfil público</strong> da sua empresa na plataforma.
+          </p>
+        </div>
         <Textarea value={form.descricao} onChange={e => f('descricao', e.target.value)}
           placeholder="Breve descrição da actividade…" />
       </div>

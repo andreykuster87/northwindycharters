@@ -1,5 +1,5 @@
 // src/components/sailor/steps/Step1DadosPessoais.tsx
-import { User, Mail, Clock, Languages, ChevronDown, MapPin, Hash, Calendar } from 'lucide-react';
+import { User, Mail, Languages, ChevronDown, MapPin, Hash, Calendar } from 'lucide-react';
 import { LANGUAGES, FUNCOES_MARITIMAS, type Country } from '../../../constants/sailorConstants';
 import { CountryDropdown, PhonePrefixDropdown, DocUploadSlot } from '../SailorSharedComponents';
 import { BirthDatePicker } from '../../shared/BirthDatePicker';
@@ -15,7 +15,6 @@ interface Props {
     idioma:          string;
     username:        string;
     cpfNif:          string;
-    endereco:        string;
     funcao:          string | string[];
     funcaoOutro:     string;
     cadernetaNumero: string;
@@ -24,9 +23,19 @@ interface Props {
   birthMonth: string;
   birthYear:  string;
   cadernetaValidade: string;
+  // Endereço estruturado
+  addressCountry:     Country;
+  addressState:       string;
+  addressCity:        string;
+  addressZip:         string;
+  addressRua:         string;
+  addressNumero:      string;
+  addressComplemento: string;
   // Caderneta
   cadernetaFile: File | null;
   cadernetaPrev: string | null;
+  cadernetaBackFile: File | null;
+  cadernetaBackPrev: string | null;
   // Comprovante de endereço
   comprovanteFile: File | null;
   comprovantePrev: string | null;
@@ -38,8 +47,18 @@ interface Props {
   onBirthMonthChange:   (v: string) => void;
   onBirthYearChange:    (v: string) => void;
   onCadernetaValidadeChange: (v: string) => void;
-  onCadernetaSelect:    (f: File, p: string | null) => void;
-  onCadernetaClear:     () => void;
+  // Endereço handlers
+  onAddressCountryChange:     (c: Country) => void;
+  onAddressStateChange:       (v: string) => void;
+  onAddressCityChange:        (v: string) => void;
+  onAddressZipChange:         (v: string) => void;
+  onAddressRuaChange:         (v: string) => void;
+  onAddressNumeroChange:      (v: string) => void;
+  onAddressComplementoChange: (v: string) => void;
+  onCadernetaSelect:        (f: File, p: string | null) => void;
+  onCadernetaClear:         () => void;
+  onCadernetaBackSelect:    (f: File, p: string | null) => void;
+  onCadernetaBackClear:     () => void;
   onComprovanteSelect:  (f: File, p: string | null) => void;
   onComprovanteClear:   () => void;
   onNext: () => void;
@@ -51,12 +70,16 @@ const LABEL = 'text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.12
 export function Step1DadosPessoais({
   country, phoneCountry, phoneRaw, form1,
   birthDay, birthMonth, birthYear,
-  cadernetaValidade, cadernetaFile, cadernetaPrev,
+  cadernetaValidade, cadernetaFile, cadernetaPrev, cadernetaBackFile, cadernetaBackPrev,
   comprovanteFile, comprovantePrev,
+  addressCountry, addressState, addressCity, addressZip,
+  addressRua, addressNumero, addressComplemento,
   onCountryChange, onPhoneCountryChange, onPhoneRawChange,
   onForm1Change, onBirthDayChange, onBirthMonthChange, onBirthYearChange,
-  onCadernetaValidadeChange, onCadernetaSelect, onCadernetaClear,
+  onCadernetaValidadeChange, onCadernetaSelect, onCadernetaClear, onCadernetaBackSelect, onCadernetaBackClear,
   onComprovanteSelect, onComprovanteClear,
+  onAddressCountryChange, onAddressStateChange, onAddressCityChange,
+  onAddressZipChange, onAddressRuaChange, onAddressNumeroChange, onAddressComplementoChange,
   onNext,
 }: Props) {
   const phoneDisplay = applyMask(phoneRaw, phoneCountry.mask);
@@ -138,15 +161,26 @@ export function Step1DadosPessoais({
             placeholder="dd/mm/aaaa" maxLength={10}
             className={INPUT} />
         </div>
-        <DocUploadSlot
-          label="Foto / Digitalização da Caderneta"
-          sublabel="Frente ou página de identificação"
-          required={false}
-          file={cadernetaFile}
-          preview={cadernetaPrev}
-          onSelect={onCadernetaSelect}
-          onClear={onCadernetaClear}
-        />
+        <div className="space-y-3">
+          <DocUploadSlot
+            label="Frente da Caderneta *"
+            sublabel="Página com foto e dados de identificação"
+            required={true}
+            file={cadernetaFile}
+            preview={cadernetaPrev}
+            onSelect={onCadernetaSelect}
+            onClear={onCadernetaClear}
+          />
+          <DocUploadSlot
+            label="Verso da Caderneta"
+            sublabel="Para cartões com QR Code"
+            required={false}
+            file={cadernetaBackFile}
+            preview={cadernetaBackPrev}
+            onSelect={onCadernetaBackSelect}
+            onClear={onCadernetaBackClear}
+          />
+        </div>
       </div>
 
       {/* ── Contacto ── */}
@@ -179,26 +213,81 @@ export function Step1DadosPessoais({
               className="w-full font-medium outline-none bg-transparent text-sm text-[#1a2b4a]" />
           </div>
         </div>
+      </div>
+
+      {/* ── Endereço Completo ── */}
+      <div className="bg-gray-50 border border-gray-100 p-5 space-y-4">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-3">
+          <MapPin className="inline w-3.5 h-3.5 mr-1" />📍 Endereço Completo
+        </p>
+
+        <CountryDropdown
+          value={addressCountry.code}
+          onChange={onAddressCountryChange}
+          label="País *" />
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={LABEL}>Estado / Região *</label>
+            <input value={addressState}
+              onChange={e => onAddressStateChange(e.target.value)}
+              placeholder="Ex: São Paulo"
+              className={INPUT} />
+          </div>
+          <div>
+            <label className={LABEL}>Cidade *</label>
+            <input value={addressCity}
+              onChange={e => onAddressCityChange(e.target.value)}
+              placeholder="Ex: Santos"
+              className={INPUT} />
+          </div>
+        </div>
 
         <div>
-          <label className={LABEL}><MapPin className="w-3 h-3 text-[#c9a96e]" /> Endereço completo conforme comprovante</label>
-          <input value={form1.endereco}
-            onChange={e => onForm1Change({ endereco: e.target.value })}
-            placeholder="Rua, nº, cidade, país"
+          <label className={LABEL}>CEP / Código Postal *</label>
+          <input value={addressZip}
+            onChange={e => onAddressZipChange(e.target.value)}
+            placeholder="Ex: 00000-000"
             className={INPUT} />
-          <p className="text-[10px] text-gray-400 font-medium mt-1.5 ml-1">
-            Aceites: conta de água, luz, telefone, extrato bancário ou atestado de morada
-          </p>
         </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div className="col-span-2">
+            <label className={LABEL}>Rua / Avenida *</label>
+            <input value={addressRua}
+              onChange={e => onAddressRuaChange(e.target.value)}
+              placeholder="Nome da rua"
+              className={INPUT} />
+          </div>
+          <div>
+            <label className={LABEL}>Nº *</label>
+            <input value={addressNumero}
+              onChange={e => onAddressNumeroChange(e.target.value)}
+              placeholder="Ex: 42"
+              className={INPUT} />
+          </div>
+        </div>
+
+        <div>
+          <label className={LABEL}>Complemento</label>
+          <input value={addressComplemento}
+            onChange={e => onAddressComplementoChange(e.target.value)}
+            placeholder="Apto, Bloco, etc. (opcional)"
+            className={INPUT} />
+        </div>
+
         <DocUploadSlot
-          label="Comprovante de Endereço"
+          label="Comprovante de Endereço *"
           sublabel="Conta de água, luz, telefone, extrato bancário ou atestado de morada"
-          required={false}
+          required={true}
           file={comprovanteFile}
           preview={comprovantePrev}
           onSelect={onComprovanteSelect}
           onClear={onComprovanteClear}
         />
+        <p className="text-[10px] text-gray-400 font-medium -mt-2 ml-1">
+          Aceites: conta de água, luz, telefone, extrato bancário ou atestado de morada
+        </p>
       </div>
 
       {/* ── Função Pretendida ── */}
@@ -243,13 +332,6 @@ export function Step1DadosPessoais({
         <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-3">
           🌐 Preferências
         </p>
-        <div>
-          <label className={LABEL}><Clock className="w-3 h-3 text-[#c9a96e]" /> Fuso Horário (automático)</label>
-          <div className="flex items-center gap-3 bg-white border border-gray-200 py-3.5 px-4">
-            <Clock className="w-4 h-4 text-[#c9a96e]/50 flex-shrink-0" />
-            <span className="font-medium text-[#1a2b4a] text-sm">{country.tz}</span>
-          </div>
-        </div>
         <div>
           <label className={LABEL}><Languages className="w-3 h-3 text-[#c9a96e]" /> Idioma Preferido</label>
           <div className="relative">

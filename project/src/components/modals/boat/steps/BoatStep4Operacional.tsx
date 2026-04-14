@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { BoatInput, DateInput, YesNo, SectionTitle } from '../shared/BoatFormWidgets';
+import { BoatInput, DateInput, TimeInput, YesNo, SectionTitle } from '../shared/BoatFormWidgets';
 import type { BoatForm } from './BoatStep1Embarcacao';
 
 interface Props {
@@ -24,6 +24,8 @@ export function BoatStep4Operacional({
   const tipoAtividadeArray = Array.isArray(f.tipoAtividade)
   ? f.tipoAtividade
   : (f.tipoAtividade ? String(f.tipoAtividade).split('||').filter(Boolean) : []);
+
+  const declaracaoCompleta = declaracao && !!f.declaracaoData && !!f.declaracaoHora;
 
   const toggleAtividade = (v: string) => {
     const current = tipoAtividadeArray;
@@ -54,6 +56,25 @@ export function BoatStep4Operacional({
           placeholder="EX: 2"
         />
       </div>
+      {(() => {
+        const cap  = parseInt(f.capPassageiros) || 0;
+        const trip = parseInt(f.nrTripulantes)  || 0;
+        const vagas = cap - trip;
+        if (cap <= 0) return null;
+        return (
+          <div className={`flex items-center gap-2 px-4 py-3 border text-xs font-bold ${
+            vagas > 0
+              ? 'bg-green-50 border-green-200 text-green-700'
+              : 'bg-red-50 border-red-200 text-red-600'
+          }`}>
+            <span className="text-base flex-shrink-0">{vagas > 0 ? '🪑' : '⚠️'}</span>
+            {vagas > 0
+              ? <>Para esta embarcação ficarão disponíveis: <strong className="ml-1">{vagas} vaga{vagas !== 1 ? 's' : ''}</strong> para oferta.</>
+              : <>Nº de tripulantes é igual ou superior à capacidade — sem vagas disponíveis.</>
+            }
+          </div>
+        );
+      })()}
       <BoatInput
         label="Área de operação"
         value={f.areaOperacao}
@@ -172,26 +193,67 @@ export function BoatStep4Operacional({
         />
       </div>
 
-      <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 p-4">
-        <p className="text-xs font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-2">Declaração</p>
-        <p className="text-xs text-gray-600 font-bold leading-relaxed mb-3">
-          Declaro que as informações prestadas são verdadeiras e que a embarcação cumpre os
-          requisitos legais e de segurança aplicáveis.
+      <div className={`border-2 p-4 transition-all duration-300 ${
+        declaracaoCompleta
+          ? 'border-green-500 bg-green-50'
+          : declaracao
+            ? 'border-amber-300 bg-amber-50'
+            : 'border-red-200 bg-red-50'
+      }`}>
+        <p className="text-xs font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">
+          Declaração {declaracaoCompleta && <span className="text-green-600 normal-case">✓ Confirmada</span>}
         </p>
-        <button
-          type="button"
-          onClick={() => setDeclaracao(!declaracao)}
-          className="flex items-center gap-3"
+
+        <div
+          className="flex items-start gap-3 cursor-pointer mb-4 select-none"
+          onClick={() => {
+            const next = !declaracao;
+            setDeclaracao(next);
+            if (next) {
+              const now = new Date();
+              fd('declaracaoData', now.toISOString().split('T')[0]);
+              fd('declaracaoHora', now.toTimeString().slice(0, 5));
+            } else {
+              fd('declaracaoData', '');
+              fd('declaracaoHora', '');
+            }
+          }}
         >
-          <div
-            className={`w-5 h-5 border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-              declaracao ? 'bg-[#0a1628] border-[#0a1628]' : 'bg-white border-gray-300'
-            }`}
-          >
-            {declaracao && <CheckCircle2 className="w-3 h-3 text-white" />}
+          <div className={`w-6 h-6 border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+            declaracao ? 'bg-[#0a1628] border-[#0a1628]' : 'border-gray-300 bg-white'
+          }`}>
+            {declaracao && (
+              <svg viewBox="0 0 12 10" className="w-3.5 h-3.5 fill-none stroke-white stroke-[2.5]">
+                <polyline points="1,5 4.5,8.5 11,1" />
+              </svg>
+            )}
           </div>
-          <span className="text-xs font-bold text-[#1a2b4a]">Confirmo a declaração acima</span>
-        </button>
+          <span className="text-xs text-gray-700 font-bold leading-relaxed">
+            Declaro que as informações prestadas são verdadeiras e que a embarcação cumpre os
+            requisitos legais e de segurança aplicáveis.
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <DateInput
+            label="Data"
+            value={f.declaracaoData}
+            onChange={(v) => fd('declaracaoData', v)}
+          />
+          <TimeInput
+            label="Hora"
+            value={f.declaracaoHora}
+            onChange={(v) => fd('declaracaoHora', v)}
+          />
+        </div>
+
+        {!declaracaoCompleta && (
+          <p className="text-[10px] text-red-400 font-bold mt-3">
+            {!declaracao
+              ? 'Aceite a declaração para prosseguir.'
+              : 'Preencha a data e hora da declaração para prosseguir.'}
+          </p>
+        )}
       </div>
 
       <div className="flex gap-3 pt-2">

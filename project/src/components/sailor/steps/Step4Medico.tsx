@@ -3,13 +3,14 @@ import { Calendar, CheckCircle2, ExternalLink, Shield } from 'lucide-react';
 import { applyDateMask } from '../../../utils/sailorHelpers';
 import { type Country } from '../../../constants/sailorConstants';
 import { DocUploadSlot } from '../SailorSharedComponents';
+import { DOC_TYPES, type DocTypeValue } from '../../../lib/localStore';
 
 interface Props {
-  form1: { nomeCompleto: string; email: string; idioma: string; cpfNif: string; endereco: string; funcao: string | string[]; funcaoOutro: string; };
+  form1: { nomeCompleto: string; email: string; idioma: string; cpfNif: string; endereco: string; funcao: string | string[]; funcaoOutro: string; username: string; };
   phoneCountry: Country;
   phoneRaw:     string;
   country:      Country;
-  docIdType:    string;
+  docIdType:    DocTypeValue;
   form2: {
     docNumero: string; docEmissao: string; docValidade: string;
     cartaNumero: string; cartaEmissao: string; cartaValidade: string;
@@ -29,9 +30,10 @@ interface Props {
   restricaoMedica:   string;
   outrasInformacoes: string;
   // Declaração
-  declaracaoData:  string;
-  aceitouTermos:   boolean;
-  loading:         boolean;
+  declaracaoData:      string;
+  aceitouTermos:       boolean;
+  declarouVerdadeira:  boolean;
+  loading:             boolean;
   onPossuiMedicoChange:   (v: boolean) => void;
   onForm4Change:          (patch: Partial<{ medicoNumero: string; medicoEmissao: string; medicoValidade: string }>) => void;
   onMedicoSelect:         (f: File, p: string | null) => void;
@@ -41,9 +43,10 @@ interface Props {
   onTempoEmbarqueChange:     (v: string) => void;
   onRestricaoChange:         (v: string) => void;
   onOutrasInfoChange:        (v: string) => void;
-  onDeclaracaoDataChange:    (v: string) => void;
-  onAceitouTermosChange:     (v: boolean) => void;
-  onOpenTermos:              () => void;
+  onDeclaracaoDataChange:       (v: string) => void;
+  onAceitouTermosChange:        (v: boolean) => void;
+  onDeclarouVerdadeiraChange:   (v: boolean) => void;
+  onOpenTermos:                 () => void;
   onBack:   () => void;
   onSubmit: (e: React.FormEvent) => void;
 }
@@ -60,24 +63,27 @@ export function Step4Medico({
   possuiMedico, form4, medicoFile, medicoPreview,
   disponivelImediato, disponivelInternacional, tempoEmbarque,
   restricaoMedica, outrasInformacoes,
-  declaracaoData, aceitouTermos, loading,
+  declaracaoData, aceitouTermos, declarouVerdadeira, loading,
   onPossuiMedicoChange, onForm4Change, onMedicoSelect, onMedicoClear,
   onDispImediatoChange, onDispInternacionalChange, onTempoEmbarqueChange,
   onRestricaoChange, onOutrasInfoChange,
-  onDeclaracaoDataChange, onAceitouTermosChange, onOpenTermos,
+  onDeclaracaoDataChange, onAceitouTermosChange, onDeclarouVerdadeiraChange, onOpenTermos,
   onBack, onSubmit,
 }: Props) {
   const stcwList = Object.entries(stcw).filter(([, v]) => v).map(([k]) => k).join(', ') || 'Nenhum';
-  const funcaoDisplay = (() => {
+
+  const funcoesList = (() => {
     const f = form1.funcao;
     if (Array.isArray(f)) {
-      const list = f.includes('Outro') && form1.funcaoOutro
+      return f.includes('Outro') && form1.funcaoOutro
         ? [...f.filter(x => x !== 'Outro'), form1.funcaoOutro]
         : f;
-      return list.join(' · ') || '—';
     }
-    return f === 'Outro' ? (form1.funcaoOutro || 'Outro') : (f || '—');
+    return f ? [f === 'Outro' ? (form1.funcaoOutro || 'Outro') : f] : [];
   })();
+
+  const docTypeInfo = DOC_TYPES.find(d => d.value === docIdType);
+  const docTypeLabel = docTypeInfo?.label || 'Documento';
 
   return (
     <form onSubmit={onSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -191,22 +197,70 @@ export function Step4Medico({
       {/* ── Resumo ── */}
       <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 p-5">
         <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-4">📋 Resumo da Candidatura</p>
-        <div className="space-y-2.5">
-          {([
-            ['👤 Nome',      form1.nomeCompleto || '—'],
-            ['⚓ Função',    funcaoDisplay || '—'],
-            ['🌍 País',      country.flag + ' ' + country.name],
-            ['🪪 Nº Doc.',   form2.docNumero || '—'],
-            ['⚡ STCW',      stcwList],
-            ['🩺 Cert. Méd.', possuiMedico ? 'Sim' : 'Não'],
-            ['📅 Imediato',  disponivelImediato === true ? 'Sim' : disponivelImediato === false ? 'Não' : '—'],
-            ['🌐 Internac.', disponivelInternacional === true ? 'Sim' : disponivelInternacional === false ? 'Não' : '—'],
-          ] as [string, string][]).map(([l, v]) => (
-            <div key={l} className="flex items-start justify-between gap-3">
-              <span className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase flex-shrink-0">{l}</span>
-              <span className="text-[10px] font-semibold text-[#1a2b4a] text-right break-words max-w-[55%]">{v}</span>
+        <div className="space-y-3.5">
+          {/* Nome */}
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase flex-shrink-0">👤 Nome</span>
+            <span className="text-[10px] font-semibold text-[#1a2b4a] text-right break-words max-w-[55%]">{form1.nomeCompleto || '—'}</span>
+          </div>
+
+          {/* Username */}
+          {form1.username && (
+            <div className="flex items-start justify-between gap-3">
+              <span className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase flex-shrink-0">👤 @ Username</span>
+              <span className="text-[10px] font-semibold text-[#1a2b4a] text-right break-words max-w-[55%]">@{form1.username}</span>
             </div>
-          ))}
+          )}
+
+          {/* Funções em Boxes */}
+          {funcoesList.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase">⚓ Função</span>
+              <div className="flex flex-wrap gap-2">
+                {funcoesList.map((f, idx) => (
+                  <span key={idx} className="bg-[#0a1628] text-white px-3 py-1.5 text-[9px] font-semibold rounded border border-[#c9a96e]/20">
+                    {f}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* País */}
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase flex-shrink-0">🌍 País</span>
+            <span className="text-[10px] font-semibold text-[#1a2b4a] text-right break-words max-w-[55%]">{country.flag} {country.name}</span>
+          </div>
+
+          {/* Documento de Identificação com Tipo */}
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase flex-shrink-0">🪪 Doc. Ident.</span>
+            <span className="text-[10px] font-semibold text-[#1a2b4a] text-right break-words max-w-[55%]">{docTypeLabel} {form2.docNumero ? `— ${form2.docNumero}` : ''} {!form2.docNumero && '—'}</span>
+          </div>
+
+          {/* STCW */}
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase flex-shrink-0">⚡ STCW</span>
+            <span className="text-[10px] font-semibold text-[#1a2b4a] text-right break-words max-w-[55%]">{stcwList}</span>
+          </div>
+
+          {/* Certificado Médico */}
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase flex-shrink-0">🩺 Cert. Méd.</span>
+            <span className="text-[10px] font-semibold text-[#1a2b4a] text-right break-words max-w-[55%]">{possuiMedico ? 'Sim' : 'Não'}</span>
+          </div>
+
+          {/* Disponibilidade Imediata */}
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase flex-shrink-0">📅 Imediato</span>
+            <span className="text-[10px] font-semibold text-[#1a2b4a] text-right break-words max-w-[55%]">{disponivelImediato === true ? 'Sim' : disponivelImediato === false ? 'Não' : '—'}</span>
+          </div>
+
+          {/* Disponibilidade Internacional */}
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase flex-shrink-0">🌐 Internac.</span>
+            <span className="text-[10px] font-semibold text-[#1a2b4a] text-right break-words max-w-[55%]">{disponivelInternacional === true ? 'Sim' : disponivelInternacional === false ? 'Não' : '—'}</span>
+          </div>
         </div>
       </div>
 
@@ -233,13 +287,26 @@ export function Step4Medico({
           </div>
         </div>
 
-        <div className="flex items-start gap-3 p-4 border border-[#c9a96e]/20 bg-[#0a1628]/5">
-          <CheckCircle2 className="w-5 h-5 text-[#c9a96e] flex-shrink-0 mt-0.5" />
-          <p className="text-xs font-medium text-[#1a2b4a] leading-relaxed">
+        {/* Checkbox 1: Declaração de veracidade */}
+        <div
+          className={`flex items-start gap-3 p-4 border-2 cursor-pointer transition-all select-none
+            ${declarouVerdadeira ? 'border-[#0a1628] bg-[#0a1628]/5' : 'border-red-200 bg-red-50 hover:border-[#c9a96e]/30 hover:bg-gray-50'}`}
+          onClick={() => onDeclarouVerdadeiraChange(!declarouVerdadeira)}>
+          <div className={`w-6 h-6 border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all
+            ${declarouVerdadeira ? 'bg-[#0a1628] border-[#0a1628]' : 'border-red-300 bg-white'}`}>
+            {declarouVerdadeira && (
+              <svg viewBox="0 0 12 10" className="w-3.5 h-3.5 fill-none stroke-white stroke-[2.5] stroke-round">
+                <polyline points="1,5 4.5,8.5 11,1" />
+              </svg>
+            )}
+          </div>
+          <p className="text-xs font-medium text-[#1a2b4a] leading-relaxed flex-1">
             Declaro que as informações acima são verdadeiras e estou ciente das normas de segurança, exigências legais e responsabilidades envolvidas no trabalho embarcado.
+            <span className="text-red-500 font-semibold"> *</span>
           </p>
         </div>
 
+        {/* Checkbox 2: Termos e Condições */}
         <div
           className={`flex items-start gap-3 p-4 border-2 cursor-pointer transition-all select-none
             ${aceitouTermos ? 'border-[#0a1628] bg-[#0a1628]/5' : 'border-red-200 bg-red-50 hover:border-[#c9a96e]/30 hover:bg-gray-50'}`}
@@ -268,11 +335,11 @@ export function Step4Medico({
           </div>
         </div>
 
-        {!aceitouTermos && (
+        {(!declarouVerdadeira || !aceitouTermos) && (
           <div className="flex items-center gap-2.5 bg-red-50 border border-red-200 px-4 py-3">
             <span className="text-red-500 text-base flex-shrink-0">⛔</span>
             <p className="text-xs font-semibold text-red-600 leading-snug">
-              Para finalizar o cadastro, é obrigatório ler e aceitar os Termos e Condições. Clique na caixa acima para confirmar.
+              Para finalizar o cadastro, é obrigatório confirmar as declarações acima. Clique nas caixas para confirmar.
             </p>
           </div>
         )}
@@ -290,7 +357,7 @@ export function Step4Medico({
           className="px-6 py-4 border border-gray-200 text-gray-400 font-semibold text-sm uppercase hover:border-[#c9a96e] hover:text-[#1a2b4a] transition-all">
           ← Voltar
         </button>
-        <button type="submit" disabled={loading || !aceitouTermos || !declaracaoData}
+        <button type="submit" disabled={loading || !aceitouTermos || !declarouVerdadeira || !declaracaoData}
           className="flex-1 bg-[#0a1628] text-white py-4 font-semibold uppercase tracking-widest text-sm hover:bg-[#1a2b4a] transition-all disabled:opacity-40 flex items-center justify-center gap-2">
           {loading
             ? <span className="animate-pulse">Enviando...</span>

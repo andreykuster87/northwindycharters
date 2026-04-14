@@ -95,8 +95,11 @@ function CompanyCard({
       {/* Header */}
       <div className="bg-gradient-to-r from-amber-700 to-amber-600 px-6 py-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-white/20 flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-white/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+            {company.profile_photo
+              ? <img src={company.profile_photo} alt={company.nome_fantasia} className="w-full h-full object-cover" />
+              : <Building2 className="w-6 h-6 text-white" />
+            }
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-bold text-white uppercase truncate">{company.nome_fantasia}</p>
@@ -119,7 +122,7 @@ function CompanyCard({
           <Field label="Telefone"         value={company.telefone} />
           <Field label="Nº Fiscal"        value={`${company.numero_fiscal} (${company.pais_fiscal})`} />
           <Field label="Nº Registro"      value={company.numero_registro} />
-          <Field label="Cadastrado em"    value={new Date(company.created_at).toLocaleDateString('pt-PT')} />
+          <Field label="Cadastrado em"    value={new Date(company.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })} />
         </div>
 
         {/* Toggle expandido */}
@@ -157,14 +160,69 @@ function CompanyCard({
               </div>
             </div>
 
-            {/* Declarações */}
-            <div className="flex gap-2">
-              <span className={`text-[10px] font-semibold px-3 py-1.5 ${company.declarou_veracidade ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                {company.declarou_veracidade ? '✅ Veracidade confirmada' : '❌ Sem declaração'}
-              </span>
-              <span className={`text-[10px] font-semibold px-3 py-1.5 ${company.aceitou_termos ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                {company.aceitou_termos ? '✅ Termos aceites' : '❌ Termos não aceites'}
-              </span>
+            {/* Fotos */}
+            {(company.profile_photo || (company.album && company.album.length > 0)) && (
+              <div className="space-y-2">
+                <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">📷 Fotos enviadas</p>
+                {company.profile_photo && (
+                  <div>
+                    <p className="text-[9px] font-semibold text-gray-400 uppercase mb-1">Logotipo / Perfil</p>
+                    <div className="w-20 h-20 overflow-hidden border-2 border-gray-100">
+                      <img src={company.profile_photo} alt="Logotipo" className="w-full h-full object-cover" />
+                    </div>
+                  </div>
+                )}
+                {company.album && company.album.length > 0 && (
+                  <div>
+                    <p className="text-[9px] font-semibold text-gray-400 uppercase mb-1">Álbum ({company.album.length} foto{company.album.length > 1 ? 's' : ''})</p>
+                    <div className="grid grid-cols-4 gap-1">
+                      {company.album.map((url, i) => (
+                        <div key={i} className="aspect-square overflow-hidden border border-gray-100">
+                          <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Declarações e data */}
+            <div>
+              <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">
+                🛡️ Declaração e Termos
+              </p>
+              <div className="bg-green-50 border-2 border-green-100 p-4 space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className={`text-sm leading-none mt-0.5 ${company.declarou_veracidade ? 'text-green-600' : 'text-red-500'}`}>
+                    {company.declarou_veracidade ? '✓' : '✗'}
+                  </span>
+                  <p className={`text-[11px] font-bold leading-relaxed ${company.declarou_veracidade ? 'text-green-800' : 'text-red-700'}`}>
+                    {company.declarou_veracidade
+                      ? 'Declarou que todas as informações são verdadeiras e se responsabiliza pela veracidade dos dados.'
+                      : 'Não declarou veracidade das informações.'}
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className={`text-sm leading-none mt-0.5 ${company.aceitou_termos ? 'text-green-600' : 'text-red-500'}`}>
+                    {company.aceitou_termos ? '✓' : '✗'}
+                  </span>
+                  <p className={`text-[11px] font-bold ${company.aceitou_termos ? 'text-green-800' : 'text-red-700'}`}>
+                    {company.aceitou_termos
+                      ? 'Aceitou os Termos e Condições da plataforma NorthWindy.'
+                      : 'Não aceitou os Termos e Condições.'}
+                  </p>
+                </div>
+                <div className="bg-white px-3 py-2 mt-1">
+                  <p className="text-[9px] font-semibold text-gray-400 uppercase">Data do Cadastro</p>
+                  <p className="font-semibold text-[#1a2b4a] text-sm mt-0.5">
+                    {new Date(company.created_at).toLocaleString('pt-BR', {
+                      day: '2-digit', month: '2-digit', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit',
+                    })}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}

@@ -2,7 +2,7 @@
 // Secções de perfil do dossiê: dados pessoais, documentos, certificados, etc.
 import { useState } from 'react';
 import { Pencil, Check, X } from 'lucide-react';
-import { resolveDocUrl, type Sailor } from '../../lib/localStore';
+import { resolveDocUrl, DOC_TYPES, type Sailor } from '../../lib/localStore';
 import { supabase } from '../../lib/supabase';
 import { DocImage, DossierField } from './adminHelpers';
 
@@ -157,6 +157,7 @@ export function DossierSailorProfile({ sailor, isPending, isVerified }: Props) {
         <div className="grid grid-cols-2 gap-3">
           {([
             ['Nome',          sailor.name],
+            ...((sailor as any).username ? [['@ Username', `@${(sailor as any).username}`] as [string, string]] : []),
             ['E-mail',        sailor.email],
             ['Telefone',      sailor.phone || '—'],
             ['Nascimento',    (sailor as any).birth_date || '—'],
@@ -181,10 +182,19 @@ export function DossierSailorProfile({ sailor, isPending, isVerified }: Props) {
           <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">
             ⚓ Função Pretendida
           </p>
-          <div className="bg-[#0a1628] text-white px-5 py-3 font-semibold text-sm">
-            {(sailor as any).funcao === 'Outro'
-              ? ((sailor as any).funcao_outro || 'Outro')
-              : (sailor as any).funcao}
+          <div className="flex flex-wrap gap-2">
+            {(() => {
+              const rawFuncao = (sailor as any).funcao as string;
+              const funcoes = rawFuncao.split(',').map(f => f.trim()).filter(Boolean);
+              return funcoes.map(f => {
+                const label = f === 'Outro' ? ((sailor as any).funcao_outro || 'Outro') : f;
+                return (
+                  <span key={f} className="bg-[#0a1628] text-white px-4 py-2 font-semibold text-sm">
+                    {label}
+                  </span>
+                );
+              });
+            })()}
           </div>
         </div>
       )}
@@ -194,6 +204,17 @@ export function DossierSailorProfile({ sailor, isPending, isVerified }: Props) {
         <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">
           🪪 Documento de Identificação
         </p>
+        {(() => {
+          const docTipo = (sailor.passaporte as any)?.tipo;
+          const docTypeInfo = DOC_TYPES.find(d => d.value === docTipo);
+          const docTypeLabel = docTypeInfo?.label || '';
+          return docTypeLabel ? (
+            <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 px-4 py-2 mb-3">
+              <p className="text-[9px] font-semibold text-gray-400 uppercase mb-0.5">Tipo</p>
+              <p className="font-semibold text-[#1a2b4a] text-sm">{docTypeLabel}</p>
+            </div>
+          ) : null;
+        })()}
         <DocSection
           label="Documento de ID"
           numero={passaporteNumero}
@@ -218,6 +239,7 @@ export function DossierSailorProfile({ sailor, isPending, isVerified }: Props) {
             numero={cadernetaNumero}
             validade={(sailor as any).caderneta_maritima?.validade}
             docUrl={(sailor as any).caderneta_maritima?.doc_url}
+            docBackUrl={(sailor as any).caderneta_maritima?.doc_back_url}
             showMissingFile={isPending}
             sailorId={sailor.id}
             dbNumeroField="caderneta_numero"

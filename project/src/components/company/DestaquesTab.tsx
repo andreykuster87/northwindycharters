@@ -1,6 +1,6 @@
 // src/components/company/DestaquesTab.tsx
 import { useState, useEffect, useRef } from 'react';
-import { Camera, Image, Trash2, MapPin, Phone, Mail, Globe, Building2, Ship, CalendarDays, Users, Star, Search } from 'lucide-react';
+import { Camera, Image, Trash2, MapPin, Phone, Mail, Globe, Building2, Star, Search } from 'lucide-react';
 import { getCompanies, updateCompany, type Company } from '../../lib/localStore';
 import { uploadDoc } from '../../lib/storage';
 import { CompanySearchCard } from '../shared/CompanySearchCard';
@@ -20,21 +20,28 @@ export function DestaquesTab({ company, onViewCompany }: Props) {
 
   const [searchExpanded, setSearchExpanded] = useState(false);
 
+  const [contactEditing, setContactEditing] = useState(false);
+  const [telefone, setTelefone] = useState(company.telefone || '');
+  const [email, setEmail]       = useState(company.email || '');
+  const [website, setWebsite]   = useState(company.website || '');
+
   useEffect(() => {
     const fresh = getCompanies().find(c => c.id === company.id);
     if (fresh) {
       setAlbum((fresh as any).album || []);
       setProfilePhoto((fresh as any).profile_photo || null);
       setBio((fresh as any).descricao || '');
+      setTelefone(fresh.telefone || '');
+      setEmail(fresh.email || '');
+      setWebsite(fresh.website || '');
     }
   }, [company.id]);
 
-  const stats = [
-    { icon: Ship,         label: 'Embarcações', value: '4'   },
-    { icon: CalendarDays, label: 'Eventos/mês', value: '12'  },
-    { icon: Users,        label: 'Clientes',    value: '240' },
-    { icon: Star,         label: 'Avaliação',   value: '4.8' },
-  ];
+  async function saveContact() {
+    await updateCompany(company.id, { telefone, email, website });
+    setContactEditing(false);
+  }
+
 
   async function handleProfilePhoto(file: File) {
     setUploading(true);
@@ -130,6 +137,13 @@ export function DestaquesTab({ company, onViewCompany }: Props) {
               </span>
             </div>
           </div>
+
+          {/* Avaliação */}
+          <div className="flex-shrink-0 flex flex-col items-center gap-0.5">
+            <Star className="w-5 h-5 text-[#c9a96e]" fill="currentColor" />
+            <p className="text-base font-bold text-white leading-none">4.8</p>
+            <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-wider">Avaliação</p>
+          </div>
         </div>
       </div>
 
@@ -140,14 +154,22 @@ export function DestaquesTab({ company, onViewCompany }: Props) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        {stats.map(s => (
-          <div key={s.label} className="bg-white border border-gray-100 p-4 text-center">
-            <s.icon className="w-5 h-5 text-[#c9a96e] mx-auto mb-1.5" />
-            <p className="text-2xl font-bold text-[#1a2b4a]">{s.value}</p>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{s.label}</p>
-          </div>
-        ))}
+      <div className="bg-white border border-gray-100 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Descrição</p>
+          <button onClick={() => { if (editing) updateCompany(company.id, { descricao: bio }); setEditing(v=>!v); }}
+            className="text-xs font-semibold text-[#1a2b4a]">
+            {editing ? '✅ Guardar' : '✏️ Editar'}
+          </button>
+        </div>
+        {editing
+          ? <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4}
+              className="w-full bg-gray-50 border border-gray-200 py-3 px-4 text-sm font-semibold text-[#1a2b4a] focus:border-[#c9a96e] outline-none resize-none"
+              placeholder="Descreva a sua empresa…" />
+          : <p className="text-sm text-gray-600 font-semibold leading-relaxed">
+              {bio || <span className="text-gray-300 italic">Sem descrição. Clique em Editar.</span>}
+            </p>
+        }
       </div>
 
       <div className="bg-white border border-gray-100 p-4 space-y-3">
@@ -184,39 +206,63 @@ export function DestaquesTab({ company, onViewCompany }: Props) {
         )}
       </div>
 
-      <div className="bg-white border border-gray-100 p-4">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Descrição</p>
-          <button onClick={() => { if (editing) updateCompany(company.id, { descricao: bio }); setEditing(v=>!v); }}
-            className="text-xs font-semibold text-[#1a2b4a]">
-            {editing ? '✅ Guardar' : '✏️ Editar'}
+      <div className="bg-white border border-gray-100 p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Contacto</p>
+          <button
+            onClick={() => contactEditing ? saveContact() : setContactEditing(true)}
+            className="text-xs font-semibold text-[#1a2b4a]"
+          >
+            {contactEditing ? '✅ Guardar' : '✏️ Editar'}
           </button>
         </div>
-        {editing
-          ? <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4}
-              className="w-full bg-gray-50 border border-gray-200 py-3 px-4 text-sm font-semibold text-[#1a2b4a] focus:border-[#c9a96e] outline-none resize-none"
-              placeholder="Descreva a sua empresa…" />
-          : <p className="text-sm text-gray-600 font-semibold leading-relaxed">
-              {bio || <span className="text-gray-300 italic">Sem descrição. Clique em Editar.</span>}
-            </p>
-        }
-      </div>
 
-      <div className="bg-white border border-gray-100 p-4 space-y-3">
-        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Contacto</p>
-        {[
-          { icon: Phone, value: company.telefone },
-          { icon: Mail,  value: company.email },
-          { icon: Globe, value: company.website || '—' },
-          { icon: MapPin,value: `${company.cidade}, ${company.pais_nome}` },
-        ].map((r, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
-              <r.icon className="w-4 h-4 text-[#c9a96e]" />
-            </div>
-            <p className="text-sm font-semibold text-gray-700 truncate">{r.value}</p>
+        {/* Telefone */}
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
+            <Phone className="w-4 h-4 text-[#c9a96e]" />
           </div>
-        ))}
+          {contactEditing
+            ? <input value={telefone} onChange={e => setTelefone(e.target.value)}
+                className="flex-1 bg-gray-50 border border-gray-200 px-3 py-1.5 text-sm font-semibold text-[#1a2b4a] focus:border-[#c9a96e] outline-none"
+                placeholder="Telefone" />
+            : <p className="text-sm font-semibold text-gray-700 truncate">{telefone || '—'}</p>
+          }
+        </div>
+
+        {/* Email */}
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
+            <Mail className="w-4 h-4 text-[#c9a96e]" />
+          </div>
+          {contactEditing
+            ? <input value={email} onChange={e => setEmail(e.target.value)}
+                className="flex-1 bg-gray-50 border border-gray-200 px-3 py-1.5 text-sm font-semibold text-[#1a2b4a] focus:border-[#c9a96e] outline-none"
+                placeholder="Email" />
+            : <p className="text-sm font-semibold text-gray-700 truncate">{email || '—'}</p>
+          }
+        </div>
+
+        {/* Website */}
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
+            <Globe className="w-4 h-4 text-[#c9a96e]" />
+          </div>
+          {contactEditing
+            ? <input value={website} onChange={e => setWebsite(e.target.value)}
+                className="flex-1 bg-gray-50 border border-gray-200 px-3 py-1.5 text-sm font-semibold text-[#1a2b4a] focus:border-[#c9a96e] outline-none"
+                placeholder="Website" />
+            : <p className="text-sm font-semibold text-gray-700 truncate">{website || '—'}</p>
+          }
+        </div>
+
+        {/* Localização (só leitura) */}
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
+            <MapPin className="w-4 h-4 text-[#c9a96e]" />
+          </div>
+          <p className="text-sm font-semibold text-gray-700 truncate">{company.cidade}, {company.pais_nome}</p>
+        </div>
       </div>
     </div>
   );

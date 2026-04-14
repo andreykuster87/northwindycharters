@@ -335,6 +335,7 @@ export function BoatStep2Proprietario({
               type="email" value={f.email}
               onChange={e => { fd('email', e.target.value.toUpperCase()); setProfileCard(null); }}
               onBlur={e => handleEmailBlur(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleEmailBlur(f.email); } }}
               placeholder="EMAIL@EXEMPLO.COM"
               className="w-full bg-gray-50 border border-gray-200 py-3 px-4 font-bold text-[#1a2b4a] text-sm focus:border-[#c9a96e] outline-none transition-all placeholder:text-gray-300 uppercase"
             />
@@ -350,7 +351,7 @@ export function BoatStep2Proprietario({
             </>
           ) : (
             <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 px-4 py-3 text-[10px] font-bold text-[#1a2b4a]">
-              💡 Introduza o email e clique fora do campo para pesquisar o perfil automaticamente.
+              💡 Introduza o email e pressione Enter ou clique fora para pesquisar o perfil automaticamente.
             </div>
           )}
         </>
@@ -374,7 +375,8 @@ export function BoatStep2Proprietario({
                 value={f.nif}
                 onChange={e => { fd('nif', e.target.value.toUpperCase()); setCompanyCard(null); setNifSearched(false); }}
                 onBlur={e => handleNifBlur(e.target.value)}
-                placeholder="INTRODUZA O NÚMERO FISCAL E CLIQUE FORA"
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleNifBlur(f.nif); } }}
+                placeholder="INTRODUZA O NÚMERO FISCAL"
                 className={`w-full border py-3 px-4 font-bold text-[#1a2b4a] text-sm outline-none transition-all placeholder:text-gray-300 uppercase ${
                   companyCard
                     ? 'bg-[#0a1628]/5 border-[#c9a96e]/30 focus:border-[#c9a96e]'
@@ -396,7 +398,7 @@ export function BoatStep2Proprietario({
             )}
             {!nifSearched && (
               <p className="text-[10px] font-bold text-gray-400 mt-1 ml-1">
-                💡 Clique fora do campo para pesquisar automaticamente.
+                💡 Pressione Enter ou clique fora para pesquisar automaticamente.
               </p>
             )}
           </div>

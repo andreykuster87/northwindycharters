@@ -3,7 +3,7 @@
 // Orquestrador do registo de embarcação — 5 steps.
 // Estado global aqui; toda a UI nos componentes Step*.
 // ─────────────────────────────────────────────────────────────────────────────
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Ship } from 'lucide-react';
 import { saveBoat, updateBoat } from '../../lib/localStore';
 
@@ -22,6 +22,7 @@ interface Props {
   onClose: () => void;
   onSuccess: (boat: any) => void;
   sailorId?: string;
+  companyId?: string;
 }
 
 // ── Estado inicial do formulário ──────────────────────────────────────────────
@@ -41,6 +42,7 @@ const EMPTY_FORM: BoatForm = {
   extintores: '', extintoresInsp: '',
   radioVHF: '', primeirosSocorros: '', sinaisSocorro: '', sinaisVal: '',
   ultimaInsp: '', proximaInsp: '', historicoManu: '',
+  declaracaoData: '', declaracaoHora: '',
 };
 
 const STEPS_META = [
@@ -53,10 +55,17 @@ const STEPS_META = [
 
 // ── Componente ────────────────────────────────────────────────────────────────
 
-export function BoatRegistrationModal({ onClose, onSuccess, sailorId }: Props) {
+export function BoatRegistrationModal({ onClose, onSuccess, sailorId, companyId }: Props) {
   const [step,      setStep]      = useState<1|2|3|4|5>(1);
   const [loading,   setLoading]   = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (formError && scrollRef.current) {
+      scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [formError]);
   const [savedBoatId, setSavedBoatId] = useState<string | null>(null);
   const [declaracao,  setDeclaracao]  = useState(false);
 
@@ -99,6 +108,8 @@ export function BoatRegistrationModal({ onClose, onSuccess, sailorId }: Props) {
     if (s === 4) {
       if (!f.capPassageiros || parseInt(f.capPassageiros) < 1) return '⚠️ Capacidade é obrigatória.';
       if (!declaracao) return '⚠️ Aceite a declaração para continuar.';
+      if (!f.declaracaoData) return '⚠️ Preencha a data da declaração.';
+      if (!f.declaracaoHora) return '⚠️ Preencha a hora da declaração.';
     }
     return null;
   };
@@ -130,9 +141,10 @@ export function BoatRegistrationModal({ onClose, onSuccess, sailorId }: Props) {
   registoNr:       f.registoNr,
   registoVal:      f.registoVal,
   registoEntidade: f.registoEntidade,
+  company_id:      companyId || null,
 });
       const boat = await saveBoat({
-        sailor_id: sailorId || '', name: f.nome.trim(), type: f.tipo,
+        sailor_id: sailorId || null, name: f.nome.trim(), type: f.tipo,
         capacity: parseInt(f.capPassageiros) || 0,
         bie_number: f.matricula.trim(), imo_number: f.licNavNr.trim(),
         matricula: f.matricula.trim(),
@@ -202,7 +214,7 @@ export function BoatRegistrationModal({ onClose, onSuccess, sailorId }: Props) {
           <p className="text-[#c9a96e] text-xs font-semibold uppercase tracking-[0.15em]">{STEPS_META[step - 1].sub}</p>
         </div>
 
-        <div className="overflow-y-auto flex-1 px-6 py-5">
+        <div ref={scrollRef} className="overflow-y-auto flex-1 px-6 py-5">
           {formError && (
             <div className="mb-4 bg-red-50 border border-red-200 px-4 py-3 flex items-center gap-2">
               <span className="text-red-500 text-sm flex-shrink-0">⚠️</span>

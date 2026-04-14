@@ -24,7 +24,11 @@ export function FrotaTab({ companyId, onToast }: Props) {
   const [showBoatReg, setShowBoatReg] = useState(false);
   const [renderKey,   setRenderKey]   = useState(0);
 
-  const allBoats = getAllBoats(companyId);
+  const allBoats = getAllBoats().filter(b => {
+    if (b.sailor_id === companyId) return true;
+    try { return JSON.parse((b as any).metadata || '{}').company_id === companyId; }
+    catch { return false; }
+  });
 
   function reload() { setRenderKey(k => k + 1); }
 
@@ -36,29 +40,10 @@ export function FrotaTab({ companyId, onToast }: Props) {
 
   return (
     <div className="space-y-4" key={renderKey}>
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <h2 className="text-lg font-['Playfair_Display'] font-bold text-[#1a2b4a] uppercase italic">Frota</h2>
-          <p className="text-xs text-gray-400 font-semibold">Embarcações da empresa</p>
-        </div>
-        <button
-          onClick={() => setShowBoatReg(true)}
-          className="bg-[#0a1628] hover:bg-[#1a2b4a] text-white px-4 py-2.5 font-semibold text-xs uppercase flex items-center gap-1.5 flex-shrink-0 transition-all">
-          <Plus className="w-3.5 h-3.5" /> Barco
-        </button>
+      <div>
+        <h2 className="text-lg font-['Playfair_Display'] font-bold text-[#1a2b4a] uppercase italic">Frota</h2>
+        <p className="text-xs text-gray-400 font-semibold">Embarcações da empresa</p>
       </div>
-
-      {allBoats.some(b => b.status === 'pending') && (
-        <div className="bg-purple-50 border border-purple-100 px-4 py-3 flex items-center gap-3">
-          <div className="w-8 h-8 bg-purple-100 flex items-center justify-center flex-shrink-0">
-            <AlertCircle className="w-4 h-4 text-purple-600" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-purple-800">Embarcação aguarda aprovação</p>
-            <p className="text-[10px] font-semibold text-purple-600">Após aprovação pela equipa NorthWindy, ficará disponível para passeios.</p>
-          </div>
-        </div>
-      )}
 
       {allBoats.length === 0 ? (
         <div className="bg-white border-2 border-dashed border-gray-200 py-14 text-center">
@@ -67,19 +52,36 @@ export function FrotaTab({ companyId, onToast }: Props) {
           <p className="text-xs text-gray-400 font-semibold mt-1">Adicione a primeira embarcação da empresa.</p>
           <button
             onClick={() => setShowBoatReg(true)}
-            className="mt-4 bg-[#0a1628] hover:bg-[#1a2b4a] text-white px-5 py-2.5 font-semibold text-xs uppercase transition-all">
-            + Adicionar Embarcação
+            className="mt-4 bg-[#0a1628] hover:bg-[#1a2b4a] text-white px-5 py-2.5 font-semibold text-xs uppercase transition-all flex items-center gap-2 mx-auto">
+            <Plus className="w-3.5 h-3.5" /> Adicionar Embarcação
           </button>
         </div>
       ) : (
         <div className="space-y-3">
           {allBoats.map(b => {
-            const statusKey = b.status === 'active' ? 'ativo' : b.status === 'pending' ? 'pendente' : b.status;
+            const isPending = b.status === 'pending';
+            const statusKey = b.status === 'active' ? 'ativo' : isPending ? 'pendente' : b.status;
             const statusCls = FLEET_STATUS[statusKey] || FLEET_STATUS[b.status] || 'bg-gray-100 text-gray-500';
-            const statusLabel = b.status === 'active' ? 'Activa' : b.status === 'pending' ? 'Pendente' : b.status;
+            const statusLabel = b.status === 'active' ? 'Activa' : isPending ? 'Pendente' : b.status;
 
             return (
-              <div key={b.id} className="bg-white border border-gray-100 overflow-hidden hover:border-[#c9a96e]/30 transition-all">
+              <div key={b.id} className={`relative border overflow-hidden transition-all ${
+                isPending
+                  ? 'opacity-60 border-purple-100 bg-white'
+                  : 'bg-white border-gray-100 hover:border-[#c9a96e]/30'
+              }`}>
+
+                {/* Overlay "Aguardando aprovação" */}
+                {isPending && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-white/50 backdrop-blur-[1px]">
+                    <AlertCircle className="w-7 h-7 text-orange-400" />
+                    <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">Aguardando aprovação</p>
+                    <p className="text-[10px] font-semibold text-orange-400 px-4 text-center">
+                      Em análise pela equipa NorthWindy
+                    </p>
+                  </div>
+                )}
+
                 <div className="bg-gradient-to-r from-[#0a1628] to-[#1a2b4a] px-4 py-3 flex items-center gap-3">
                   {b.cover_photo ? (
                     <div className="w-10 h-10 overflow-hidden flex-shrink-0">
@@ -121,18 +123,18 @@ export function FrotaTab({ companyId, onToast }: Props) {
                     </div>
                   )}
                 </div>
-
-                {b.status === 'pending' && (
-                  <div className="mx-3 mb-3 bg-[#c9a96e]/5 border border-[#c9a96e]/20 px-3 py-2 flex items-center gap-2">
-                    <AlertCircle className="w-3.5 h-3.5 text-[#c9a96e] flex-shrink-0" />
-                    <p className="text-[10px] font-semibold text-[#1a2b4a]">
-                      Em análise pela equipa NorthWindy. Será notificado após aprovação.
-                    </p>
-                  </div>
-                )}
               </div>
             );
           })}
+
+          {/* Botão adicionar centrado abaixo da lista */}
+          <div className="pt-2 flex justify-center">
+            <button
+              onClick={() => setShowBoatReg(true)}
+              className="bg-[#0a1628] hover:bg-[#1a2b4a] text-white px-6 py-2.5 font-semibold text-xs uppercase flex items-center gap-2 transition-all">
+              <Plus className="w-3.5 h-3.5" /> Adicionar Embarcação
+            </button>
+          </div>
         </div>
       )}
 
@@ -140,7 +142,7 @@ export function FrotaTab({ companyId, onToast }: Props) {
         <BoatRegistrationModal
           onClose={() => setShowBoatReg(false)}
           onSuccess={handleBoatSuccess}
-          sailorId={companyId}
+          companyId={companyId}
         />
       )}
     </div>

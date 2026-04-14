@@ -71,6 +71,18 @@ export const DateInput = ({ label, value, onChange }: {
   </div>
 );
 
+// ── TimeInput ─────────────────────────────────────────────────────────────────
+
+export const TimeInput = ({ label, value, onChange }: {
+  label: string; value: string; onChange: (v: string) => void;
+}) => (
+  <div>
+    <label className="block text-xs font-semibold text-[#1a2b4a] uppercase mb-1.5">{label}</label>
+    <input type="time" value={value} onChange={e => onChange(e.target.value)}
+      className="w-full bg-gray-50 border border-gray-200 py-3 px-4 font-bold text-[#1a2b4a] text-sm focus:border-[#c9a96e] outline-none transition-all" />
+  </div>
+);
+
 // ── YesNo ─────────────────────────────────────────────────────────────────────
 
 export const YesNo = ({ label, value, onChange }: {

@@ -27,6 +27,26 @@ const TIPO_EMOJI: Record<string, string> = {
   Tour: '🗺️', Festa: '🎉', Outro: '🌊',
 };
 
+const AGENDA_STRIPE: Record<string, string> = {
+  Regata: '#3b82f6', Passeio: '#c9a96e', Festa: '#a855f7',
+  Workshop: '#22c55e', Travessia: '#14b8a6', Pesca: '#f97316', Outro: '#9ca3af',
+};
+
+const WEEKDAYS_SHORT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const MONTHS_SHORT   = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+function agendaFmtDate(str: string) {
+  try {
+    const d = new Date(str + 'T12:00:00');
+    return `${String(d.getDate()).padStart(2, '0')} ${MONTHS_SHORT[d.getMonth()]}`;
+  } catch { return str; }
+}
+function agendaFmtDay(str: string) {
+  try {
+    return WEEKDAYS_SHORT[new Date(str + 'T12:00:00').getDay()];
+  } catch { return ''; }
+}
+
 // ── Section label ─────────────────────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -42,6 +62,11 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function PerfilPublicoTab({ company }: { company: Company }) {
   const profilePhoto = (company as any).profile_photo as string | null ?? null;
   const album: string[] = (company as any).album ?? [];
+
+  const companyEvents = useMemo(
+    () => getPublicEvents().filter(e => e.company_id === company.id),
+    [company.id]
+  );
 
   const socials = [
     { icon: Instagram, href: company.instagram, label: 'Instagram', color: 'hover:border-pink-300 hover:text-pink-700' },
@@ -85,6 +110,61 @@ function PerfilPublicoTab({ company }: { company: Company }) {
         </div>
       </div>
 
+      {/* Sobre */}
+      {company.descricao && (
+        <div className="bg-white border-2 border-[#0a1628]/5 p-5">
+          <SectionLabel>📋 Sobre a Empresa</SectionLabel>
+          <p className="text-sm text-gray-600 font-semibold leading-relaxed">{company.descricao}</p>
+        </div>
+      )}
+
+      {/* Passeios e Eventos */}
+      {companyEvents.length > 0 && (
+        <div className="bg-white border-2 border-[#0a1628]/5 overflow-hidden">
+          <div className="px-5 pt-5 pb-3 border-b-2 border-[#0a1628]/5">
+            <SectionLabel><CalendarDays className="w-3.5 h-3.5" /> Passeios e Eventos</SectionLabel>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {companyEvents.map(ev => {
+              const color = AGENDA_STRIPE[ev.tipo] ?? '#c9a96e';
+              const emoji = ev.cover_emoji || TIPO_EMOJI[ev.tipo] || '📌';
+              return (
+                <div key={ev.id} className="flex items-stretch hover:bg-gray-50 transition-colors">
+                  <div className="w-[3px] flex-shrink-0" style={{ backgroundColor: color }} />
+                  <div className="w-9 flex items-center justify-center py-3 flex-shrink-0">
+                    <span className="text-sm leading-none">{emoji}</span>
+                  </div>
+                  <div className="flex-1 min-w-0 py-3 pr-1">
+                    <p className="font-bold text-[12px] text-[#1a2b4a] leading-snug truncate uppercase">
+                      {ev.title}
+                    </p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <MapPin className="w-2 h-2 text-gray-300 flex-shrink-0" />
+                      <span className="text-[10px] text-gray-400 truncate">{ev.local}</span>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0 flex flex-col items-end justify-center px-3 py-3 text-right">
+                    <span className="text-[8px] font-semibold text-gray-400 uppercase leading-none">
+                      {agendaFmtDay(ev.date)}
+                    </span>
+                    <span className="text-[13px] font-['Playfair_Display'] font-bold leading-tight" style={{ color }}>
+                      {agendaFmtDate(ev.date)}
+                    </span>
+                    {ev.time && <span className="text-[9px] text-gray-400 mt-0.5">{ev.time}</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="px-5 py-2.5 border-t border-gray-100 flex items-center justify-between">
+            <span className="text-[9px] text-gray-300 uppercase tracking-wider">
+              {companyEvents.length} evento{companyEvents.length > 1 ? 's' : ''} publicado{companyEvents.length > 1 ? 's' : ''}
+            </span>
+            <CalendarDays className="w-3 h-3 text-gray-200" />
+          </div>
+        </div>
+      )}
+
       {/* Galeria */}
       {album.length > 0 && (
         <div className="bg-white border-2 border-[#0a1628]/5 p-5">
@@ -96,14 +176,6 @@ function PerfilPublicoTab({ company }: { company: Company }) {
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Sobre */}
-      {company.descricao && (
-        <div className="bg-white border-2 border-[#0a1628]/5 p-5">
-          <SectionLabel>📋 Sobre a Empresa</SectionLabel>
-          <p className="text-sm text-gray-600 font-semibold leading-relaxed">{company.descricao}</p>
         </div>
       )}
 

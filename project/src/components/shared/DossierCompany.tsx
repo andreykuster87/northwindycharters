@@ -69,22 +69,13 @@ export function DossierCompany({ company, onClose }: DossierCompanyProps) {
                 </span>
               </div>
             </div>
-          </div>
 
-          {/* Stats decorativos */}
-          <div className="grid grid-cols-4 gap-2 mt-4">
-            {[
-              { icon: Ship,         label: 'Frota',     value: '—' },
-              { icon: CalendarDays, label: 'Eventos',   value: '—' },
-              { icon: Users,        label: 'Clientes',  value: '—' },
-              { icon: Star,         label: 'Avaliação', value: '—' },
-            ].map(s => (
-              <div key={s.label} className="bg-white/10 py-2 text-center">
-                <s.icon className="w-3.5 h-3.5 text-[#c9a96e] mx-auto mb-0.5" />
-                <p className="text-sm font-bold text-white">{s.value}</p>
-                <p className="text-[9px] font-semibold text-[#c9a96e] uppercase">{s.label}</p>
-              </div>
-            ))}
+            {/* Avaliação */}
+            <div className="flex-shrink-0 flex flex-col items-center gap-0.5">
+              <Star className="w-5 h-5 text-[#c9a96e]" fill="currentColor" />
+              <p className="text-base font-bold text-white leading-none">—</p>
+              <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-wider">Avaliação</p>
+            </div>
           </div>
         </div>
 
@@ -155,6 +146,20 @@ export function DossierCompany({ company, onClose }: DossierCompanyProps) {
             <p className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em] mb-2">Responsável</p>
             <p className="text-sm font-bold text-[#1a2b4a]">{company.resp_nome}</p>
             <p className="text-xs font-bold text-[#1a2b4a]">{company.resp_cargo}</p>
+          </div>
+
+          {/* Data de cadastro */}
+          <div className="border-t border-gray-100 pt-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="w-3.5 h-3.5 text-[#c9a96e]" />
+              <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Cadastrado em</span>
+            </div>
+            <span className="text-[11px] font-bold text-[#1a2b4a]">
+              {new Date(company.created_at).toLocaleString('pt-BR', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit',
+              })}
+            </span>
           </div>
 
         </div>

@@ -1,13 +1,12 @@
 // src/components/sailor/steps/Step2Documentos.tsx
 import { Calendar, Hash, CreditCard } from 'lucide-react';
 import { type Country } from '../../../constants/sailorConstants';
-import { CountryDropdown, DocTypeDropdown, DocUploadSlot } from '../SailorSharedComponents';
+import { DocTypeDropdown, DocUploadSlot } from '../SailorSharedComponents';
 import { DOC_TYPES } from '../../../lib/localStore';
 import type { DocTypeValue } from '../../../lib/localStore';
 import { applyMask, applyDateMask } from '../../../utils/sailorHelpers';
 
 interface Props {
-  country:        Country;
   phoneCountry:   Country;
   phoneRaw:       string;
   nomeCompleto:   string;
@@ -26,7 +25,6 @@ interface Props {
     cartaNumero: string; cartaEmissao: string; cartaValidade: string;
     caderneta_possui: boolean; caderneta_numero: string;
   };
-  onCountryChange:     (c: Country) => void;
   onDocIdTypeChange:   (v: DocTypeValue) => void;
   onDocIdFront:        (f: File, p: string | null) => void;
   onDocIdFrontClear:   () => void;
@@ -44,11 +42,11 @@ interface Props {
 const LABEL = 'text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.12em] ml-1 mb-1.5 flex items-center gap-1';
 
 export function Step2Documentos({
-  country, phoneCountry, phoneRaw, nomeCompleto,
+  phoneCountry, phoneRaw, nomeCompleto,
   docIdType, docIdFrontFile, docIdFrontPrev, docIdBackFile, docIdBackPrev,
   cartaType, cartaFrontFile, cartaFrontPrev, cartaBackFile, cartaBackPrev,
   form2,
-  onCountryChange, onDocIdTypeChange,
+  onDocIdTypeChange,
   onDocIdFront, onDocIdFrontClear, onDocIdBack, onDocIdBackClear,
   onCartaFront, onCartaFrontClear, onCartaBack, onCartaBackClear,
   onForm2Change, onBack, onNext,
@@ -70,8 +68,6 @@ export function Step2Documentos({
           <p className="text-[10px] text-[#c9a96e]/70 font-medium">{phoneCountry.ddi} {phoneDisplay}</p>
         </div>
       </div>
-
-      <CountryDropdown value={country.code} onChange={onCountryChange} label="Nacionalidade" />
 
       {/* ── Documento de Identificação ── */}
       <div className="bg-gray-50 border border-gray-100 p-5 space-y-4">
@@ -104,11 +100,11 @@ export function Step2Documentos({
         </div>
 
         <div className="space-y-3">
-          <DocUploadSlot label="Frente" sublabel="Lado com foto e nome" required
+          <DocUploadSlot label="Frente *" sublabel="Lado com foto e nome" required
             file={docIdFrontFile} preview={docIdFrontPrev}
             onSelect={onDocIdFront} onClear={onDocIdFrontClear} />
           {docIdInfo.hasBack && (
-            <DocUploadSlot label="Verso" sublabel="Código de barras ou dados adicionais" required
+            <DocUploadSlot label="Verso *" sublabel="Código de barras ou dados adicionais" required
               file={docIdBackFile} preview={docIdBackPrev}
               onSelect={onDocIdBack} onClear={onDocIdBackClear} />
           )}
@@ -145,11 +141,11 @@ export function Step2Documentos({
         </div>
 
         <div className="space-y-3">
-          <DocUploadSlot label="Frente da Carta" sublabel="Lado principal" required={false}
+          <DocUploadSlot label="Frente da Carta" sublabel="Lado principal (opcional)" required={false}
             file={cartaFrontFile} preview={cartaFrontPrev}
             onSelect={onCartaFront} onClear={onCartaFrontClear} />
           {cartaInfo.hasBack && (
-            <DocUploadSlot label="Verso da Carta" required={false}
+            <DocUploadSlot label="Verso da Carta" sublabel="(opcional)" required={false}
               file={cartaBackFile} preview={cartaBackPrev}
               onSelect={onCartaBack} onClear={onCartaBackClear} />
           )}

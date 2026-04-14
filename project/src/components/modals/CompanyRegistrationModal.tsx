@@ -10,6 +10,7 @@ import { CompanyRegStep1 } from './CompanyRegStep1';
 import { CompanyRegStep2 } from './CompanyRegStep2';
 import { CompanyRegStep3 } from './CompanyRegStep3';
 import { CompanyRegStep4 } from './CompanyRegStep4';
+import { CompanyRegStep5Photos } from './CompanyRegStep5Photos';
 
 
 interface Props {
@@ -20,7 +21,7 @@ interface Props {
 // ── Componente principal ──────────────────────────────────────────────────────
 
 export function CompanyRegistrationModal({ onClose, onSuccess }: Props) {
-  const [step,         setStep]         = useState<1|2|3|4>(1);
+  const [step,         setStep]         = useState<1|2|3|4|5>(1);
   const [form,         setForm]         = useState<Form>(EMPTY);
   const [error,        setError]        = useState<string | null>(null);
   const [loading,      setLoading]      = useState(false);
@@ -85,13 +86,13 @@ export function CompanyRegistrationModal({ onClose, onSuccess }: Props) {
     const err = validateStep();
     if (err) { setError(err); scrollTop(); return; }
     setError(null);
-    if (step < 4) { setStep(s => (s + 1) as 1|2|3|4); scrollTop(); }
+    if (step < 5) { setStep(s => (s + 1) as 1|2|3|4|5); scrollTop(); }
     else handleSubmit();
   }
 
   function back() {
     setError(null);
-    if (step > 1) setStep(s => (s - 1) as 1|2|3|4);
+    if (step > 1) setStep(s => (s - 1) as 1|2|3|4|5);
   }
 
   async function handleSubmit() {
@@ -100,7 +101,7 @@ export function CompanyRegistrationModal({ onClose, onSuccess }: Props) {
       const setor = form.setores.includes('Outro')
         ? [...form.setores.filter(s => s !== 'Outro'), form.setor_outro].join(', ')
         : form.setores.join(', ');
-      saveCompany({
+      await saveCompany({
         username:       form.username.trim() || undefined,
         razao_social:   form.razao_social.trim(),
         nome_fantasia:  form.nome_fantasia.trim(),
@@ -128,6 +129,8 @@ export function CompanyRegistrationModal({ onClose, onSuccess }: Props) {
         resp_telefone:  `${form.resp_ddi} ${form.resp_telefone}`.trim(),
         declarou_veracidade: form.declarou_veracidade,
         aceitou_termos:      form.aceitou_termos,
+        profile_photo:  form.profile_photo || undefined,
+        album:          form.album.length > 0 ? form.album : undefined,
         status: 'pending',
       });
       setDone(true);
@@ -225,7 +228,7 @@ export function CompanyRegistrationModal({ onClose, onSuccess }: Props) {
             </div>
             <div>
               <p className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase tracking-[0.15em]">
-                Cadastro de Empresa · Passo {step}/4
+                Cadastro de Empresa · Passo {step}/5
               </p>
               <h2 className="font-['Playfair_Display'] font-bold italic text-lg text-white">
                 {STEPS_META[step - 1].label}
@@ -254,6 +257,7 @@ export function CompanyRegistrationModal({ onClose, onSuccess }: Props) {
           {step === 2 && <CompanyRegStep2 form={form} setForm={setForm} />}
           {step === 3 && <CompanyRegStep3 form={form} setForm={setForm} />}
           {step === 4 && <CompanyRegStep4 form={form} setForm={setForm} />}
+          {step === 5 && <CompanyRegStep5Photos form={form} setForm={setForm} />}
         </div>
 
         {/* ── Indicador de scroll ── */}
@@ -284,7 +288,7 @@ export function CompanyRegistrationModal({ onClose, onSuccess }: Props) {
             className="flex-1 flex items-center justify-center gap-2 bg-[#0a1628] hover:bg-[#1a2b4a] disabled:opacity-50 text-white py-4 font-semibold text-sm uppercase tracking-widest transition-all">
             {loading ? (
               <span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
-            ) : step === 4 ? (
+            ) : step === 5 ? (
               <><Check className="w-4 h-4 text-[#c9a96e]" /> Enviar Cadastro</>
             ) : (
               <>Próximo <ChevronRight className="w-4 h-4" /></>

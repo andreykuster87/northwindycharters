@@ -7,6 +7,40 @@ interface Props {
   setForm: React.Dispatch<React.SetStateAction<Form>>;
 }
 
+function applyFiscalMask(value: string, pais: string): string {
+  if (pais === 'PT') {
+    const d = value.replace(/\D/g, '').slice(0, 9);
+    if (d.length <= 3) return d;
+    if (d.length <= 6) return `${d.slice(0,3)} ${d.slice(3)}`;
+    return `${d.slice(0,3)} ${d.slice(3,6)} ${d.slice(6,9)}`;
+  }
+  if (pais === 'BR') {
+    const d = value.replace(/\D/g, '').slice(0, 14);
+    if (d.length <= 2) return d;
+    if (d.length <= 5) return `${d.slice(0,2)}.${d.slice(2)}`;
+    if (d.length <= 8) return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5)}`;
+    if (d.length <= 12) return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8)}`;
+    return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12,14)}`;
+  }
+  if (pais === 'US') {
+    const d = value.replace(/\D/g, '').slice(0, 9);
+    if (d.length <= 2) return d;
+    return `${d.slice(0,2)}-${d.slice(2,9)}`;
+  }
+  if (['DE','FR','IT','ES','NL','BE','AT','PL','SE','DK','FI','IE','GR','CZ','HU','RO','BG','HR','SK','SI','EE','LV','LT','LU','MT','CY'].includes(pais)) {
+    // VAT EU: prefixo do país + alfanumérico
+    return value.toUpperCase().slice(0, 14);
+  }
+  return value;
+}
+
+function fiscalMaxLength(pais: string): number {
+  if (pais === 'BR') return 18;
+  if (pais === 'PT') return 11;
+  if (pais === 'US') return 10;
+  return 20;
+}
+
 export function CompanyRegStep2({ form, setForm }: Props) {
   const f = (k: keyof Form, v: string | boolean) => setForm(p => ({ ...p, [k]: v }));
 
@@ -29,13 +63,16 @@ export function CompanyRegStep2({ form, setForm }: Props) {
 
       <div>
         <Label>{fiscalLabel(form.pais_fiscal)} *</Label>
-        <Input value={form.numero_fiscal} onChange={e => f('numero_fiscal', e.target.value)}
+        <Input
+          value={form.numero_fiscal}
+          onChange={e => f('numero_fiscal', applyFiscalMask(e.target.value, form.pais_fiscal))}
           placeholder={
             form.pais_fiscal === 'BR' ? '00.000.000/0000-00' :
             form.pais_fiscal === 'PT' ? '000 000 000' :
-            form.pais_fiscal === 'US' ? 'XX-XXXXXXX' :
+            form.pais_fiscal === 'US' ? '00-0000000' :
             'Número fiscal'
           }
+          maxLength={fiscalMaxLength(form.pais_fiscal)}
         />
         <p className="text-[10px] font-bold text-gray-400 ml-1 mt-1">
           {form.pais_fiscal === 'BR' && '🇧🇷 CNPJ — Cadastro Nacional da Pessoa Jurídica'}

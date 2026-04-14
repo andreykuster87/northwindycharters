@@ -41,6 +41,7 @@ export interface BoatForm {
   extintores: string; extintoresInsp: string;
   radioVHF: string; primeirosSocorros: string; sinaisSocorro: string; sinaisVal: string;
   ultimaInsp: string; proximaInsp: string; historicoManu: string;
+  declaracaoData: string; declaracaoHora: string;
 }
 
 interface Props {

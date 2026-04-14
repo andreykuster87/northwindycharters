@@ -176,7 +176,7 @@ function mapSailor(r: any): Sailor {
     cartahabitacao: { numero: r.cartahabitacao_numero, tipo: r.cartahabitacao_tipo,
       emissao: r.cartahabitacao_emissao, validade: r.cartahabitacao_validade,
       doc_url: r.cartahabitacao_doc_url, doc_back_url: r.cartahabitacao_doc_back_url },
-    caderneta_maritima: { possui: r.caderneta_possui ?? false, numero: r.caderneta_numero, validade: r.caderneta_validade, doc_url: r.caderneta_doc_url },
+    caderneta_maritima: { possui: r.caderneta_possui ?? false, numero: r.caderneta_numero, validade: r.caderneta_validade, doc_url: r.caderneta_doc_url, doc_back_url: r.caderneta_doc_back_url },
     comprovante_endereco_url: r.comprovante_endereco_url,
     stcw: r.stcw ?? {}, stcw_validades: r.stcw_validades ?? {},
     medico: { numero: r.medico_numero, emissao: r.medico_emissao, validade: r.medico_validade, doc_url: r.medico_doc_url },
@@ -186,9 +186,10 @@ function mapSailor(r: any): Sailor {
     disponivel_imediato: r.disponivel_imediato, disponivel_internacional: r.disponivel_internacional,
     tempo_embarque: r.tempo_embarque, restricao_medica: r.restricao_medica,
     outras_informacoes: r.outras_informacoes, declaracao_data: r.declaracao_data,
-    aceitou_termos: r.aceitou_termos, status: r.status, verified: r.verified,
+    aceitou_termos: r.aceitou_termos, declarou_verdadeira: r.declarou_verdadeira, status: r.status, verified: r.verified,
     verified_at: r.verified_at, blocked: r.blocked, block_reason: r.block_reason,
     created_at: r.created_at, profile_photo: r.profile_photo ?? null,
+    username: r.username ?? undefined,
     pending_docs: r.pending_docs ?? null,
   };
 }
@@ -234,6 +235,7 @@ function sailorToRow(data: Partial<Sailor>): any {
     row.caderneta_numero = data.caderneta_maritima.numero || null;
     row.caderneta_validade = toIsoDate((data.caderneta_maritima as any).validade);
     row.caderneta_doc_url = (data.caderneta_maritima as any).doc_url ?? null;
+    row.caderneta_doc_back_url = (data.caderneta_maritima as any).doc_back_url ?? null;
     delete row.caderneta_maritima;
   }
   if (data.birth_date) row.birth_date = toIsoDate(data.birth_date);
