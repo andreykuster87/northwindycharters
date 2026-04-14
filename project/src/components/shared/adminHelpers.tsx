@@ -30,7 +30,7 @@ export function LightboxViewer({ images, startIndex = 0, labels, onClose }: Ligh
   return (
     <div
       className="fixed inset-0 z-[500] flex items-center justify-center"
-      style={{ backdropFilter: 'blur(20px)', background: 'rgba(15,23,60,0.75)' }}
+      style={{ backdropFilter: 'blur(20px)', background: 'rgba(10,22,40,0.85)' }}
       onClick={onClose}
       onKeyDown={onKey}
       tabIndex={0}
@@ -43,21 +43,21 @@ export function LightboxViewer({ images, startIndex = 0, labels, onClose }: Ligh
         <img
           src={images[idx]}
           alt={labels?.[idx] || `foto ${idx + 1}`}
-          className="max-w-full max-h-[85vh] rounded-[24px] object-contain shadow-2xl border-4 border-white/20"
+          className="max-w-full max-h-[85vh] object-contain shadow-2xl border-4 border-white/20"
           style={{ userSelect: 'none' }}
         />
 
         {/* Label */}
         {labels?.[idx] && (
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-sm px-4 py-1.5 rounded-full">
-            <p className="text-white text-xs font-black uppercase tracking-widest">{labels[idx]}</p>
+            <p className="text-white text-xs font-semibold uppercase tracking-[0.15em]">{labels[idx]}</p>
           </div>
         )}
 
         {/* Contador */}
         {total > 1 && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
-            <p className="text-white text-[10px] font-black">{idx + 1} / {total}</p>
+            <p className="text-white text-[10px] font-semibold">{idx + 1} / {total}</p>
           </div>
         )}
 
@@ -160,11 +160,11 @@ export function CopyBtn({ text }: { text: string }) {
         setDone(true);
         setTimeout(() => setDone(false), 2000);
       }}
-      className="ml-2 p-1 rounded hover:bg-blue-100 transition-colors inline-flex"
+      className="ml-2 p-1 hover:bg-[#0a1628]/5 transition-colors inline-flex"
     >
       {done
         ? <Check className="w-3 h-3 text-green-600" />
-        : <Copy className="w-3 h-3 text-blue-400" />
+        : <Copy className="w-3 h-3 text-[#c9a96e]" />
       }
     </button>
   );
@@ -185,7 +185,7 @@ export function DocImage({ url, label, allImages, allLabels }: {
 
   return (
     <div className="mt-2">
-      <p className="text-[9px] font-black text-gray-400 uppercase mb-1.5">📎 {label}</p>
+      <p className="text-[9px] font-semibold text-gray-400 uppercase mb-1.5">📎 {label}</p>
       {isImg(url) ? (
         <>
           <div onClick={() => setLightboxIdx(myIdx >= 0 ? myIdx : 0)}
@@ -193,12 +193,12 @@ export function DocImage({ url, label, allImages, allLabels }: {
             <img
               src={url}
               alt={label}
-              className="w-full max-h-48 object-contain rounded-[14px] border-2 border-blue-100 bg-gray-50 hover:border-blue-900 transition-all"
+              className="w-full max-h-48 object-contain border-2 border-[#0a1628]/10 bg-gray-50 hover:border-[#0a1628] transition-all"
             />
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all rounded-[14px] bg-blue-900/10">
-              <div className="bg-blue-900/80 text-white px-3 py-1.5 rounded-full flex items-center gap-1.5">
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all bg-[#0a1628]/10">
+              <div className="bg-[#0a1628]/80 text-white px-3 py-1.5 rounded-full flex items-center gap-1.5">
                 <ZoomIn className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-black uppercase">Ver</span>
+                <span className="text-[10px] font-semibold uppercase">Ver</span>
               </div>
             </div>
           </div>
@@ -213,11 +213,11 @@ export function DocImage({ url, label, allImages, allLabels }: {
         </>
       ) : (
         <a href={url} target="_blank" rel="noreferrer"
-          className="flex items-center gap-3 bg-blue-50 border-2 border-blue-100 rounded-[14px] px-4 py-3 hover:border-blue-900 transition-all">
+          className="flex items-center gap-3 bg-[#0a1628]/5 border-2 border-[#0a1628]/10 px-4 py-3 hover:border-[#0a1628] transition-all">
           <span className="text-xl">📄</span>
           <div>
-            <p className="font-black text-blue-900 text-xs">Ver documento</p>
-            <p className="text-[10px] text-blue-400 font-bold">Clique para abrir</p>
+            <p className="font-semibold text-[#1a2b4a] text-xs">Ver documento</p>
+            <p className="text-[10px] text-[#c9a96e] font-bold">Clique para abrir</p>
           </div>
         </a>
       )}
@@ -228,9 +228,9 @@ export function DocImage({ url, label, allImages, allLabels }: {
 /** Campo de label + valor para dossiês */
 export function DossierField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-gray-50 rounded-[15px] p-3.5">
-      <p className="text-[9px] font-black text-gray-400 uppercase">{label}</p>
-      <p className="font-black text-blue-900 text-sm mt-0.5 break-all">{value || '—'}</p>
+    <div className="bg-gray-50 p-3.5">
+      <p className="text-[9px] font-semibold text-gray-400 uppercase">{label}</p>
+      <p className="font-semibold text-[#1a2b4a] text-sm mt-0.5 break-all">{value || '—'}</p>
     </div>
   );
 }

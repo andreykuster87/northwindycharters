@@ -83,7 +83,7 @@ export function StatusBadge({ boat }: { boat: Boat }) {
     active:     { cls: 'bg-green-400 text-green-900',   label: '● Ativa' },
   };
   const { cls, label } = map[st];
-  return <span className={`${cls} text-[9px] font-black uppercase px-2 py-0.5 rounded-full`}>{label}</span>;
+  return <span className={`${cls} text-[9px] font-bold uppercase px-2 py-0.5 rounded-full`}>{label}</span>;
 }
 
 // ── Section & Field ───────────────────────────────────────────────────────────
@@ -91,9 +91,9 @@ export function StatusBadge({ boat }: { boat: Boat }) {
 export const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div>
     <div className="flex items-center gap-2 mb-3">
-      <div className="h-px flex-1 bg-blue-50" />
-      <span className="text-[10px] font-black text-blue-900 uppercase tracking-widest px-2">{title}</span>
-      <div className="h-px flex-1 bg-blue-50" />
+      <div className="h-px flex-1 bg-[#0a1628]/5" />
+      <span className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] px-2">{title}</span>
+      <div className="h-px flex-1 bg-[#0a1628]/5" />
     </div>
     {children}
   </div>
@@ -101,9 +101,9 @@ export const Section = ({ title, children }: { title: string; children: React.Re
 
 export const Field = ({ label, value }: { label: string; value?: string | number }) => (
   value !== undefined && value !== '' && value !== null ? (
-    <div className="bg-gray-50 rounded-xl p-2.5">
-      <p className="text-[9px] font-black text-gray-400 uppercase">{label}</p>
-      <p className="font-bold text-blue-900 text-xs mt-0.5 break-words">{String(value) || '—'}</p>
+    <div className="bg-gray-50 p-2.5">
+      <p className="text-[9px] font-bold text-gray-400 uppercase">{label}</p>
+      <p className="font-bold text-[#1a2b4a] text-xs mt-0.5 break-words">{String(value) || '—'}</p>
     </div>
   ) : null
 );
@@ -114,7 +114,7 @@ export function PhotoGallery({ photos, cover }: { photos: string[]; cover: strin
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
   if (!photos.length) return (
-    <div className="bg-gray-50 rounded-2xl py-8 flex flex-col items-center gap-2">
+    <div className="bg-gray-50 py-8 flex flex-col items-center gap-2">
       <Camera className="w-6 h-6 text-gray-300" />
       <p className="text-xs text-gray-400 font-bold">Sem fotos</p>
     </div>
@@ -125,12 +125,12 @@ export function PhotoGallery({ photos, cover }: { photos: string[]; cover: strin
       <div className="grid grid-cols-3 gap-2">
         {photos.map((p, i) => (
           <div key={i} onClick={() => setLightboxIdx(i)}
-            className={`relative aspect-square rounded-xl overflow-hidden cursor-zoom-in border-2 transition-all hover:border-blue-900 group
-              ${p === cover ? 'border-blue-900' : 'border-gray-100'}`}>
+            className={`relative aspect-square overflow-hidden cursor-zoom-in border-2 transition-all hover:border-[#c9a96e] group
+              ${p === cover ? 'border-[#0a1628]' : 'border-gray-100'}`}>
             <img src={p} alt={`foto ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
             {p === cover && (
-              <div className="absolute bottom-0 left-0 right-0 bg-blue-900/80 py-0.5 text-center">
-                <span className="text-[8px] font-black text-white uppercase">Capa</span>
+              <div className="absolute bottom-0 left-0 right-0 bg-[#0a1628]/80 py-0.5 text-center">
+                <span className="text-[8px] font-bold text-white uppercase">Capa</span>
               </div>
             )}
           </div>
@@ -170,19 +170,19 @@ export function SailorMiniCard({ sailor, onClick }: { sailor: Sailor & Record<st
 
   return (
     <div onClick={onClick}
-      className={`bg-gradient-to-br from-blue-900 to-blue-800 rounded-2xl overflow-hidden transition-all ${onClick ? 'cursor-pointer hover:from-blue-800 hover:to-blue-700 hover:shadow-lg' : ''}`}>
+      className={`bg-gradient-to-br from-[#0a1628] to-[#1a2b4a] overflow-hidden transition-all ${onClick ? 'cursor-pointer hover:from-[#1a2b4a] hover:to-[#0a1628] hover:shadow-lg' : ''}`}>
       <div className="px-4 py-4 flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full overflow-hidden bg-blue-700 flex-shrink-0 border-2 border-blue-600">
+        <div className="w-12 h-12 rounded-full overflow-hidden bg-[#0a1628]/60 flex-shrink-0 border-2 border-[#c9a96e]/30">
           {profilePhoto
             ? <img src={profilePhoto} alt={sailor.name} className="w-full h-full object-cover" />
-            : <div className="w-full h-full flex items-center justify-center font-black text-white text-base">
+            : <div className="w-full h-full flex items-center justify-center font-bold text-white text-base">
                 {sailor.name.substring(0, 2).toUpperCase()}
               </div>}
         </div>
         <div>
-          <p className="font-black text-white text-sm uppercase italic">{sailor.name}</p>
-          <p className="text-blue-300 text-xs font-bold">{sailor.email}</p>
-          <p className="text-blue-300 text-xs font-bold">{sailor.phone}</p>
+          <p className="font-bold text-white text-sm font-['Playfair_Display']">{sailor.name}</p>
+          <p className="text-[#c9a96e] text-xs font-bold">{sailor.email}</p>
+          <p className="text-[#c9a96e] text-xs font-bold">{sailor.phone}</p>
         </div>
       </div>
       <div className="px-4 pb-4 grid grid-cols-3 gap-2">
@@ -191,24 +191,24 @@ export function SailorMiniCard({ sailor, onClick }: { sailor: Sailor & Record<st
           { label: 'Habilitação', val: sailor.cartahabitacao?.validade },
           { label: 'Médico', val: sailor.medico?.validade },
         ].map(({ label, val }) => (
-          <div key={label} className="bg-blue-950/40 rounded-xl px-2 py-2 text-center">
-            <p className="text-[8px] font-black text-blue-400 uppercase mb-1">{label}</p>
-            <p className={`text-[10px] font-black ${expiryColor(val)}`}>{val || '—'}</p>
+          <div key={label} className="bg-[#0a1628]/40 px-2 py-2 text-center">
+            <p className="text-[8px] font-semibold text-[#c9a96e] uppercase mb-1">{label}</p>
+            <p className={`text-[10px] font-bold ${expiryColor(val)}`}>{val || '—'}</p>
           </div>
         ))}
       </div>
       {stcwList.length > 0 && (
         <div className="px-4 pb-4 flex flex-wrap gap-1">
           {stcwList.map(c => (
-            <span key={c} className="bg-blue-950/40 text-blue-200 text-[9px] font-black px-2 py-0.5 rounded-full border border-blue-700/50">
+            <span key={c} className="bg-[#0a1628]/40 text-[#c9a96e] text-[9px] font-bold px-2 py-0.5 rounded-full border border-[#c9a96e]/30">
               ✓ {c}
             </span>
           ))}
         </div>
       )}
       {onClick && (
-        <div className="px-4 pb-3 border-t border-blue-800/50 pt-2 text-center">
-          <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest">Ver dossiê completo →</span>
+        <div className="px-4 pb-3 border-t border-[#c9a96e]/20 pt-2 text-center">
+          <span className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Ver dossiê completo →</span>
         </div>
       )}
     </div>

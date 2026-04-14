@@ -52,7 +52,7 @@ export function CarouselPreview({ photos, cover }: { photos: string[]; cover: st
   const canNext = idx < photos.length - 1;
 
   return (
-    <div className="relative rounded-[20px] overflow-hidden bg-blue-900" style={{ aspectRatio: '16/7' }}>
+    <div className="relative overflow-hidden bg-[#0a1628]" style={{ aspectRatio: '16/7' }}>
       <img
         key={current}
         src={current}
@@ -62,13 +62,13 @@ export function CarouselPreview({ photos, cover }: { photos: string[]; cover: st
 
       {/* Badge CAPA */}
       {current === cover && (
-        <div className="absolute top-3 left-3 bg-blue-900/90 text-white text-[9px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm">
+        <div className="absolute top-3 left-3 bg-[#0a1628]/90 text-white text-[9px] font-semibold px-2.5 py-1 flex items-center gap-1 backdrop-blur-sm">
           ⭐ CAPA
         </div>
       )}
 
       {/* Contador */}
-      <div className="absolute top-3 right-3 bg-black/50 text-white text-[9px] font-black px-2 py-1 rounded-full backdrop-blur-sm">
+      <div className="absolute top-3 right-3 bg-black/50 text-white text-[9px] font-semibold px-2 py-1 backdrop-blur-sm">
         {idx + 1} / {photos.length}
       </div>
 
@@ -76,14 +76,14 @@ export function CarouselPreview({ photos, cover }: { photos: string[]; cover: st
       {canPrev && (
         <button type="button"
           onClick={() => setIdx(i => i - 1)}
-          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white w-9 h-9 rounded-full flex items-center justify-center transition-all backdrop-blur-sm">
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white w-9 h-9 flex items-center justify-center transition-all backdrop-blur-sm">
           <ChevronLeft className="w-5 h-5" />
         </button>
       )}
       {canNext && (
         <button type="button"
           onClick={() => setIdx(i => i + 1)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white w-9 h-9 rounded-full flex items-center justify-center transition-all backdrop-blur-sm">
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white w-9 h-9 flex items-center justify-center transition-all backdrop-blur-sm">
           <ChevronRight className="w-5 h-5" />
         </button>
       )}
@@ -94,7 +94,7 @@ export function CarouselPreview({ photos, cover }: { photos: string[]; cover: st
           {photos.map((_, i) => (
             <button key={i} type="button"
               onClick={() => setIdx(i)}
-              className={`rounded-full transition-all ${i === idx ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/50 hover:bg-white/80'}`}
+              className={`transition-all ${i === idx ? 'w-5 h-2 bg-[#c9a96e]' : 'w-2 h-2 bg-white/50 hover:bg-white/80'}`}
             />
           ))}
         </div>

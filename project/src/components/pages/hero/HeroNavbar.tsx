@@ -30,10 +30,13 @@ export function HeroNavbar({
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Abrir menu"
-            className="flex flex-col items-center justify-center gap-[5px] w-10 h-10 rounded-xl transition-all hover:scale-105 flex-shrink-0 bg-white border border-gray-200 hover:border-blue-900 shadow-sm z-10">
-            <span className="block h-[2px] w-5 rounded-full bg-blue-900" />
-            <span className="block h-[2px] w-5 rounded-full bg-blue-900" />
-            <span className="block h-[2px] w-5 rounded-full bg-blue-900" />
+            className={`flex flex-col items-center justify-center gap-[5px] w-10 h-10 rounded-xl transition-all hover:scale-105 flex-shrink-0 shadow-sm z-10
+              ${(!scrolled || navWhite)
+                ? 'bg-white border border-gray-200 hover:border-blue-900'
+                : 'bg-white/20 hover:bg-white/30 border border-white/30 backdrop-blur-sm'}`}>
+            <span className={`block h-[2px] w-5 rounded-full ${(!scrolled || navWhite) ? 'bg-blue-900' : 'bg-white'}`} />
+            <span className={`block h-[2px] w-5 rounded-full ${(!scrolled || navWhite) ? 'bg-blue-900' : 'bg-white'}`} />
+            <span className={`block h-[2px] w-5 rounded-full ${(!scrolled || navWhite) ? 'bg-blue-900' : 'bg-white'}`} />
           </button>
 
           <button
@@ -93,9 +96,10 @@ export function HeroNavbar({
           {[
             { label: 'Quem somos',           path: '/quem-somos' },
             { label: 'Catálogo de passeios', path: '/passeios' },
+            { label: 'Marketplace',          path: '/marketplace' },
             { label: 'Parceiros',            path: '/parceiros' },
             { label: 'Comunidade',           path: '/comunidade' },
-            { label: 'Contatos',             action: () => { window.location.href = 'mailto:geral@northwindy.com'; } },
+            { label: 'Contatos',             action: () => { navigate('/'); setTimeout(() => document.getElementById('site-footer')?.scrollIntoView({ behavior: 'smooth' }), 150); } },
             { label: 'Termos e condições',   path: '/termos' },
             { label: 'FAQ',                  path: '/faq' },
           ].map((item, i) => (
@@ -107,7 +111,10 @@ export function HeroNavbar({
                 else if (item.path) navigate(item.path);
               }}
               className="w-full flex items-center justify-between px-6 py-4 hover:bg-blue-50 text-left transition-colors border-b border-gray-50 last:border-0 group">
-              <span className="font-black text-blue-900 text-sm group-hover:translate-x-1 transition-transform duration-150">{item.label}</span>
+              <span className="flex flex-col group-hover:translate-x-1 transition-transform duration-150">
+                <span className="font-black text-blue-900 text-sm">{item.label}</span>
+                {item.sub && <span className="text-[10px] text-gray-400 font-medium">{item.sub}</span>}
+              </span>
               <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-900 transition-colors" />
             </button>
           ))}

@@ -17,10 +17,10 @@ export function Stepper({ current, done }: { current: TabN; done: Set<number> })
                   : 'bg-white/10 border-white/20'}`}>
                 {isDone
                   ? <CheckCircle2 className="w-4 h-4 text-green-900" />
-                  : <span className={isActive ? 'text-blue-900' : 'text-white/40'}>{tab.icon}</span>
+                  : <span className={isActive ? 'text-[#1a2b4a]' : 'text-white/40'}>{tab.icon}</span>
                 }
               </div>
-              <span className={`text-[9px] font-black uppercase tracking-wider transition-all
+              <span className={`text-[9px] font-semibold uppercase tracking-wider transition-all
                 ${isActive ? 'text-white' : isDone ? 'text-green-300' : 'text-white/30'}`}>
                 {tab.short}
               </span>

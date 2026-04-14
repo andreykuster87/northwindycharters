@@ -78,7 +78,7 @@ export function BoatStep1Embarcacao({ f, fd, onNext }: Props) {
         <BoatInput label="Boca (m)" value={f.boca} onChange={v => fd('boca', v)} type="number" placeholder="3.8" />
         <BoatInput label="Calado (m)" value={f.calado} onChange={v => fd('calado', v)} type="number" placeholder="1.8" />
       </div>
-      <button type="submit" className="w-full bg-blue-900 text-white py-4 rounded-2xl font-black uppercase text-sm hover:bg-blue-800 transition-all flex items-center justify-center gap-2">
+      <button type="submit" className="w-full bg-[#0a1628] text-white py-4 font-semibold uppercase text-sm hover:bg-[#0a1628]/90 transition-all flex items-center justify-center gap-2">
         Próximo <ChevronRight className="w-4 h-4" />
       </button>
     </form>

@@ -89,26 +89,26 @@ export function DossierBoat({
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-blue-900/60 backdrop-blur-md" onClick={onClose}>
-        <div className="bg-white w-full max-w-lg max-h-[92vh] flex flex-col rounded-[32px] shadow-2xl border-4 border-blue-900 overflow-hidden"
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#0a1628]/60 backdrop-blur-md" onClick={onClose}>
+        <div className="bg-white w-full max-w-lg max-h-[92vh] flex flex-col shadow-2xl border-4 border-[#0a1628] overflow-hidden"
           onClick={e => e.stopPropagation()}>
 
           {/* ── Capa ── */}
           <div className="relative flex-shrink-0" style={{ height: '180px' }}>
             {currentBoat.cover_photo
               ? <img src={currentBoat.cover_photo} alt={currentBoat.name} className="w-full h-full object-cover" />
-              : <div className="w-full h-full bg-blue-950 flex items-center justify-center"><Ship className="w-16 h-16 text-blue-700" /></div>}
-            <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 via-blue-900/40 to-transparent" />
+              : <div className="w-full h-full bg-[#0a1628] flex items-center justify-center"><Ship className="w-16 h-16 text-[#c9a96e]" /></div>}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/90 via-[#0a1628]/40 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 px-6 py-4 flex items-end justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <StatusBadge boat={currentBoat} />
-                  {currentBoat.type && <span className="bg-white/20 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">{currentBoat.type}</span>}
+                  {currentBoat.type && <span className="bg-white/20 text-white text-[9px] font-semibold uppercase px-2 py-0.5 rounded-full">{currentBoat.type}</span>}
                 </div>
-                <h3 className="text-2xl font-black text-white uppercase italic leading-tight">{currentBoat.name}</h3>
-                {(currentBoat as any).matricula && <p className="text-blue-300 text-xs font-bold mt-0.5">{(currentBoat as any).matricula}</p>}
+                <h3 className="text-2xl font-bold text-white uppercase italic leading-tight">{currentBoat.name}</h3>
+                {(currentBoat as any).matricula && <p className="text-[#c9a96e] text-xs font-bold mt-0.5">{(currentBoat as any).matricula}</p>}
               </div>
-              <button onClick={onClose} className="bg-blue-800/80 hover:bg-blue-700 text-white p-2.5 rounded-full flex-shrink-0 transition-all">
+              <button onClick={onClose} className="bg-[#0a1628]/80 hover:bg-[#0a1628] text-white p-2.5 rounded-full flex-shrink-0 transition-all">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -204,9 +204,9 @@ export function DossierBoat({
                   <Field label="Próxima inspeção"       value={fmtDate(meta.proximaInsp)} />
                 </div>
                 {meta.historicoManu && (
-                  <div className="mt-2 bg-gray-50 rounded-xl p-3">
-                    <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Histórico de manutenção</p>
-                    <p className="text-xs font-bold text-blue-900 leading-relaxed">{meta.historicoManu}</p>
+                  <div className="mt-2 bg-gray-50 p-3">
+                    <p className="text-[9px] font-semibold text-gray-400 uppercase mb-1">Histórico de manutenção</p>
+                    <p className="text-xs font-bold text-[#1a2b4a] leading-relaxed">{meta.historicoManu}</p>
                   </div>
                 )}
               </Section>
@@ -216,13 +216,13 @@ export function DossierBoat({
             <Section title="Documentos de Licenciamento">
               <div className="flex items-center justify-between mb-3">
                 <button type="button" onClick={() => setDocsOpen(o => !o)}
-                  className="flex items-center gap-2 text-xs font-black text-blue-900 uppercase hover:text-blue-700 transition-colors">
+                  className="flex items-center gap-2 text-xs font-semibold text-[#1a2b4a] uppercase hover:text-[#c9a96e] transition-colors">
                   <FileText className="w-3.5 h-3.5" />
                   {docsOpen ? 'Ocultar documentos' : 'Ver documentos'}
                   {docsOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 </button>
                 {verified && (
-                  <span className="text-[9px] font-black text-gray-400 uppercase flex items-center gap-1">
+                  <span className="text-[9px] font-semibold text-gray-400 uppercase flex items-center gap-1">
                     <Lock className="w-3 h-3" /> Bloqueado — editável 15d antes do vencimento
                   </span>
                 )}
@@ -256,11 +256,11 @@ export function DossierBoat({
             {mode === 'pending' && (
               <div className="flex gap-3 pt-2">
                 <button onClick={() => onReject?.(currentBoat)}
-                  className="flex-1 border-2 border-red-200 text-red-600 hover:bg-red-50 py-4 rounded-2xl font-black text-sm uppercase transition-all flex items-center justify-center gap-2">
+                  className="flex-1 border-2 border-red-200 text-red-600 hover:bg-red-50 py-4 font-semibold text-sm uppercase transition-all flex items-center justify-center gap-2">
                   <XCircle className="w-4 h-4" /> Rejeitar
                 </button>
                 <button onClick={() => onApprove?.(currentBoat)}
-                  className="flex-1 bg-green-600 hover:bg-green-500 text-white py-4 rounded-2xl font-black text-sm uppercase transition-all flex items-center justify-center gap-2 shadow-md">
+                  className="flex-1 bg-green-600 hover:bg-green-500 text-white py-4 font-semibold text-sm uppercase transition-all flex items-center justify-center gap-2 shadow-md">
                   <ShieldCheck className="w-4 h-4" /> Aprovar
                 </button>
               </div>
@@ -274,20 +274,20 @@ export function DossierBoat({
 
                   if (!ok) return (
                     <div className="space-y-3">
-                      <button disabled className="w-full bg-amber-50 border-2 border-amber-300 text-amber-700 py-4 rounded-2xl font-black uppercase text-sm flex items-center justify-center gap-2 cursor-not-allowed">
-                        <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" /> Cadastro Incompleto — Preencha os Dados
+                      <button disabled className="w-full bg-[#c9a96e]/5 border-2 border-[#c9a96e]/20 text-[#1a2b4a] py-4 font-semibold uppercase text-sm flex items-center justify-center gap-2 cursor-not-allowed">
+                        <AlertTriangle className="w-4 h-4 text-[#c9a96e] flex-shrink-0" /> Cadastro Incompleto — Preencha os Dados
                       </button>
-                      <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl px-4 py-3 space-y-1.5">
-                        <p className="text-[10px] font-black text-amber-700 uppercase">Documentos em falta:</p>
+                      <div className="bg-[#c9a96e]/5 border-2 border-[#c9a96e]/20 px-4 py-3 space-y-1.5">
+                        <p className="text-[10px] font-semibold text-[#1a2b4a] uppercase">Documentos em falta:</p>
                         {missing.map(item => (
                           <div key={item} className="flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
-                            <p className="text-xs font-bold text-amber-700">{item}</p>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#c9a96e] flex-shrink-0" />
+                            <p className="text-xs font-bold text-[#1a2b4a]">{item}</p>
                           </div>
                         ))}
                       </div>
                       <button onClick={handleSendToVerification} disabled={sentToVerif}
-                        className={`w-full py-4 rounded-2xl font-black uppercase text-sm transition-all flex items-center justify-center gap-2 ${sentToVerif ? 'bg-green-50 border-2 border-green-300 text-green-700 cursor-not-allowed' : 'bg-blue-900 text-white hover:bg-blue-800 shadow-md'}`}>
+                        className={`w-full py-4 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2 ${sentToVerif ? 'bg-green-50 border-2 border-green-300 text-green-700 cursor-not-allowed' : 'bg-[#0a1628] text-white hover:bg-[#0a1628]/90 shadow-md'}`}>
                         {sentToVerif ? <><ShieldCheck className="w-4 h-4" /> Enviado!</> : <><ShieldCheck className="w-4 h-4" /> Enviar para Verificação</>}
                       </button>
                     </div>
@@ -297,15 +297,15 @@ export function DossierBoat({
                     <div className="space-y-2">
                       {!sentToVerif ? (
                         <button onClick={handleSendToVerification}
-                          className="w-full bg-blue-900 text-white py-4 rounded-2xl font-black uppercase text-sm hover:bg-blue-800 transition-all flex items-center justify-center gap-2 shadow-md">
+                          className="w-full bg-[#0a1628] text-white py-4 font-semibold uppercase text-sm hover:bg-[#0a1628]/90 transition-all flex items-center justify-center gap-2 shadow-md">
                           <ShieldCheck className="w-4 h-4" /> Enviar para Verificação
                         </button>
                       ) : (
-                        <button disabled className="w-full bg-green-50 border-2 border-green-300 text-green-700 py-4 rounded-2xl font-black uppercase text-sm flex items-center justify-center gap-2 cursor-not-allowed">
+                        <button disabled className="w-full bg-green-50 border-2 border-green-300 text-green-700 py-4 font-semibold uppercase text-sm flex items-center justify-center gap-2 cursor-not-allowed">
                           <ShieldCheck className="w-4 h-4" /> Enviado para Verificação!
                         </button>
                       )}
-                      <button disabled className="w-full bg-gray-50 border-2 border-gray-200 text-gray-400 py-3 rounded-2xl font-black uppercase text-sm flex items-center justify-center gap-2 cursor-not-allowed">
+                      <button disabled className="w-full bg-gray-50 border-2 border-gray-200 text-gray-400 py-3 font-semibold uppercase text-sm flex items-center justify-center gap-2 cursor-not-allowed">
                         <AlertTriangle className="w-3.5 h-3.5" /> Aguardando Verificação do Admin
                       </button>
                       <p className="text-[10px] font-bold text-gray-400 text-center px-2">
@@ -316,7 +316,7 @@ export function DossierBoat({
 
                   return (
                     <button onClick={() => { onCreateTrip(currentBoat); onClose(); }}
-                      className="w-full bg-blue-900 text-white py-4 rounded-2xl font-black uppercase text-sm hover:bg-blue-800 transition-all flex items-center justify-center gap-2 shadow-md">
+                      className="w-full bg-[#0a1628] text-white py-4 font-semibold uppercase text-sm hover:bg-[#0a1628]/90 transition-all flex items-center justify-center gap-2 shadow-md">
                       <MapPin className="w-4 h-4 text-green-400" /> Criar Passeio com esta Embarcação
                     </button>
                   );
@@ -324,12 +324,12 @@ export function DossierBoat({
 
                 {onFilterByBoat && (
                   <button onClick={() => { onFilterByBoat(currentBoat.id); onClose(); }}
-                    className="w-full border-2 border-blue-900 text-blue-900 hover:bg-blue-50 py-4 rounded-2xl font-black uppercase text-sm transition-all flex items-center justify-center gap-2">
+                    className="w-full border-2 border-[#0a1628] text-[#1a2b4a] hover:bg-gray-50 py-4 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2">
                     <Compass className="w-4 h-4" /> Ver Reservas desta Embarcação
                   </button>
                 )}
                 <button onClick={onClose}
-                  className="w-full border-2 border-gray-100 text-gray-400 py-3 rounded-2xl font-black uppercase text-sm hover:border-gray-300 transition-all">
+                  className="w-full border-2 border-gray-100 text-gray-400 py-3 font-semibold uppercase text-sm hover:border-gray-300 transition-all">
                   Fechar
                 </button>
               </div>

@@ -12,7 +12,7 @@ export function CompanyRegStep1({ form, setForm }: Props) {
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-      <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-2">
+      <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-2">
         🏢 Informações Básicas
       </p>
 
@@ -25,6 +25,23 @@ export function CompanyRegStep1({ form, setForm }: Props) {
         <Label>Nome Fantasia *</Label>
         <Input value={form.nome_fantasia} onChange={e => f('nome_fantasia', e.target.value.toUpperCase())}
           placeholder="NOME COMERCIAL" style={{textTransform:'uppercase'}} />
+      </div>
+
+      <div>
+        <Label>@ na plataforma *  <span className="text-gray-400 normal-case font-bold">como será chamado(a)</span></Label>
+        <div className="relative">
+          <span className="absolute left-5 top-1/2 -translate-y-1/2 text-[#c9a96e] font-semibold text-sm select-none">@</span>
+          <Input
+            value={form.username}
+            onChange={e => f('username', e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 20))}
+            placeholder="usuario_empresa"
+            className="pl-9"
+          />
+        </div>
+        {form.username && (
+          <p className="text-[10px] font-bold text-[#c9a96e] ml-1 mt-1">@{form.username}</p>
+        )}
+        <p className="text-[10px] font-bold text-gray-400 ml-1 mt-0.5">3–20 caracteres · apenas letras, números, _ e .</p>
       </div>
 
       <div>
@@ -42,8 +59,8 @@ export function CompanyRegStep1({ form, setForm }: Props) {
                 }}
                 className={`px-3 py-2 rounded-[14px] text-xs font-black border-2 transition-all flex items-center gap-1.5 ${
                   selected
-                    ? 'bg-blue-900 text-white border-blue-900'
-                    : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-blue-300'
+                    ? 'bg-[#0a1628] text-white border-[#c9a96e]'
+                    : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-[#c9a96e]/50'
                 }`}>
                 {selected && <Check className="w-3 h-3" />}
                 {s}
@@ -52,7 +69,7 @@ export function CompanyRegStep1({ form, setForm }: Props) {
           })}
         </div>
         {form.setores.length > 0 && (
-          <p className="text-[10px] font-bold text-blue-700 mt-2 ml-1">
+          <p className="text-[10px] font-bold text-[#c9a96e] mt-2 ml-1">
             ✓ {form.setores.length} setor{form.setores.length > 1 ? 'es' : ''} selecionado{form.setores.length > 1 ? 's' : ''}
           </p>
         )}
@@ -70,7 +87,7 @@ export function CompanyRegStep1({ form, setForm }: Props) {
           placeholder="Breve descrição da actividade…" />
       </div>
 
-      <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-2 pt-2">
+      <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-2 pt-2">
         🌍 Localização
       </p>
 

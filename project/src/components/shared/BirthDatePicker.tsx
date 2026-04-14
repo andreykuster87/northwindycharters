@@ -24,7 +24,7 @@ export function BirthDatePicker({ day, month, year, onDay, onMonth, onYear }: {
 
   return (
     <div>
-      <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1.5">
+      <label className="text-[10px] font-bold text-[#1a2b4a] uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1.5">
         <Calendar className="w-3 h-3" /> Data de Nascimento *
       </label>
       <input
@@ -34,7 +34,7 @@ export function BirthDatePicker({ day, month, year, onDay, onMonth, onYear }: {
         onChange={e => handleChange(e.target.value)}
         placeholder="dd/mm/aaaa"
         maxLength={10}
-        className="w-full bg-white border-2 border-gray-100 rounded-[15px] py-3 px-4 font-bold text-blue-900 outline-none text-sm focus:border-blue-900 transition-all"
+        className="w-full bg-white border-2 border-gray-100 py-3 px-4 font-bold text-[#1a2b4a] outline-none text-sm focus:border-[#c9a96e] transition-all"
       />
     </div>
   );

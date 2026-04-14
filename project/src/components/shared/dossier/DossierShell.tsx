@@ -19,26 +19,26 @@ interface Props {
 export function DossierShell({ initials, subtitle, name, badges, children, onClose }: Props) {
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-blue-900/60 backdrop-blur-md"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#0a1628]/60 backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-[40px] shadow-2xl border-4 border-blue-900 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border-4 border-[#0a1628] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         onClick={e => e.stopPropagation()}
       >
         {/* ── Cabeçalho ── */}
-        <div className="bg-blue-900 px-8 py-6 flex items-center gap-4 rounded-t-[36px]">
-          <div className="w-14 h-14 bg-white/20 text-white rounded-full flex items-center justify-center font-black text-xl flex-shrink-0">
+        <div className="bg-[#0a1628] px-8 py-6 flex items-center gap-4">
+          <div className="w-14 h-14 bg-white/20 text-white rounded-full flex items-center justify-center font-bold text-xl flex-shrink-0">
             {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-blue-300 text-[10px] font-black uppercase tracking-widest">{subtitle}</p>
-            <h3 className="text-2xl font-black text-white uppercase italic truncate">{name}</h3>
+            <p className="text-[#c9a96e] text-[10px] font-semibold uppercase tracking-[0.15em]">{subtitle}</p>
+            <h3 className="text-2xl font-['Playfair_Display'] font-bold text-white truncate">{name}</h3>
             <div className="flex items-center gap-2 mt-1 flex-wrap">{badges}</div>
           </div>
           <button
             onClick={onClose}
-            className="bg-blue-800 hover:bg-blue-700 text-white p-2.5 rounded-full flex-shrink-0"
+            className="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-full flex-shrink-0"
           >
             <XCircle className="w-5 h-5" />
           </button>
@@ -49,7 +49,7 @@ export function DossierShell({ initials, subtitle, name, badges, children, onClo
           {children}
           <button
             onClick={onClose}
-            className="w-full border-2 border-gray-100 text-gray-400 py-4 rounded-[25px] font-black uppercase text-sm hover:border-blue-900 hover:text-blue-900 transition-all"
+            className="w-full border-2 border-gray-100 text-gray-400 py-4 font-semibold uppercase text-sm hover:border-[#0a1628] hover:text-[#1a2b4a] transition-all"
           >
             Fechar
           </button>

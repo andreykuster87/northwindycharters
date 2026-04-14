@@ -34,18 +34,18 @@ function RoleSelect({ value, onChange }: { value: string; onChange: (v: string) 
   return (
     <div ref={ref} className="relative" style={{ minWidth: '9rem' }}>
       <button type="button" onClick={() => setOpen(o => !o)}
-        className={`w-full flex items-center justify-between gap-1 bg-white/80 border rounded-lg py-1.5 px-2.5 text-xs font-bold transition-all outline-none
-          ${open ? 'border-blue-900' : 'border-gray-200'} ${value && value !== 'Outro' ? 'text-blue-900' : 'text-gray-400'}`}>
+        className={`w-full flex items-center justify-between gap-1 bg-white/80 border py-1.5 px-2.5 text-xs font-bold transition-all outline-none
+          ${open ? 'border-[#0a1628]' : 'border-gray-200'} ${value && value !== 'Outro' ? 'text-[#1a2b4a]' : 'text-gray-400'}`}>
         <span className="truncate">{value === 'Outro' ? '✏️ Outro' : display}</span>
         <ChevronDown className={`w-3 h-3 text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute z-50 left-0 mt-1 w-44 bg-white border-2 border-blue-900 rounded-xl shadow-xl overflow-hidden">
+        <div className="absolute z-50 left-0 mt-1 w-44 bg-white border-2 border-[#0a1628] shadow-xl overflow-hidden">
           <div className="max-h-48 overflow-y-auto">
             {FUNCOES_TRIPULACAO.map(f => (
               <button key={f} type="button"
                 onClick={() => { if (f === 'Outro') { onChange('Outro'); setOpen(false); setTimeout(() => inputRef.current?.focus(), 50); } else { onChange(f); setOpen(false); } }}
-                className={`w-full text-left px-3 py-2 text-xs font-bold transition-colors hover:bg-blue-50 ${value === f ? 'bg-blue-900 text-white' : 'text-blue-900'}`}>
+                className={`w-full text-left px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-50 ${value === f ? 'bg-[#0a1628] text-white' : 'text-[#1a2b4a]'}`}>
                 {f === 'Outro' ? '✏️ Outro — escrever' : f}
               </button>
             ))}
@@ -56,7 +56,7 @@ function RoleSelect({ value, onChange }: { value: string; onChange: (v: string) 
         <input ref={inputRef} type="text" value={outroText}
           onChange={e => { setOutroText(e.target.value); onChange(e.target.value || 'Outro'); }}
           placeholder="Qual a função?"
-          className="mt-1 w-full bg-amber-50 border border-amber-300 rounded-lg py-1.5 px-2.5 text-xs font-bold text-blue-900 focus:border-blue-900 outline-none"
+          className="mt-1 w-full bg-[#c9a96e]/5 border border-[#c9a96e]/30 py-1.5 px-2.5 text-xs font-bold text-[#1a2b4a] focus:border-[#0a1628] outline-none"
           onKeyDown={e => e.key === 'Enter' && e.preventDefault()} />
       )}
     </div>
@@ -179,8 +179,8 @@ export function CrewManager({ boat, onBoatUpdate }: CrewManagerProps) {
     <div className="space-y-4">
 
       {/* ── Adicionar ── */}
-      <div className="bg-blue-50 border-2 border-blue-100 rounded-2xl p-4 space-y-3">
-        <p className="text-xs font-black text-blue-900 uppercase flex items-center gap-2">
+      <div className="bg-[#0a1628]/5 border-2 border-[#0a1628]/10 p-4 space-y-3">
+        <p className="text-xs font-semibold text-[#1a2b4a] uppercase flex items-center gap-2">
           <UserPlus className="w-3.5 h-3.5" /> Adicionar Tripulante
         </p>
         <div className="flex gap-2">
@@ -190,34 +190,34 @@ export function CrewManager({ boat, onBoatUpdate }: CrewManagerProps) {
               onChange={e => { setEmailInput(e.target.value); setError(null); }}
               onKeyDown={e => e.key === 'Enter' && handleAdd()}
               placeholder="Email do tripulante..."
-              className="w-full bg-white border-2 border-gray-100 rounded-xl py-2.5 pl-9 pr-3 text-sm font-bold text-blue-900 focus:border-blue-900 outline-none transition-all placeholder:text-gray-300 placeholder:font-normal" />
+              className="w-full bg-white border-2 border-gray-100 py-2.5 pl-9 pr-3 text-sm font-bold text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all placeholder:text-gray-300 placeholder:font-normal" />
           </div>
           <RoleSelect value={roleInput} onChange={setRoleInput} />
           <button type="button" onClick={handleAdd}
-            className="bg-blue-900 hover:bg-blue-800 text-white px-4 rounded-xl font-black text-xs uppercase transition-all flex items-center gap-1.5 flex-shrink-0">
+            className="bg-[#0a1628] hover:bg-[#0a1628]/90 text-white px-4 font-semibold text-xs uppercase transition-all flex items-center gap-1.5 flex-shrink-0">
             <UserPlus className="w-3.5 h-3.5" /> Adicionar
           </button>
         </div>
-        {error   && <div className="flex items-start gap-2 bg-red-50 border-2 border-red-200 rounded-xl px-3 py-2.5"><AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" /><p className="text-xs font-bold text-red-700">{error}</p></div>}
-        {warning && <div className="flex items-start gap-2 bg-amber-50 border-2 border-amber-200 rounded-xl px-3 py-2.5"><AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" /><p className="text-xs font-bold text-amber-700">{warning}</p></div>}
-        {success && <div className="flex items-center gap-2 bg-green-50 border-2 border-green-200 rounded-xl px-3 py-2.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" /><p className="text-xs font-bold text-green-700">{success}</p></div>}
+        {error   && <div className="flex items-start gap-2 bg-red-50 border-2 border-red-200 px-3 py-2.5"><AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" /><p className="text-xs font-bold text-red-700">{error}</p></div>}
+        {warning && <div className="flex items-start gap-2 bg-amber-50 border-2 border-amber-200 px-3 py-2.5"><AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" /><p className="text-xs font-bold text-amber-700">{warning}</p></div>}
+        {success && <div className="flex items-center gap-2 bg-green-50 border-2 border-green-200 px-3 py-2.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" /><p className="text-xs font-bold text-green-700">{success}</p></div>}
       </div>
 
       {/* ── Modal bloqueado ── */}
       {confirmBlock && (
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setConfirmBlock(null)}>
-          <div className="bg-white w-full max-w-sm rounded-[28px] shadow-2xl border-4 border-red-400 overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="bg-white w-full max-w-sm shadow-2xl border-4 border-red-400 overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="bg-red-500 px-6 py-5 text-center">
               <ShieldX className="w-8 h-8 text-white mx-auto mb-2" />
-              <h3 className="font-black text-white uppercase italic text-lg">Conta Bloqueada</h3>
+              <h3 className="font-bold text-white uppercase italic text-lg">Conta Bloqueada</h3>
               <p className="text-red-200 text-xs font-bold mt-1">{confirmBlock.sailor.name}</p>
             </div>
             <div className="p-6 space-y-4">
-              <div className="bg-red-50 border-2 border-red-100 rounded-2xl p-4">
-                <p className="text-xs font-black text-red-700 uppercase mb-1">Motivo</p>
+              <div className="bg-red-50 border-2 border-red-100 p-4">
+                <p className="text-xs font-semibold text-red-700 uppercase mb-1">Motivo</p>
                 <p className="text-sm font-bold text-red-800">{confirmBlock.reason}</p>
               </div>
-              <button onClick={() => setConfirmBlock(null)} className="w-full bg-red-500 hover:bg-red-400 text-white py-4 rounded-2xl font-black uppercase text-sm transition-all">Entendido</button>
+              <button onClick={() => setConfirmBlock(null)} className="w-full bg-red-500 hover:bg-red-400 text-white py-4 font-semibold uppercase text-sm transition-all">Entendido</button>
             </div>
           </div>
         </div>
@@ -225,13 +225,13 @@ export function CrewManager({ boat, onBoatUpdate }: CrewManagerProps) {
 
       {/* ── Lista ── */}
       {crewWithData.length === 0 ? (
-        <div className="bg-gray-50 rounded-2xl py-8 flex flex-col items-center gap-2 border-2 border-dashed border-gray-100">
+        <div className="bg-gray-50 py-8 flex flex-col items-center gap-2 border-2 border-dashed border-gray-100">
           <UserPlus className="w-6 h-6 text-gray-300" />
           <p className="text-xs text-gray-400 font-bold text-center">Nenhum tripulante adicionado.<br />Usa o email para adicionar.</p>
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-[10px] font-black text-gray-400 uppercase px-1">{crewWithData.length} tripulante{crewWithData.length !== 1 ? 's' : ''}</p>
+          <p className="text-[10px] font-semibold text-gray-400 uppercase px-1">{crewWithData.length} tripulante{crewWithData.length !== 1 ? 's' : ''}</p>
           {crewWithData.map(({ sailor, role, statusInfo }) => {
             const cfg = STATUS_CFG[statusInfo.status];
             const StatusIcon = cfg.icon;
@@ -243,33 +243,33 @@ export function CrewManager({ boat, onBoatUpdate }: CrewManagerProps) {
             ];
 
             return (
-              <div key={sailor.id} className={`rounded-2xl border-2 overflow-hidden ${cfg.bg} ${cfg.border}`}>
+              <div key={sailor.id} className={`border-2 overflow-hidden ${cfg.bg} ${cfg.border}`}>
 
                 {/* Cabeçalho */}
                 <div className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-blue-100 flex-shrink-0 border-2 border-white shadow-sm">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-[#0a1628]/5 flex-shrink-0 border-2 border-white shadow-sm">
                     {photo
                       ? <img src={photo} alt={sailor.name} className="w-full h-full object-cover" />
-                      : <div className={`w-full h-full flex items-center justify-center font-black text-sm ${cfg.text}`}>{sailor.name.substring(0,2).toUpperCase()}</div>}
+                      : <div className={`w-full h-full flex items-center justify-center font-semibold text-sm ${cfg.text}`}>{sailor.name.substring(0,2).toUpperCase()}</div>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-black text-blue-900 text-sm truncate">{sailor.name}</p>
+                      <p className="font-semibold text-[#1a2b4a] text-sm truncate">{sailor.name}</p>
                       {sailor.profile_number && (
-                        <span className="text-[9px] font-black bg-blue-900 text-white px-2 py-0.5 rounded-full flex-shrink-0">#{sailor.profile_number}</span>
+                        <span className="text-[9px] font-semibold bg-[#0a1628] text-white px-2 py-0.5 rounded-full flex-shrink-0">#{sailor.profile_number}</span>
                       )}
                     </div>
                     <p className="text-[10px] text-gray-500 font-bold truncate">{sailor.email}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                     {/* Status badge */}
-                    <div className={`flex items-center gap-1 text-[9px] font-black uppercase px-2.5 py-1 rounded-full border bg-white ${cfg.text} ${cfg.border}`}>
+                    <div className={`flex items-center gap-1 text-[9px] font-semibold uppercase px-2.5 py-1 rounded-full border bg-white ${cfg.text} ${cfg.border}`}>
                       <StatusIcon className="w-3 h-3" />
                       {cfg.label}
                     </div>
                     {/* Função badge — fixo e destacado */}
                     {role && (
-                      <div className="flex items-center gap-1 bg-blue-900 text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-full">
+                      <div className="flex items-center gap-1 bg-[#0a1628] text-white text-[9px] font-semibold uppercase px-2.5 py-1 rounded-full">
                         ⚓ {role}
                       </div>
                     )}
@@ -288,9 +288,9 @@ export function CrewManager({ boat, onBoatUpdate }: CrewManagerProps) {
                     const color = exp ? 'text-red-600' : soon ? 'text-amber-600' : val ? 'text-green-600' : 'text-gray-300';
                     return (
                       <div key={label} className="bg-white/60 py-2 px-2 text-center">
-                        <p className="text-[8px] font-black text-gray-400 uppercase">{label}</p>
-                        {nr && <p className="text-[9px] font-black text-blue-900 mt-0.5">Nº {nr}</p>}
-                        <p className={`text-[9px] font-black mt-0.5 ${color}`}>{val ? `Val: ${fmtDate(val)}` : '—'}</p>
+                        <p className="text-[8px] font-semibold text-gray-400 uppercase">{label}</p>
+                        {nr && <p className="text-[9px] font-semibold text-[#1a2b4a] mt-0.5">Nº {nr}</p>}
+                        <p className={`text-[9px] font-semibold mt-0.5 ${color}`}>{val ? `Val: ${fmtDate(val)}` : '—'}</p>
                       </div>
                     );
                   })}

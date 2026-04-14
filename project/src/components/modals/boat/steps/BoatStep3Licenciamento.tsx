@@ -25,8 +25,8 @@ export function BoatStep3Licenciamento({ f, fd, docLicNav, setDocLicNav, docCert
       <SectionTitle number="3" title="Licenciamento e Certificação" />
 
       {/* Registo da embarcação */}
-      <div className="bg-blue-50 border-2 border-blue-100 rounded-2xl p-4 space-y-3">
-        <p className="text-xs font-black text-blue-900 uppercase">⚓ Registo da Embarcação</p>
+      <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 p-4 space-y-3">
+        <p className="text-xs font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">⚓ Registo da Embarcação</p>
         <div className="grid grid-cols-2 gap-3">
           <BoatInput label="Nº de registo" value={f.registoNr} onChange={v => fd('registoNr', v)} placeholder="EX: 12345/2020" />
           <DateInput label="Validade" value={f.registoVal} onChange={v => fd('registoVal', v)} />
@@ -39,7 +39,7 @@ export function BoatStep3Licenciamento({ f, fd, docLicNav, setDocLicNav, docCert
         <BoatInput label="Licença de navegação nº" value={f.licNavNr} onChange={v => fd('licNavNr', v)} placeholder="Nº" />
         <DateInput label="Validade" value={f.licNavVal} onChange={v => fd('licNavVal', v)} />
       </div>
-      <div className="bg-gray-50 rounded-2xl p-3 grid grid-cols-2 gap-2">
+      <div className="bg-gray-50 p-3 grid grid-cols-2 gap-2">
         <DocPhotoSlot label="Frente" value={docLicNav.front} onPick={() => pick(setDocLicNav, docLicNav, 'front')} onRemove={() => setDocLicNav({ ...docLicNav, front: '' })} />
         <DocPhotoSlot label="Verso"  value={docLicNav.back}  onPick={() => pick(setDocLicNav, docLicNav, 'back')}  onRemove={() => setDocLicNav({ ...docLicNav, back: '' })} />
       </div>
@@ -49,7 +49,7 @@ export function BoatStep3Licenciamento({ f, fd, docLicNav, setDocLicNav, docCert
         <BoatInput label="Cert. navegabilidade nº" value={f.certNavNr} onChange={v => fd('certNavNr', v)} placeholder="Nº" />
         <DateInput label="Validade" value={f.certNavVal} onChange={v => fd('certNavVal', v)} />
       </div>
-      <div className="bg-gray-50 rounded-2xl p-3 grid grid-cols-2 gap-2">
+      <div className="bg-gray-50 p-3 grid grid-cols-2 gap-2">
         <DocPhotoSlot label="Frente" value={docCertNav.front} onPick={() => pick(setDocCertNav, docCertNav, 'front')} onRemove={() => setDocCertNav({ ...docCertNav, front: '' })} />
         <DocPhotoSlot label="Verso"  value={docCertNav.back}  onPick={() => pick(setDocCertNav, docCertNav, 'back')}  onRemove={() => setDocCertNav({ ...docCertNav, back: '' })} />
       </div>
@@ -60,7 +60,7 @@ export function BoatStep3Licenciamento({ f, fd, docLicNav, setDocLicNav, docCert
         <BoatInput label="Seguradora" value={f.seguradora} onChange={v => fd('seguradora', v)} placeholder="NOME" />
       </div>
       <DateInput label="Validade do seguro" value={f.seguroVal} onChange={v => fd('seguroVal', v)} />
-      <div className="bg-gray-50 rounded-2xl p-3">
+      <div className="bg-gray-50 p-3">
         <DocPhotoSlot label="Apólice de seguro" value={docSeguro.front} onPick={() => pick(setDocSeguro, docSeguro, 'front')} onRemove={() => setDocSeguro({ ...docSeguro, front: '' })} />
       </div>
 
@@ -69,16 +69,16 @@ export function BoatStep3Licenciamento({ f, fd, docLicNav, setDocLicNav, docCert
         <BoatInput label="Lic. transporte pass. nº" value={f.licPassNr} onChange={v => fd('licPassNr', v)} placeholder="Nº" />
         <DateInput label="Validade" value={f.licPassVal} onChange={v => fd('licPassVal', v)} />
       </div>
-      <div className="bg-gray-50 rounded-2xl p-3 grid grid-cols-2 gap-2">
+      <div className="bg-gray-50 p-3 grid grid-cols-2 gap-2">
         <DocPhotoSlot label="Frente" value={docLicPass.front} onPick={() => pick(setDocLicPass, docLicPass, 'front')} onRemove={() => setDocLicPass({ ...docLicPass, front: '' })} />
         <DocPhotoSlot label="Verso"  value={docLicPass.back}  onPick={() => pick(setDocLicPass, docLicPass, 'back')}  onRemove={() => setDocLicPass({ ...docLicPass, back: '' })} />
       </div>
 
       <div className="flex gap-3 pt-2">
-        <button type="button" onClick={onBack} className="px-5 py-4 border-2 border-gray-100 text-gray-400 rounded-2xl font-black text-sm uppercase hover:border-blue-900 hover:text-blue-900 transition-all flex items-center gap-1">
+        <button type="button" onClick={onBack} className="px-5 py-4 border border-gray-200 text-gray-400 font-semibold text-sm uppercase hover:border-[#0a1628] hover:text-[#1a2b4a] transition-all flex items-center gap-1">
           <ChevronLeft className="w-4 h-4" /> Voltar
         </button>
-        <button type="submit" className="flex-1 bg-blue-900 text-white py-4 rounded-2xl font-black uppercase text-sm hover:bg-blue-800 transition-all flex items-center justify-center gap-2">
+        <button type="submit" className="flex-1 bg-[#0a1628] text-white py-4 font-semibold uppercase text-sm hover:bg-[#0a1628]/90 transition-all flex items-center justify-center gap-2">
           Próximo <ChevronRight className="w-4 h-4" />
         </button>
       </div>

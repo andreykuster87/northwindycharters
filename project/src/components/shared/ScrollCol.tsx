@@ -15,19 +15,19 @@ export function ScrollCol({ items, value, onChange, placeholder }: {
   return (
     <div ref={ref} className="relative flex-1">
       <button type="button" onClick={() => setOpen(v => !v)}
-        className={`w-full bg-gray-50 border-2 rounded-[14px] py-3 px-2 font-bold text-sm text-center transition-all outline-none
-          ${value ? 'border-blue-900 text-blue-900 font-black' : 'border-gray-100 text-gray-300'} hover:border-blue-300`}>
+        className={`w-full bg-gray-50 border-2 py-3 px-2 font-bold text-sm text-center transition-all outline-none
+          ${value ? 'border-[#0a1628] text-[#1a2b4a] font-bold' : 'border-gray-100 text-gray-300'} hover:border-[#c9a96e]/30`}>
         {value || placeholder}
         <ChevronDown className={`w-3 h-3 inline ml-0.5 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border-2 border-blue-900 rounded-[16px] shadow-2xl overflow-hidden">
+        <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border-2 border-[#0a1628] shadow-2xl overflow-hidden">
           <div className="max-h-44 overflow-y-auto">
             {items.map(item => (
               <button key={item} type="button"
                 onClick={() => { onChange(item.split(' ')[0]); setOpen(false); }}
-                className={`w-full px-2 py-2.5 text-center text-xs font-bold transition-colors hover:bg-blue-50
-                  ${value === item.split(' ')[0] ? 'bg-blue-900 text-white font-black' : 'text-blue-900'}`}>
+                className={`w-full px-2 py-2.5 text-center text-xs font-bold transition-colors hover:bg-gray-50
+                  ${value === item.split(' ')[0] ? 'bg-[#0a1628] text-white font-bold' : 'text-[#1a2b4a]'}`}>
                 {item}
               </button>
             ))}

@@ -16,31 +16,31 @@ export function CountryDropdown({ value, onChange }: {
   return (
     <div className="relative">
       <button type="button" onClick={() => setOpen(v => !v)}
-        className="w-full bg-gray-50 border-2 border-gray-100 rounded-[18px] py-4 px-5 font-bold text-blue-900 outline-none transition-all text-sm flex items-center justify-between hover:border-blue-300">
+        className="w-full bg-gray-50 border-2 border-gray-100 py-4 px-5 font-bold text-[#1a2b4a] outline-none transition-all text-sm flex items-center justify-between hover:border-[#c9a96e]/30">
         <span className="flex items-center gap-3">
           <span className="text-xl">{selected.flag}</span>
-          <span className="font-black">{selected.name}</span>
+          <span className="font-semibold">{selected.name}</span>
           <span className="text-gray-400 text-xs font-bold">{selected.currency} · {selected.symbol}</span>
         </span>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute z-50 top-full mt-2 left-0 right-0 bg-white border-2 border-blue-900 rounded-[20px] shadow-2xl overflow-hidden max-h-60 flex flex-col">
+        <div className="absolute z-50 top-full mt-2 left-0 right-0 bg-white border-2 border-[#0a1628] shadow-2xl overflow-hidden max-h-60 flex flex-col">
           <div className="p-3 border-b border-gray-100">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
               <input autoFocus value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Buscar país..."
-                className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-[12px] text-sm font-bold text-blue-900 outline-none" />
+                className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-100 text-sm font-bold text-[#1a2b4a] outline-none focus:border-[#c9a96e]" />
             </div>
           </div>
           <div className="overflow-y-auto">
             {filtered.map(c => (
               <button key={c.code} type="button"
                 onClick={() => { onChange(c); setOpen(false); setSearch(''); }}
-                className={`w-full flex items-center gap-3 px-5 py-3 hover:bg-blue-50 transition-colors text-left ${c.code === value ? 'bg-blue-50' : ''}`}>
+                className={`w-full flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors text-left ${c.code === value ? 'bg-[#0a1628]/5' : ''}`}>
                 <span className="text-lg">{c.flag}</span>
-                <span className="font-bold text-blue-900 text-sm flex-1">{c.name}</span>
+                <span className="font-bold text-[#1a2b4a] text-sm flex-1">{c.name}</span>
                 <span className="text-gray-400 text-xs font-bold">{c.symbol}</span>
               </button>
             ))}

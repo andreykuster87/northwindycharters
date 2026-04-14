@@ -35,28 +35,25 @@ export function ClientLoginModal({ onLogin, onClose, onRegister }: Props) {
 
   return (
     <LoginModalShell
-      icon={<User className="w-5 h-5 text-white" />}
-      iconBgClass="bg-blue-900"
+      icon={<User className="w-5 h-5 text-[#c9a96e]" />}
+      iconBgClass="bg-[#0a1628]"
       title="Área do Usuário"
       subtitle="Reservas e perfil"
+      brandTitle="Bem-vindo de Volta!"
+      brandTagline="Reserve os melhores passeios náuticos e gerencie as suas viagens com a NorthWindy."
       hint={
-        <div className="bg-blue-50 border-2 border-blue-100 rounded-[20px] px-5 py-3">
-          <p className="text-xs font-bold text-blue-600">
-            Login: <strong>nome#número</strong> (ex: andrey#1) · Senha inicial: <strong>0000</strong>
+        <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 px-4 py-3">
+          <p className="text-xs font-medium text-[#1a2b4a]">
+            Login: <strong className="text-[#c9a96e]">nome#número</strong> (ex: andrey#1) · Senha inicial: <strong>0000</strong>
           </p>
         </div>
       }
-      cardBorderClass="border-blue-900"
       loginPlaceholder="Ex: andrey#1"
       passwdPlaceholder="0000"
-      inputFocusClass="focus:border-blue-900"
-      submitClass="bg-blue-900 hover:bg-blue-800 text-white"
       onSubmit={handleSubmit}
       onClose={onClose}
       onRegister={onRegister}
       registerLabel="Criar Conta Grátis"
-      registerBorderClass="border-blue-900"
-      registerTextClass="text-blue-900"
     />
   );
 }

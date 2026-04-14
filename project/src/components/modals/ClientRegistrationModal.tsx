@@ -43,7 +43,7 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
   const [birthYear,    setBirthYear]    = useState('');
   const [form, setForm] = useState({
     nomeCompleto: '', email: '', idioma: 'pt-BR', timezone: 'America/Sao_Paulo',
-    documento: '', docEmissao: '', docValidade: '',
+    documento: '', docEmissao: '', docValidade: '', username: '',
   });
 
   // Step 2
@@ -67,6 +67,7 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
   // ── Validação step 1 ─────────────────────────────────────────────────────
   const handleNext = async () => {
     if (!form.nomeCompleto.trim())                    { showErr('Informe seu nome completo.'); return; }
+    if (!form.username.trim() || form.username.length < 3) { showErr('Defina um @ com pelo menos 3 caracteres.'); return; }
     if (!form.email.trim() || !form.email.includes('@')) { showErr('Informe um e-mail válido.'); return; }
     if (!phoneRaw.trim())                             { showErr('Informe seu telefone / WhatsApp.'); return; }
     if (!birthDay || !birthMonth || !birthYear)       { showErr('Informe sua data de nascimento.'); return; }
@@ -95,6 +96,7 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
       const doc_back_url = await uploadDoc(backFile, 'clients', 'doc-back');
 
       const client = await saveClient({
+        username:         form.username || undefined,
         name:             form.nomeCompleto,
         email:            form.email,
         phone:            fullPhone,
@@ -123,31 +125,34 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-blue-900/60 backdrop-blur-md">
-      <div className="bg-white w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-[40px] shadow-2xl border-4 border-blue-900 animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4" style={{ background: 'rgba(4,10,24,0.88)', backdropFilter: 'blur(8px)' }}>
+      <div className="bg-white w-full max-w-lg max-h-[92vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-300">
 
         {/* Header */}
-        <div className="sticky top-0 bg-blue-900 px-8 py-6 flex justify-between items-center rounded-t-[36px] z-10">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
+        <div className="sticky top-0 bg-[#0a1628] px-8 py-6 flex justify-between items-center z-10 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.04]"
+            style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 0,transparent 60px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 0,transparent 60px)' }} />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/40 to-transparent" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-2">
               {[1, 2].map(s => (
                 <div key={s} className="flex items-center gap-2">
-                  {s > 1 && <div className={`h-0.5 w-8 transition-all ${step >= s ? 'bg-white' : 'bg-blue-700'}`} />}
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all
-                    ${step >= s ? 'bg-white text-blue-900' : 'bg-blue-700 text-blue-300'}`}>
+                  {s > 1 && <div className={`h-px w-8 transition-all ${step >= s ? 'bg-[#c9a96e]' : 'bg-white/20'}`} />}
+                  <div className={`w-7 h-7 flex items-center justify-center text-xs font-semibold transition-all
+                    ${step >= s ? 'bg-[#c9a96e] text-[#0a1628]' : 'bg-white/10 text-white/40 border border-white/20'}`}>
                     {s}
                   </div>
                 </div>
               ))}
             </div>
-            <h2 className="text-2xl font-black text-white uppercase italic mt-2">
+            <h2 className="font-['Playfair_Display'] font-bold italic text-xl text-white">
               {step === 1 ? 'Dados Pessoais' : 'Documentação'}
             </h2>
-            <p className="text-blue-300 text-xs font-bold uppercase tracking-widest">
+            <p className="text-[#c9a96e]/70 text-[10px] font-semibold uppercase tracking-[0.15em] mt-0.5">
               {step === 1 ? 'Identificação e contato' : 'Documento e verificação'}
             </p>
           </div>
-          <button onClick={onClose} className="bg-blue-800 hover:bg-blue-700 text-white p-3 rounded-full transition-all">
+          <button onClick={onClose} className="relative bg-white/5 hover:bg-white/10 text-white p-2.5 transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -156,9 +161,9 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
           <div ref={topRef} />
 
           {error && (
-            <div className="bg-red-50 border-2 border-red-200 rounded-[18px] px-5 py-3 flex items-center gap-3 animate-in fade-in duration-200">
+            <div className="bg-red-50 border border-red-200 px-5 py-3 flex items-center gap-3 animate-in fade-in duration-200">
               <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-              <p className="text-red-700 font-bold text-sm">{error}</p>
+              <p className="text-red-700 font-medium text-sm">{error}</p>
             </div>
           )}
 
@@ -166,27 +171,44 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
           {step === 1 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <div>
-                <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1.5">
-                  <User className="w-3 h-3" /> Nome Completo *
+                <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1.5">
+                  <User className="w-3 h-3 text-[#c9a96e]" /> Nome Completo *
                 </label>
                 <input value={form.nomeCompleto} onChange={e => f('nomeCompleto', e.target.value)}
                   placeholder="Seu nome completo"
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-[18px] py-4 px-5 font-black text-blue-900 focus:border-blue-900 outline-none transition-all text-sm uppercase italic placeholder:normal-case placeholder:not-italic placeholder:text-gray-300" />
+                  className="w-full bg-gray-50 border border-gray-200 py-4 px-5 font-medium text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all text-sm placeholder:text-gray-300" />
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 block">E-mail *</label>
+                <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1.5">
+                  <Hash className="w-3 h-3 text-[#c9a96e]" /> @ na plataforma * <span className="text-gray-400 normal-case font-medium">como será chamado(a)</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-[#c9a96e] font-semibold text-sm select-none">@</span>
+                  <input value={form.username}
+                    onChange={e => f('username', e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 20))}
+                    placeholder="seu_usuario"
+                    className="w-full bg-gray-50 border border-gray-200 py-4 pl-9 pr-5 font-medium text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all text-sm placeholder:text-gray-300" />
+                </div>
+                {form.username && (
+                  <p className="text-[10px] font-semibold text-[#c9a96e] ml-1 mt-1">@{form.username}</p>
+                )}
+                <p className="text-[10px] font-medium text-gray-400 ml-1 mt-0.5">3–20 caracteres · apenas letras, números, _ e .</p>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-wider ml-1 mb-1.5 block">E-mail *</label>
                 <input type="email" value={form.email} onChange={e => f('email', e.target.value)}
                   placeholder="seu@email.com"
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-[18px] py-4 px-5 font-bold text-blue-900 focus:border-blue-900 outline-none transition-all text-sm placeholder:text-gray-300" />
+                  className="w-full bg-gray-50 border border-gray-200 py-4 px-5 font-medium text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all text-sm placeholder:text-gray-300" />
               </div>
 
               <CountryDropdown value={country.code} label="País de Origem *"
                 onChange={c => setCountry(c)} />
 
               <div>
-                <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 block">WhatsApp *</label>
-                <div className="flex items-center gap-3 bg-gray-50 border-2 border-gray-100 rounded-[18px] py-4 px-5 focus-within:border-blue-900 transition-all">
+                <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-wider ml-1 mb-1.5 block">WhatsApp *</label>
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 py-4 px-5 focus-within:border-[#c9a96e] transition-all">
                   <PhonePrefixDropdown value={phoneCountry.code}
                     onChange={c => { setPhoneCountry(c); setPhoneRaw(''); }} />
                   <div className="w-px h-5 bg-gray-200 flex-shrink-0" />
@@ -194,7 +216,7 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
                   <input value={phoneDisplay}
                     onChange={e => setPhoneRaw(e.target.value.replace(/\D/g, ''))}
                     placeholder={phoneCountry.mask.replace(/#/g, '0')}
-                    className="w-full font-bold outline-none bg-transparent text-sm text-blue-900 placeholder:text-gray-300" />
+                    className="w-full font-medium outline-none bg-transparent text-sm text-[#1a2b4a] placeholder:text-gray-300" />
                 </div>
               </div>
 
@@ -204,7 +226,7 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
               />
 
               <button type="button" onClick={handleNext}
-                className="w-full bg-blue-900 text-white py-5 rounded-[30px] font-black uppercase tracking-widest text-base hover:bg-blue-800 shadow-xl transition-all hover:scale-[1.01] active:scale-95 mt-2">
+                className="w-full bg-[#0a1628] text-white py-4 font-semibold uppercase tracking-widest text-sm hover:bg-[#1a2b4a] transition-all mt-2">
                 Próximo → Documentação
               </button>
             </div>
@@ -215,13 +237,16 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
             <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
 
               {/* Preview do perfil */}
-              <div className="bg-blue-50 border-2 border-blue-100 rounded-[22px] p-5 flex items-center gap-4">
-                <div className="bg-blue-900 text-white w-12 h-12 rounded-full flex items-center justify-center font-black text-lg uppercase flex-shrink-0">
+              <div className="bg-[#0a1628] p-4 flex items-center gap-4 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-[0.04]"
+                  style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 0,transparent 60px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 0,transparent 60px)' }} />
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/60 to-transparent" />
+                <div className="bg-[#c9a96e]/15 border border-[#c9a96e]/30 text-[#c9a96e] w-12 h-12 flex items-center justify-center font-bold text-lg uppercase flex-shrink-0 relative">
                   {form.nomeCompleto.substring(0, 2).toUpperCase()}
                 </div>
-                <div>
-                  <p className="font-black text-blue-900 uppercase italic">{form.nomeCompleto}</p>
-                  <p className="text-xs text-blue-400 font-bold">{form.email} · {country.flag} {country.ddi} {phoneDisplay}</p>
+                <div className="relative">
+                  <p className="font-['Playfair_Display'] font-bold text-white">{form.nomeCompleto}</p>
+                  <p className="text-xs text-[#c9a96e]/70 font-medium">{form.email} · {country.flag} {country.ddi} {phoneDisplay}</p>
                 </div>
               </div>
 
@@ -232,22 +257,22 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
               }} />
 
               <div>
-                <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1.5">
-                  <Hash className="w-3 h-3" /> Número do Documento *
+                <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1.5">
+                  <Hash className="w-3 h-3 text-[#c9a96e]" /> Número do Documento *
                 </label>
                 <input value={form.documento} onChange={e => f('documento', e.target.value.toUpperCase())}
                   placeholder={`Nº ${selectedDoc.label.replace(/[^a-zA-Z\s]/g, '').trim()}`}
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-[18px] py-4 px-5 font-black text-blue-900 focus:border-blue-900 outline-none transition-all text-sm uppercase tracking-widest placeholder:text-gray-300 placeholder:normal-case placeholder:tracking-normal" />
+                  className="w-full bg-gray-50 border border-gray-200 py-4 px-5 font-medium text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all text-sm uppercase tracking-widest placeholder:text-gray-300 placeholder:normal-case placeholder:tracking-normal" />
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1">
-                  <Calendar className="w-3 h-3" /> Validade *
+                <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1">
+                  <Calendar className="w-3 h-3 text-[#c9a96e]" /> Validade *
                 </label>
                 <input type="text" inputMode="numeric" value={form.docValidade}
                   onChange={e => f('docValidade', applyMask(e.target.value, '##/##/####'))}
                   placeholder="dd/mm/aaaa" maxLength={10}
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-[18px] py-4 px-4 font-bold text-blue-900 focus:border-blue-900 outline-none transition-all text-sm" />
+                  className="w-full bg-gray-50 border border-gray-200 py-4 px-4 font-medium text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all text-sm" />
               </div>
 
               <DocUploadSlot
@@ -270,11 +295,11 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
                 />
               )}
 
-              <div className="bg-amber-50 border-2 border-amber-100 rounded-[18px] px-5 py-4 flex items-start gap-3">
+              <div className="bg-amber-50 border border-amber-200 px-5 py-4 flex items-start gap-3">
                 <span className="text-lg flex-shrink-0">⏳</span>
                 <div>
-                  <p className="font-black text-amber-800 text-sm">Verificação pendente</p>
-                  <p className="text-xs text-amber-600 font-bold mt-0.5">
+                  <p className="font-semibold text-amber-800 text-sm">Verificação pendente</p>
+                  <p className="text-xs text-amber-600 font-medium mt-0.5">
                     Após o cadastro, sua conta ficará em análise. Você receberá login e senha via WhatsApp.
                   </p>
                 </div>
@@ -282,14 +307,14 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => { setStep(1); setError(null); }}
-                  className="px-6 py-5 border-2 border-gray-100 text-gray-400 rounded-[30px] font-black text-sm uppercase hover:border-blue-900 hover:text-blue-900 transition-all">
+                  className="px-6 py-4 border border-gray-200 text-gray-400 font-semibold text-sm uppercase tracking-wide hover:border-[#1a2b4a] hover:text-[#1a2b4a] transition-all">
                   ← Voltar
                 </button>
                 <button type="submit" disabled={loading}
-                  className="flex-1 bg-blue-900 text-white py-5 rounded-[30px] font-black uppercase tracking-widest text-base hover:bg-blue-800 shadow-xl transition-all hover:scale-[1.01] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                  className="flex-1 bg-[#0a1628] text-white py-4 font-semibold uppercase tracking-widest text-sm hover:bg-[#1a2b4a] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                   {loading
                     ? <span className="animate-pulse">Enviando...</span>
-                    : <><CheckCircle2 className="w-5 h-5 text-green-400" /> Criar Minha Conta</>}
+                    : <><CheckCircle2 className="w-5 h-5 text-[#c9a96e]" /> Criar Minha Conta</>}
                 </button>
               </div>
             </form>

@@ -74,42 +74,42 @@ export function PhotoSlot({ label, sublabel, hint, required, value, onPick, onRe
   return (
     <div>
       <div className="flex items-center gap-2 mb-1.5">
-        <p className="text-xs font-black text-blue-900 uppercase">{label}</p>
+        <p className="text-xs font-bold text-[#1a2b4a] uppercase">{label}</p>
         {sublabel && <span className="text-[9px] text-gray-400 font-bold">{sublabel}</span>}
         {required
-          ? <span className="text-[9px] font-black text-red-500 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-full ml-auto">Obrigatória</span>
-          : <span className="text-[9px] font-black text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full ml-auto">Opcional</span>}
+          ? <span className="text-[9px] font-bold text-red-500 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-full ml-auto">Obrigatória</span>
+          : <span className="text-[9px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full ml-auto">Opcional</span>}
       </div>
       {hint && <p className="text-[10px] text-gray-400 font-bold mb-2">{hint}</p>}
       <div
         onClick={onPick}
-        className={`relative rounded-[20px] overflow-hidden cursor-pointer transition-all border-4
+        className={`relative overflow-hidden cursor-pointer transition-all border-4
           ${value
-            ? 'border-blue-900 shadow-lg'
+            ? 'border-[#0a1628] shadow-lg'
             : required
             ? 'border-dashed border-red-200 hover:border-red-400 bg-red-50'
-            : 'border-dashed border-gray-200 hover:border-blue-400 bg-gray-50'
+            : 'border-dashed border-gray-200 hover:border-[#c9a96e] bg-gray-50'
           }`}
         style={{ height: 160 }}
       >
         {value ? (
           <>
             <img src={value} alt={label} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-blue-900/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <span className="bg-white text-blue-900 font-black text-xs uppercase px-3 py-2 rounded-full shadow-lg">Trocar</span>
+            <div className="absolute inset-0 bg-[#0a1628]/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <span className="bg-white text-[#1a2b4a] font-bold text-xs uppercase px-3 py-2 rounded-full shadow-lg">Trocar</span>
               {onRemove && (
                 <button type="button" onClick={e => { e.stopPropagation(); onRemove(); }}
-                  className="bg-red-500 text-white font-black text-xs uppercase px-3 py-2 rounded-full shadow-lg">
+                  className="bg-red-500 text-white font-bold text-xs uppercase px-3 py-2 rounded-full shadow-lg">
                   Remover
                 </button>
               )}
             </div>
-            <div className="absolute top-2 right-2 bg-green-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">✓ OK</div>
+            <div className="absolute top-2 right-2 bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">✓ OK</div>
           </>
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2">
             <ImagePlus className={`w-8 h-8 ${required ? 'text-red-300' : 'text-gray-300'}`} />
-            <p className={`font-black text-xs uppercase ${required ? 'text-red-400' : 'text-gray-400'}`}>
+            <p className={`font-bold text-xs uppercase ${required ? 'text-red-400' : 'text-gray-400'}`}>
               Clique para adicionar
             </p>
           </div>
@@ -159,31 +159,31 @@ export function PhotoAlbumInline({ photos, onAdd, onRemove }: PhotoAlbumInlinePr
         onClick={() => !uploading && fileRef.current?.click()}
         onDragOver={e => e.preventDefault()}
         onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
-        className={`border-2 border-dashed rounded-[20px] p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all
-          ${uploading ? 'border-blue-300 bg-blue-50/50 cursor-wait' : 'border-gray-200 hover:border-blue-900 hover:bg-blue-50/30'}`}
+        className={`border-2 border-dashed p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all
+          ${uploading ? 'border-[#c9a96e]/30 bg-[#0a1628]/5 cursor-wait' : 'border-gray-200 hover:border-[#0a1628] hover:bg-[#0a1628]/5'}`}
       >
         <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
           onChange={e => handleFiles(e.target.files)} />
         {uploading ? (
           <>
-            <div className="w-6 h-6 border-4 border-blue-900 border-t-transparent rounded-full animate-spin" />
-            <p className="font-black text-blue-900 text-xs uppercase">Processando...</p>
+            <div className="w-6 h-6 border-4 border-[#0a1628] border-t-transparent rounded-full animate-spin" />
+            <p className="font-bold text-[#1a2b4a] text-xs uppercase">Processando...</p>
           </>
         ) : (
           <>
             <ImagePlus className="w-6 h-6 text-gray-300" />
-            <p className="font-black text-gray-400 text-xs uppercase">Adicionar fotos extras</p>
+            <p className="font-bold text-gray-400 text-xs uppercase">Adicionar fotos extras</p>
             <p className="text-[10px] text-gray-300 font-bold">JPG, PNG · máx 8MB</p>
           </>
         )}
       </div>
 
-      {error && <p className="text-xs font-bold text-red-600 bg-red-50 rounded-xl px-3 py-2">⚠️ {error}</p>}
+      {error && <p className="text-xs font-bold text-red-600 bg-red-50 px-3 py-2">⚠️ {error}</p>}
 
       {photos.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
           {photos.map((url, i) => (
-            <div key={i} className="relative group rounded-xl overflow-hidden" style={{ aspectRatio: '4/3' }}>
+            <div key={i} className="relative group overflow-hidden" style={{ aspectRatio: '4/3' }}>
               <img src={url} alt="" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <button type="button" onClick={() => onRemove(i)}
@@ -215,8 +215,8 @@ export function PhotoChecklist({ cover, exterior, interior, extra }: PhotoCheckl
     { label: `Fotos extras (${(extra || []).length})`, done: (extra || []).length > 0 },
   ];
   return (
-    <div className="bg-blue-50 border-2 border-blue-100 rounded-[20px] px-5 py-4">
-      <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3">Checklist de fotos</p>
+    <div className="bg-[#0a1628]/5 border-2 border-[#c9a96e]/20 px-5 py-4">
+      <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">Checklist de fotos</p>
       <div className="space-y-2">
         {items.map(({ label, done }) => (
           <div key={label} className="flex items-center gap-2">

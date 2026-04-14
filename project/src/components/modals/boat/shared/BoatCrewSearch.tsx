@@ -1,5 +1,5 @@
 // src/components/modals/boat/shared/BoatCrewSearch.tsx
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { X, Search, UserPlus, AlertTriangle } from 'lucide-react';
 import { getSailors } from '../../../../lib/localStore';
 import { supabase } from '../../../../lib/supabase';
@@ -72,18 +72,28 @@ export function CrewSearchInput({ crew, allCrew, onChange, defaultRole = 'Tripul
   const [preview,       setPreview]       = useState<Sailor | null>(null);
   const [previewStatus, setPreviewStatus] = useState<{ status: 'ok' | 'expiring' | 'blocked' | 'pending'; reason: string } | null>(null);
   const [error,         setError]         = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleEmailChange = async (val: string) => {
+  const handleEmailChange = (val: string) => {
     setEmail(val); setError(null); setPreview(null); setPreviewStatus(null);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     const e = val.trim().toLowerCase();
     if (!e || !e.includes('@')) return;
-    // Try cache first, then Supabase
-    let sailor = getSailors().find(s => s.email.toLowerCase() === e);
-    if (!sailor) {
-      const { data } = await supabase.from('sailors').select('*').ilike('email', e).single();
-      if (data) sailor = data as any;
-    }
-    if (sailor) { setPreview(sailor as any); setPreviewStatus(getSailorStatus(sailor as any)); }
+    // Debounce 400ms — só consulta Supabase quando o utilizador parar de escrever
+    debounceRef.current = setTimeout(async () => {
+      // Cache primeiro (0 queries)
+      let sailor = getSailors().find(s => s.email.toLowerCase() === e);
+      if (!sailor) {
+        // Fallback Supabase: só campos necessários
+        const { data } = await supabase
+          .from('sailors')
+          .select('id,name,email,status,blocked,block_reason,passaporte_validade,cartahabitacao_validade,medico_validade,profile_number,phone')
+          .ilike('email', e)
+          .maybeSingle();
+        if (data) sailor = data as any;
+      }
+      if (sailor) { setPreview(sailor as any); setPreviewStatus(getSailorStatus(sailor as any)); }
+    }, 400);
   };
 
   const handleAdd = async () => {
@@ -119,34 +129,34 @@ export function CrewSearchInput({ crew, allCrew, onChange, defaultRole = 'Tripul
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
             placeholder={`Email do ${label.toLowerCase()}...`}
             autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck={false}
-            className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl py-2.5 pl-9 pr-3 text-sm font-bold text-blue-900 focus:border-blue-900 outline-none transition-all placeholder:text-gray-300 placeholder:font-normal" />
+            className="w-full bg-gray-50 border border-gray-200 py-2.5 pl-9 pr-3 text-sm font-bold text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all placeholder:text-gray-300 placeholder:font-normal" />
         </div>
         <button type="button" onClick={handleAdd}
-          className="bg-blue-900 hover:bg-blue-800 text-white px-4 rounded-xl font-black text-xs uppercase transition-all flex items-center gap-1.5 flex-shrink-0">
+          className="bg-[#0a1628] hover:bg-[#0a1628]/90 text-white px-4 font-semibold text-xs uppercase transition-all flex items-center gap-1.5 flex-shrink-0">
           <UserPlus className="w-3.5 h-3.5" /> Adicionar
         </button>
       </div>
 
       {/* Preview */}
       {preview && previewStatus && (
-        <div className={`rounded-2xl border-2 overflow-hidden ${
+        <div className={`border overflow-hidden ${
           previewStatus.status === 'blocked' ? 'border-red-200 bg-red-50' :
           previewStatus.status === 'pending' ? 'border-gray-200 bg-gray-50' :
           previewStatus.status === 'expiring' ? 'border-amber-200 bg-amber-50' :
           'border-green-200 bg-green-50'}`}>
           <div className="flex items-center gap-3 px-4 py-3">
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-blue-100 flex-shrink-0 border-2 border-white shadow-sm">
+            <div className="w-10 h-10 overflow-hidden bg-[#0a1628]/10 flex-shrink-0 border border-white shadow-sm">
               {profilePhoto
                 ? <img src={profilePhoto} alt={preview.name} className="w-full h-full object-cover" />
-                : <div className="w-full h-full flex items-center justify-center font-black text-blue-900 text-sm">
+                : <div className="w-full h-full flex items-center justify-center font-bold text-[#1a2b4a] text-sm">
                     {preview.name.substring(0, 2).toUpperCase()}
                   </div>}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-black text-blue-900 text-sm truncate">{preview.name}</p>
+              <p className="font-bold text-[#1a2b4a] text-sm truncate">{preview.name}</p>
               <p className="text-[10px] text-gray-500 font-bold truncate">{preview.email}</p>
             </div>
-            <div className={`flex-shrink-0 text-[9px] font-black uppercase px-2 py-1 rounded-full ${STATUS_COLORS[previewStatus.status].text} border ${STATUS_COLORS[previewStatus.status].border} bg-white`}>
+            <div className={`flex-shrink-0 text-[9px] font-semibold uppercase px-2 py-1 ${STATUS_COLORS[previewStatus.status].text} border ${STATUS_COLORS[previewStatus.status].border} bg-white`}>
               {previewStatus.status === 'ok' ? '✓ Em dia' :
                previewStatus.status === 'expiring' ? '⚠ A expirar' :
                previewStatus.status === 'blocked' ? '✗ Bloqueado' : '○ Pendente'}
@@ -159,8 +169,8 @@ export function CrewSearchInput({ crew, allCrew, onChange, defaultRole = 'Tripul
               { l: 'Médico',      v: (preview as any).medico?.validade },
             ].map(({ l, v }) => (
               <div key={l} className="bg-white/60 py-2 px-3 text-center">
-                <p className="text-[8px] font-black text-gray-400 uppercase">{l}</p>
-                <p className={`text-[10px] font-black mt-0.5 ${!v ? 'text-gray-300' : previewStatus.status === 'ok' ? 'text-green-600' : previewStatus.status === 'expiring' ? 'text-amber-600' : 'text-red-500'}`}>
+                <p className="text-[8px] font-semibold text-gray-400 uppercase">{l}</p>
+                <p className={`text-[10px] font-bold mt-0.5 ${!v ? 'text-gray-300' : previewStatus.status === 'ok' ? 'text-green-600' : previewStatus.status === 'expiring' ? 'text-amber-600' : 'text-red-500'}`}>
                   {v || '—'}
                 </p>
               </div>
@@ -168,9 +178,9 @@ export function CrewSearchInput({ crew, allCrew, onChange, defaultRole = 'Tripul
           </div>
           {previewStatus.status !== 'blocked' && previewStatus.status !== 'pending' && (
             <div className="px-4 py-2.5 flex items-center gap-2 border-t border-white/60">
-              <span className="text-[10px] font-black text-gray-500 uppercase">Função:</span>
+              <span className="text-[10px] font-semibold text-gray-500 uppercase">Função:</span>
               <input value={role} onChange={e => setRole(e.target.value)}
-                className="flex-1 bg-white/80 border border-gray-200 rounded-lg py-1 px-2 text-xs font-bold text-blue-900 outline-none focus:border-blue-900 transition-all" />
+                className="flex-1 bg-white/80 border border-gray-200 py-1 px-2 text-xs font-bold text-[#1a2b4a] outline-none focus:border-[#c9a96e] transition-all" />
             </div>
           )}
           {previewStatus.status === 'blocked' && (
@@ -189,7 +199,7 @@ export function CrewSearchInput({ crew, allCrew, onChange, defaultRole = 'Tripul
       )}
 
       {error && (
-        <p className="text-xs font-bold text-red-700 bg-red-50 border-2 border-red-200 rounded-xl px-3 py-2 flex items-center gap-2">
+        <p className="text-xs font-bold text-red-700 bg-red-50 border border-red-200 px-3 py-2 flex items-center gap-2">
           <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />{error}
         </p>
       )}
@@ -200,18 +210,18 @@ export function CrewSearchInput({ crew, allCrew, onChange, defaultRole = 'Tripul
           {crew.map((c, i) => {
             const cfg = STATUS_COLORS[c.status];
             return (
-              <div key={c.sailor_id} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border-2 ${cfg.bg} ${cfg.border}`}>
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`} />
+              <div key={c.sailor_id} className={`flex items-center gap-3 px-3 py-2.5 border ${cfg.bg} ${cfg.border}`}>
+                <div className={`w-2 h-2 flex-shrink-0 ${cfg.dot}`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="font-black text-blue-900 text-sm truncate">{c.name}</p>
-                    {c.role === 'Comandante' && <span className="text-[8px] font-black bg-blue-900 text-white px-1.5 py-0.5 rounded-full uppercase flex-shrink-0">⚓ Cmd</span>}
+                    <p className="font-bold text-[#1a2b4a] text-sm truncate">{c.name}</p>
+                    {c.role === 'Comandante' && <span className="text-[8px] font-semibold bg-[#0a1628] text-white px-1.5 py-0.5 uppercase flex-shrink-0">⚓ Cmd</span>}
                   </div>
                   <p className="text-[10px] text-gray-400 font-bold truncate">{c.email}</p>
                   <p className={`text-[10px] font-bold ${cfg.text}`}>{c.status !== 'ok' ? c.reason : cfg.label}</p>
                 </div>
                 <input value={c.role} onChange={e => onChange(crew.map((x, j) => j === i ? { ...x, role: e.target.value } : x))}
-                  className="w-24 bg-white/70 border border-gray-200 rounded-lg py-1 px-2 text-[10px] font-bold text-blue-900 outline-none" />
+                  className="w-24 bg-white/70 border border-gray-200 py-1 px-2 text-[10px] font-bold text-[#1a2b4a] outline-none" />
                 <button type="button" onClick={() => onChange(crew.filter((_, j) => j !== i))}
                   className="text-gray-300 hover:text-red-500 transition-colors flex-shrink-0">
                   <X className="w-4 h-4" />

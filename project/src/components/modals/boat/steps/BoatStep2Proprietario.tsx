@@ -23,24 +23,24 @@ function ProfileCard({ name, email, profileNumber, docType, docNr, phone, nif, m
   ].filter(r => r.v !== '—' || r.l === 'Telefone');
 
   return (
-    <div className="rounded-2xl border-2 border-green-200 bg-green-50 overflow-hidden">
+    <div className="border border-green-200 bg-green-50 overflow-hidden">
       {/* Cabeçalho */}
       <div className="flex items-center gap-3 px-4 py-3">
-        <div className="w-10 h-10 rounded-full bg-blue-900 flex-shrink-0 shadow-sm flex items-center justify-center font-black text-white text-sm">
+        <div className="w-10 h-10 bg-[#0a1628] flex-shrink-0 shadow-sm flex items-center justify-center font-bold text-white text-sm">
           {initials}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-black text-blue-900 text-sm truncate">{name}</p>
+            <p className="font-bold text-[#1a2b4a] text-sm truncate">{name}</p>
             {profileNumber && (
-              <span className="text-[9px] font-black bg-blue-900 text-white px-2 py-0.5 rounded-full flex-shrink-0">
+              <span className="text-[9px] font-semibold bg-[#0a1628] text-white px-2 py-0.5 flex-shrink-0">
                 #{profileNumber}
               </span>
             )}
           </div>
           <p className="text-[10px] text-gray-500 font-bold truncate">{email}</p>
         </div>
-        <div className="flex-shrink-0 text-[9px] font-black uppercase px-2 py-1 rounded-full text-green-700 border border-green-300 bg-white flex items-center gap-1">
+        <div className="flex-shrink-0 text-[9px] font-semibold uppercase px-2 py-1 text-green-700 border border-green-300 bg-white flex items-center gap-1">
           <ShieldCheck className="w-3 h-3" /> Verificado
         </div>
       </div>
@@ -50,8 +50,8 @@ function ProfileCard({ name, email, profileNumber, docType, docNr, phone, nif, m
         style={{ gridTemplateColumns: `repeat(${Math.min(rows.length, 4)}, 1fr)` }}>
         {rows.map(({ l, v }) => (
           <div key={l} className="bg-white/70 py-2 px-3 text-center">
-            <p className="text-[8px] font-black text-gray-400 uppercase">{l}</p>
-            <p className="text-[10px] font-black mt-0.5 text-green-700 truncate">{v}</p>
+            <p className="text-[8px] font-semibold text-gray-400 uppercase">{l}</p>
+            <p className="text-[10px] font-bold mt-0.5 text-green-700 truncate">{v}</p>
           </div>
         ))}
       </div>
@@ -59,8 +59,8 @@ function ProfileCard({ name, email, profileNumber, docType, docNr, phone, nif, m
       {/* Morada se disponível */}
       {morada && (
         <div className="border-t border-white/60 bg-white/50 px-4 py-2">
-          <p className="text-[8px] font-black text-gray-400 uppercase mb-0.5">Morada</p>
-          <p className="text-[10px] font-black text-green-700">{morada}</p>
+          <p className="text-[8px] font-semibold text-gray-400 uppercase mb-0.5">Morada</p>
+          <p className="text-[10px] font-bold text-green-700">{morada}</p>
         </div>
       )}
     </div>
@@ -73,21 +73,21 @@ function CompanyCard({ company, onClear }: {
   onClear: () => void;
 }) {
   return (
-    <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 overflow-hidden">
+    <div className="border border-[#c9a96e]/30 bg-[#0a1628]/5 overflow-hidden">
       <div className="flex items-center gap-3 px-4 py-3">
-        <div className="w-10 h-10 rounded-[10px] bg-blue-900 flex-shrink-0 shadow-sm flex items-center justify-center font-black text-white text-sm">
+        <div className="w-10 h-10 bg-[#0a1628] flex-shrink-0 shadow-sm flex items-center justify-center font-bold text-white text-sm">
           🏢
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-black text-blue-900 text-sm truncate">{company.name}</p>
-            <span className="text-[9px] font-black bg-blue-900 text-white px-2 py-0.5 rounded-full flex-shrink-0">
+            <p className="font-bold text-[#1a2b4a] text-sm truncate">{company.name}</p>
+            <span className="text-[9px] font-semibold bg-[#0a1628] text-white px-2 py-0.5 flex-shrink-0">
               NorthWindy
             </span>
           </div>
           <p className="text-[10px] text-gray-500 font-bold truncate">{company.email}</p>
         </div>
-        <div className="flex-shrink-0 text-[9px] font-black uppercase px-2 py-1 rounded-full text-blue-700 border border-blue-300 bg-white flex items-center gap-1">
+        <div className="flex-shrink-0 text-[9px] font-semibold uppercase px-2 py-1 text-[#1a2b4a] border border-[#c9a96e]/30 bg-white flex items-center gap-1">
           <ShieldCheck className="w-3 h-3" /> Verificada
         </div>
       </div>
@@ -98,20 +98,20 @@ function CompanyCard({ company, onClear }: {
           { l: 'Nº Registo',   v: company.numero || '—' },
         ].map(({ l, v }) => (
           <div key={l} className="bg-white/70 py-2 px-3 text-center">
-            <p className="text-[8px] font-black text-gray-400 uppercase">{l}</p>
-            <p className="text-[10px] font-black mt-0.5 text-blue-700 truncate">{v}</p>
+            <p className="text-[8px] font-semibold text-gray-400 uppercase">{l}</p>
+            <p className="text-[10px] font-bold mt-0.5 text-[#1a2b4a] truncate">{v}</p>
           </div>
         ))}
       </div>
       {company.morada && (
         <div className="border-t border-white/60 bg-white/50 px-4 py-2">
-          <p className="text-[8px] font-black text-gray-400 uppercase mb-0.5">Morada</p>
-          <p className="text-[10px] font-black text-blue-700">{company.morada}</p>
+          <p className="text-[8px] font-semibold text-gray-400 uppercase mb-0.5">Morada</p>
+          <p className="text-[10px] font-bold text-[#1a2b4a]">{company.morada}</p>
         </div>
       )}
       <div className="border-t border-white/60 bg-white/40 px-4 py-2">
         <button type="button" onClick={onClear}
-          className="text-[10px] font-black text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wider">
+          className="text-[10px] font-semibold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wider">
           ✕ Remover e inserir manualmente
         </button>
       </div>
@@ -142,27 +142,27 @@ function PhoneInput({ label, ddi, onDdiChange, phone, onPhoneChange }: {
   };
   return (
     <div>
-      <label className="block text-xs font-black text-blue-900 uppercase mb-1.5">{label}</label>
+      <label className="block text-xs font-semibold text-[#1a2b4a] uppercase mb-1.5">{label}</label>
       <div className="flex gap-2">
         <div ref={ref} className="relative flex-shrink-0">
           <button type="button" onClick={() => setOpen(o => !o)}
-            className={`h-full bg-gray-50 border-2 rounded-2xl py-3 px-3 flex items-center gap-1.5 font-bold text-sm transition-all min-w-[88px] ${open ? 'border-blue-900' : 'border-gray-100'} text-blue-900`}>
+            className={`h-full bg-gray-50 border py-3 px-3 flex items-center gap-1.5 font-bold text-sm transition-all min-w-[88px] ${open ? 'border-[#c9a96e]' : 'border-gray-200'} text-[#1a2b4a]`}>
             <span>{selected.flag}</span>
-            <span className="text-xs font-black">{selected.ddi}</span>
+            <span className="text-xs font-semibold">{selected.ddi}</span>
             <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
           </button>
           {open && (
-            <div className="absolute z-50 w-64 mt-1 bg-white border-2 border-blue-900 rounded-2xl shadow-xl overflow-hidden">
+            <div className="absolute z-50 w-64 mt-1 bg-white border border-[#c9a96e] shadow-xl overflow-hidden">
               <div className="p-2 border-b border-gray-100">
                 <input autoFocus value={search} onChange={e => setSearch(e.target.value)}
-                  placeholder="PESQUISAR PAÍS..." className="w-full text-sm font-bold text-blue-900 bg-gray-50 rounded-xl py-2 px-3 outline-none border-2 border-gray-100 focus:border-blue-900 placeholder:text-gray-300" />
+                  placeholder="PESQUISAR PAÍS..." className="w-full text-sm font-bold text-[#1a2b4a] bg-gray-50 py-2 px-3 outline-none border border-gray-200 focus:border-[#c9a96e] placeholder:text-gray-300" />
               </div>
               <div className="max-h-48 overflow-y-auto">
                 {filtered.map(c => (
                   <button key={c.code} type="button" onClick={() => { onDdiChange(c.ddi); setOpen(false); setSearch(''); }}
-                    className={`w-full text-left px-3 py-2 flex items-center gap-2.5 hover:bg-blue-50 transition-colors ${c.ddi === ddi ? 'bg-blue-900 text-white' : 'text-blue-900'}`}>
+                    className={`w-full text-left px-3 py-2 flex items-center gap-2.5 hover:bg-gray-50 transition-colors ${c.ddi === ddi ? 'bg-[#0a1628] text-white' : 'text-[#1a2b4a]'}`}>
                     <span>{c.flag}</span>
-                    <span className="text-xs font-black">{c.ddi}</span>
+                    <span className="text-xs font-semibold">{c.ddi}</span>
                     <span className="text-xs font-bold truncate">{c.name}</span>
                   </button>
                 ))}
@@ -172,7 +172,7 @@ function PhoneInput({ label, ddi, onDdiChange, phone, onPhoneChange }: {
         </div>
         <input type="tel" value={phone} onChange={e => onPhoneChange(applyMask(e.target.value, selected.mask))}
           placeholder={selected.mask.replace(/#/g, '0')}
-          className="flex-1 bg-gray-50 border-2 border-gray-100 rounded-2xl py-3 px-4 font-bold text-blue-900 text-sm focus:border-blue-900 outline-none transition-all placeholder:text-gray-300" />
+          className="flex-1 bg-gray-50 border border-gray-200 py-3 px-4 font-bold text-[#1a2b4a] text-sm focus:border-[#c9a96e] outline-none transition-all placeholder:text-gray-300" />
       </div>
     </div>
   );
@@ -309,7 +309,7 @@ export function BoatStep2Proprietario({
 
       {/* ── Modo de proprietário ── */}
       <div>
-        <p className="text-[10px] font-black text-blue-900 uppercase tracking-wider mb-2">Tipo de proprietário</p>
+        <p className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em] mb-2">Tipo de proprietário</p>
         <div className="grid grid-cols-2 gap-2">
           {([
             { key: 'search',  label: 'Conta NorthWindy', icon: <ShieldCheck className="w-4 h-4" /> },
@@ -317,8 +317,8 @@ export function BoatStep2Proprietario({
           ] as { key: OwnerMode; label: string; icon: React.ReactNode }[]).map(m => (
             <button key={m.key} type="button"
               onClick={() => { setOwnerMode(m.key); clearProfile(); setCompanyCard(null); setNifSearched(false); }}
-              className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-2xl border-2 font-black text-[10px] uppercase transition-all
-                ${ownerMode === m.key ? 'bg-blue-900 border-blue-900 text-white' : 'bg-gray-50 border-gray-100 text-blue-900 hover:border-blue-300'}`}>
+              className={`flex flex-col items-center gap-1.5 py-3 px-2 border font-semibold text-[10px] uppercase transition-all
+                ${ownerMode === m.key ? 'bg-[#0a1628] border-[#0a1628] text-white' : 'bg-gray-50 border-gray-100 text-[#1a2b4a] hover:border-[#c9a96e]/30'}`}>
               {m.icon}
               {m.label}
             </button>
@@ -330,13 +330,13 @@ export function BoatStep2Proprietario({
       {ownerMode === 'search' && (
         <>
           <div>
-            <label className="block text-xs font-black text-blue-900 uppercase mb-1.5">Email da conta</label>
+            <label className="block text-xs font-semibold text-[#1a2b4a] uppercase mb-1.5">Email da conta</label>
             <input
               type="email" value={f.email}
               onChange={e => { fd('email', e.target.value.toUpperCase()); setProfileCard(null); }}
               onBlur={e => handleEmailBlur(e.target.value)}
               placeholder="EMAIL@EXEMPLO.COM"
-              className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-3 px-4 font-bold text-blue-900 text-sm focus:border-blue-900 outline-none transition-all placeholder:text-gray-300 uppercase"
+              className="w-full bg-gray-50 border border-gray-200 py-3 px-4 font-bold text-[#1a2b4a] text-sm focus:border-[#c9a96e] outline-none transition-all placeholder:text-gray-300 uppercase"
             />
           </div>
 
@@ -344,12 +344,12 @@ export function BoatStep2Proprietario({
             <>
               <ProfileCard {...profileCard} />
               <button type="button" onClick={clearProfile}
-                className="w-full text-center text-[10px] font-black text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wider">
+                className="w-full text-center text-[10px] font-semibold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wider">
                 ✕ Remover e pesquisar outro
               </button>
             </>
           ) : (
-            <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 text-[10px] font-bold text-blue-500">
+            <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 px-4 py-3 text-[10px] font-bold text-[#1a2b4a]">
               💡 Introduza o email e clique fora do campo para pesquisar o perfil automaticamente.
             </div>
           )}
@@ -359,13 +359,13 @@ export function BoatStep2Proprietario({
       {/* ── Modo: Empresa ── */}
       {ownerMode === 'empresa' && (
         <>
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 text-[10px] font-bold text-amber-700">
+          <div className="bg-[#c9a96e]/5 border border-[#c9a96e]/20 px-4 py-3 text-[10px] font-bold text-[#1a2b4a]">
             🏢 Introduza o NIF/NIPC/CNPJ — os dados são preenchidos automaticamente se a empresa estiver cadastrada na NorthWindy.
           </div>
 
           {/* ── NIF PRIMEIRO — com lookup automático ── */}
           <div>
-            <label className="block text-xs font-black text-blue-900 uppercase mb-1.5">
+            <label className="block text-xs font-semibold text-[#1a2b4a] uppercase mb-1.5">
               NIF / NIPC / CNPJ *
             </label>
             <div className="relative">
@@ -375,16 +375,16 @@ export function BoatStep2Proprietario({
                 onChange={e => { fd('nif', e.target.value.toUpperCase()); setCompanyCard(null); setNifSearched(false); }}
                 onBlur={e => handleNifBlur(e.target.value)}
                 placeholder="INTRODUZA O NÚMERO FISCAL E CLIQUE FORA"
-                className={`w-full border-2 rounded-2xl py-3 px-4 font-bold text-blue-900 text-sm outline-none transition-all placeholder:text-gray-300 uppercase ${
+                className={`w-full border py-3 px-4 font-bold text-[#1a2b4a] text-sm outline-none transition-all placeholder:text-gray-300 uppercase ${
                   companyCard
-                    ? 'bg-blue-50 border-blue-400 focus:border-blue-900'
+                    ? 'bg-[#0a1628]/5 border-[#c9a96e]/30 focus:border-[#c9a96e]'
                     : nifSearched && !companyCard
-                    ? 'bg-amber-50 border-amber-200 focus:border-blue-900'
-                    : 'bg-gray-50 border-gray-100 focus:border-blue-900'
+                    ? 'bg-[#c9a96e]/5 border-[#c9a96e]/20 focus:border-[#c9a96e]'
+                    : 'bg-gray-50 border-gray-200 focus:border-[#c9a96e]'
                 }`}
               />
               {companyCard && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-600 text-[10px] font-black uppercase">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1a2b4a] text-[10px] font-semibold uppercase">
                   ✓ Encontrada
                 </span>
               )}
@@ -457,11 +457,11 @@ export function BoatStep2Proprietario({
 
       <div className="flex gap-3 pt-2">
         <button type="button" onClick={onBack}
-          className="px-5 py-4 border-2 border-gray-100 text-gray-400 rounded-2xl font-black text-sm uppercase hover:border-blue-900 hover:text-blue-900 transition-all flex items-center gap-1">
+          className="px-5 py-4 border border-gray-200 text-gray-400 font-semibold text-sm uppercase hover:border-[#0a1628] hover:text-[#1a2b4a] transition-all flex items-center gap-1">
           <ChevronLeft className="w-4 h-4" /> Voltar
         </button>
         <button type="submit"
-          className="flex-1 bg-blue-900 text-white py-4 rounded-2xl font-black uppercase text-sm hover:bg-blue-800 transition-all flex items-center justify-center gap-2">
+          className="flex-1 bg-[#0a1628] text-white py-4 font-semibold uppercase text-sm hover:bg-[#0a1628]/90 transition-all flex items-center justify-center gap-2">
           Próximo <ChevronRight className="w-4 h-4" />
         </button>
       </div>

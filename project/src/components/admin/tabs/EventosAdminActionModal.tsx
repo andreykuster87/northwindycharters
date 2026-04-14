@@ -22,25 +22,25 @@ export function EventosAdminActionModal({ ev, onClose, onApprove, onAnalysis, on
   const finalReason = reason === 'Outro motivo' ? customR : reason;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-blue-900/60 backdrop-blur-sm"
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#0a1628]/60 backdrop-blur-sm"
       onClick={onClose}>
-      <div className="bg-white rounded-[28px] shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200"
+      <div className="bg-white shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200"
         onClick={e => e.stopPropagation()}>
 
         {/* Header evento */}
-        <div className="bg-gradient-to-r from-blue-900 to-blue-700 px-6 py-5 rounded-t-[28px]">
+        <div className="bg-[#0a1628] px-6 py-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-black text-blue-300 uppercase tracking-wider mb-0.5">{ev.company_name}</p>
-              <h3 className="text-base font-black text-white uppercase italic leading-tight">{ev.title}</h3>
+              <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-0.5">{ev.company_name}</p>
+              <h3 className="font-['Playfair_Display'] font-bold text-base text-white uppercase leading-tight">{ev.title}</h3>
               <div className="flex flex-wrap gap-2 mt-2">
-                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${STATUS_MAP[ev.status].cls}`}>
+                <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 ${STATUS_MAP[ev.status].cls}`}>
                   {STATUS_MAP[ev.status].label}
                 </span>
-                <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{ev.tipo}</span>
+                <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5">{ev.tipo}</span>
               </div>
             </div>
-            <button onClick={onClose} className="bg-white/20 hover:bg-white/30 p-2 rounded-full text-white transition-all flex-shrink-0">
+            <button onClick={onClose} className="bg-white/20 hover:bg-white/30 p-2 text-white transition-all flex-shrink-0">
               <XCircle className="w-4 h-4" />
             </button>
           </div>
@@ -59,30 +59,30 @@ export function EventosAdminActionModal({ ev, onClose, onApprove, onAnalysis, on
                   ['Vagas',   String(ev.vagas)],
                   ['Preço',   ev.preco === 0 ? 'Gratuito' : ev.preco ? `€${ev.preco}` : '—'],
                 ].map(([l, v]) => (
-                  <div key={l} className="bg-gray-50 rounded-[12px] px-3 py-2.5">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">{l}</p>
-                    <p className="text-sm font-black text-blue-900 mt-0.5 truncate">{v}</p>
+                  <div key={l} className="bg-gray-50 px-3 py-2.5">
+                    <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-[0.15em]">{l}</p>
+                    <p className="text-sm font-bold text-[#1a2b4a] mt-0.5 truncate">{v}</p>
                   </div>
                 ))}
               </div>
 
               {ev.description && (
-                <div className="bg-blue-50 rounded-[14px] px-4 py-3">
-                  <p className="text-[10px] font-black text-blue-600 uppercase tracking-wider mb-1">Descrição</p>
-                  <p className="text-xs font-bold text-blue-900 leading-relaxed">{ev.description}</p>
+                <div className="bg-[#0a1628]/5 px-4 py-3">
+                  <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-1">Descrição</p>
+                  <p className="text-xs font-bold text-[#1a2b4a] leading-relaxed">{ev.description}</p>
                 </div>
               )}
 
               {ev.reject_reason && (
-                <div className="bg-red-50 border-2 border-red-100 rounded-[14px] px-4 py-3">
-                  <p className="text-[10px] font-black text-red-500 uppercase tracking-wider mb-1">Motivo da Reprovação</p>
+                <div className="bg-red-50 border-2 border-red-100 px-4 py-3">
+                  <p className="text-[10px] font-semibold text-red-500 uppercase tracking-[0.15em] mb-1">Motivo da Reprovação</p>
                   <p className="text-xs font-bold text-red-700">{ev.reject_reason}</p>
                 </div>
               )}
               {ev.admin_notes && (
-                <div className="bg-amber-50 border-2 border-amber-100 rounded-[14px] px-4 py-3">
-                  <p className="text-[10px] font-black text-amber-600 uppercase tracking-wider mb-1">Notas Admin</p>
-                  <p className="text-xs font-bold text-amber-800">{ev.admin_notes}</p>
+                <div className="bg-[#c9a96e]/5 border-2 border-[#c9a96e]/20 px-4 py-3">
+                  <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-1">Notas Admin</p>
+                  <p className="text-xs font-bold text-[#1a2b4a]">{ev.admin_notes}</p>
                 </div>
               )}
 
@@ -90,22 +90,22 @@ export function EventosAdminActionModal({ ev, onClose, onApprove, onAnalysis, on
               {(ev.status === 'pending' || ev.status === 'analysis') && (
                 <div className="grid grid-cols-3 gap-2 pt-2">
                   <button onClick={onApprove}
-                    className="bg-green-600 hover:bg-green-500 text-white py-3 rounded-[14px] font-black text-xs uppercase transition-all flex flex-col items-center gap-1 shadow-md">
+                    className="bg-green-600 hover:bg-green-500 text-white py-3 font-semibold text-xs uppercase transition-all flex flex-col items-center gap-1 shadow-md">
                     <CheckCircle2 className="w-4 h-4" /> Aprovar
                   </button>
                   <button onClick={() => setMode('analysis')}
-                    className="bg-blue-100 hover:bg-blue-200 text-blue-900 py-3 rounded-[14px] font-black text-xs uppercase transition-all flex flex-col items-center gap-1">
+                    className="bg-[#0a1628]/5 hover:bg-[#0a1628]/10 text-[#1a2b4a] py-3 font-semibold text-xs uppercase transition-all flex flex-col items-center gap-1">
                     <Eye className="w-4 h-4" /> Análise
                   </button>
                   <button onClick={() => setMode('reject')}
-                    className="bg-red-100 hover:bg-red-200 text-red-700 py-3 rounded-[14px] font-black text-xs uppercase transition-all flex flex-col items-center gap-1">
+                    className="bg-red-100 hover:bg-red-200 text-red-700 py-3 font-semibold text-xs uppercase transition-all flex flex-col items-center gap-1">
                     <XCircle className="w-4 h-4" /> Reprovar
                   </button>
                 </div>
               )}
               {ev.status === 'approved' && (
                 <button onClick={() => setMode('reject')}
-                  className="w-full mt-2 bg-red-50 hover:bg-red-100 border-2 border-red-100 text-red-600 py-3 rounded-[14px] font-black text-xs uppercase transition-all flex items-center justify-center gap-2">
+                  className="w-full mt-2 bg-red-50 hover:bg-red-100 border-2 border-red-100 text-red-600 py-3 font-semibold text-xs uppercase transition-all flex items-center justify-center gap-2">
                   <Trash2 className="w-3.5 h-3.5" /> Cancelar / Remover Evento
                 </button>
               )}
@@ -115,21 +115,21 @@ export function EventosAdminActionModal({ ev, onClose, onApprove, onAnalysis, on
           {/* Modo análise */}
           {mode === 'analysis' && (
             <div className="space-y-4">
-              <div className="bg-blue-50 rounded-[14px] px-4 py-3">
-                <p className="text-xs font-bold text-blue-800">
+              <div className="bg-[#0a1628]/5 px-4 py-3">
+                <p className="text-xs font-bold text-[#1a2b4a]">
                   Coloque o evento em análise e envie uma nota para a empresa explicando o que falta ou o que será verificado.
                 </p>
               </div>
               <div>
-                <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 block">Nota para a empresa</label>
+                <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em] ml-1 mb-1.5 block">Nota para a empresa</label>
                 <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={4}
                   placeholder="Ex: Precisamos verificar o local e os dados de segurança do evento…"
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-[14px] py-3 px-4 font-bold text-blue-900 text-sm focus:border-blue-900 outline-none resize-none" />
+                  className="w-full bg-gray-50 border-2 border-gray-100 py-3 px-4 font-bold text-[#1a2b4a] text-sm focus:border-[#c9a96e] outline-none resize-none" />
               </div>
               <div className="flex gap-2">
-                <button onClick={() => setMode('view')} className="flex-1 border-2 border-gray-100 text-gray-500 py-3 rounded-[14px] font-black text-xs uppercase">Voltar</button>
+                <button onClick={() => setMode('view')} className="flex-1 border-2 border-gray-200 text-gray-500 py-3 font-semibold text-xs uppercase hover:border-[#c9a96e]">Voltar</button>
                 <button onClick={() => onAnalysis(notes)}
-                  className="flex-1 bg-blue-700 hover:bg-blue-600 text-white py-3 rounded-[14px] font-black text-xs uppercase transition-all shadow-md">
+                  className="flex-1 bg-[#0a1628] hover:bg-[#1a2b4a] text-white py-3 font-semibold text-xs uppercase transition-all shadow-md">
                   Enviar para Análise
                 </button>
               </div>
@@ -139,7 +139,7 @@ export function EventosAdminActionModal({ ev, onClose, onApprove, onAnalysis, on
           {/* Modo rejeição */}
           {mode === 'reject' && (
             <div className="space-y-4">
-              <div className="bg-red-50 rounded-[14px] px-4 py-3">
+              <div className="bg-red-50 px-4 py-3">
                 <p className="text-xs font-bold text-red-800">
                   Selecione o motivo da reprovação. A empresa será notificada automaticamente.
                 </p>
@@ -147,7 +147,7 @@ export function EventosAdminActionModal({ ev, onClose, onApprove, onAnalysis, on
               <div className="space-y-2">
                 {REJECT_REASONS.map(r => (
                   <button key={r} onClick={() => setReason(r)}
-                    className={`w-full text-left px-4 py-3 rounded-[12px] border-2 font-bold text-xs transition-all ${
+                    className={`w-full text-left px-4 py-3 border-2 font-bold text-xs transition-all ${
                       reason === r ? 'bg-red-50 border-red-400 text-red-700' : 'bg-gray-50 border-gray-100 text-gray-600 hover:border-red-200'
                     }`}>
                     {reason === r && '✓ '}{r}
@@ -156,17 +156,17 @@ export function EventosAdminActionModal({ ev, onClose, onApprove, onAnalysis, on
               </div>
               {reason === 'Outro motivo' && (
                 <div>
-                  <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 block">Descreva o motivo</label>
+                  <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em] ml-1 mb-1.5 block">Descreva o motivo</label>
                   <textarea value={customR} onChange={e => setCustomR(e.target.value)} rows={3}
                     placeholder="Explique o motivo…"
-                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-[14px] py-3 px-4 font-bold text-blue-900 text-sm focus:border-blue-900 outline-none resize-none" />
+                    className="w-full bg-gray-50 border-2 border-gray-100 py-3 px-4 font-bold text-[#1a2b4a] text-sm focus:border-[#c9a96e] outline-none resize-none" />
                 </div>
               )}
               <div className="flex gap-2">
-                <button onClick={() => setMode('view')} className="flex-1 border-2 border-gray-100 text-gray-500 py-3 rounded-[14px] font-black text-xs uppercase">Voltar</button>
+                <button onClick={() => setMode('view')} className="flex-1 border-2 border-gray-200 text-gray-500 py-3 font-semibold text-xs uppercase hover:border-[#c9a96e]">Voltar</button>
                 <button onClick={() => finalReason && onReject(finalReason)}
                   disabled={!finalReason}
-                  className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white py-3 rounded-[14px] font-black text-xs uppercase transition-all shadow-md">
+                  className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white py-3 font-semibold text-xs uppercase transition-all shadow-md">
                   Reprovar Evento
                 </button>
               </div>

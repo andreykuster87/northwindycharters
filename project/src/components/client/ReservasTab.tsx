@@ -15,10 +15,9 @@ export function ReservasTab({ bookings, eventBookings, onRefresh }: Props) {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-black text-blue-900 uppercase italic">Minhas Reservas</h2>
-        <p className="text-xs text-gray-400 font-bold mt-0.5">
-          {bookings.length} passeio{bookings.length !== 1 ? 's' : ''} · {eventBookings.length} evento{eventBookings.length !== 1 ? 's' : ''}
-        </p>
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-1">Histórico</p>
+        <h2 className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xl">Minhas Reservas</h2>
+        <div className="w-8 h-px bg-[#c9a96e] mt-2" />
       </div>
       <div className="flex gap-2">
         {([
@@ -26,9 +25,9 @@ export function ReservasTab({ bookings, eventBookings, onRefresh }: Props) {
           { key: 'eventos'  as const, label: '🎟️ Eventos',  count: eventBookings.length },
         ]).map(t => (
           <button key={t.key} onClick={() => setActiveTab(t.key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-[12px] font-black text-xs uppercase transition-all ${activeTab === t.key ? 'bg-blue-900 text-white' : 'bg-gray-50 border-2 border-gray-100 text-gray-500'}`}>
+            className={`flex items-center gap-2 px-4 py-2 font-semibold text-xs uppercase tracking-wide transition-all ${activeTab === t.key ? 'bg-[#0a1628] text-white border-b-2 border-[#c9a96e]' : 'bg-gray-50 border border-gray-100 text-gray-500 hover:text-[#1a2b4a]'}`}>
             {t.label}
-            {t.count > 0 && <span className={`text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center ${activeTab === t.key ? 'bg-white text-blue-900' : 'bg-blue-900 text-white'}`}>{t.count}</span>}
+            {t.count > 0 && <span className={`text-[9px] font-bold w-4 h-4 flex items-center justify-center ${activeTab === t.key ? 'bg-[#c9a96e] text-[#0a1628]' : 'bg-[#0a1628] text-white'}`}>{t.count}</span>}
           </button>
         ))}
       </div>

@@ -12,7 +12,7 @@ export function CompanyRegStep4({ form, setForm }: Props) {
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-      <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-2">
+      <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-2">
         👤 Responsável / Representante
       </p>
 
@@ -37,7 +37,7 @@ export function CompanyRegStep4({ form, setForm }: Props) {
           <select
             value={form.resp_ddi}
             onChange={e => { f('resp_ddi', e.target.value); f('resp_telefone', ''); }}
-            className="bg-gray-50 border-2 border-gray-100 rounded-[18px] py-4 px-3 font-black text-blue-900 focus:border-blue-900 outline-none transition-all text-sm">
+            className="bg-gray-50 border border-gray-200 py-4 px-3 font-semibold text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all text-sm">
             {DDI_OPTIONS.map(d => (
               <option key={d.code} value={d.ddi}>{d.flag} {d.ddi || 'Outro'}</option>
             ))}
@@ -59,12 +59,12 @@ export function CompanyRegStep4({ form, setForm }: Props) {
         <button
           type="button"
           onClick={() => f('declarou_veracidade', !form.declarou_veracidade)}
-          className={`w-full flex items-start gap-3 px-5 py-4 rounded-[18px] border-2 text-left transition-all ${
+          className={`w-full flex items-start gap-3 px-5 py-4 border text-left transition-all ${
             form.declarou_veracidade
               ? 'bg-green-50 border-green-400'
-              : 'bg-gray-50 border-gray-100 hover:border-blue-300'
+              : 'bg-gray-50 border-gray-200 hover:border-[#c9a96e]/30'
           }`}>
-          <div className={`w-5 h-5 rounded-[7px] border-2 flex-shrink-0 flex items-center justify-center transition-all mt-0.5 ${
+          <div className={`w-5 h-5 border-2 flex-shrink-0 flex items-center justify-center transition-all mt-0.5 ${
             form.declarou_veracidade ? 'bg-green-500 border-green-500' : 'border-gray-300'
           }`}>
             {form.declarou_veracidade && <Check className="w-3 h-3 text-white" />}
@@ -78,31 +78,31 @@ export function CompanyRegStep4({ form, setForm }: Props) {
         <button
           type="button"
           onClick={() => f('aceitou_termos', !form.aceitou_termos)}
-          className={`w-full flex items-start gap-3 px-5 py-4 rounded-[18px] border-2 text-left transition-all ${
+          className={`w-full flex items-start gap-3 px-5 py-4 border text-left transition-all ${
             form.aceitou_termos
               ? 'bg-green-50 border-green-400'
-              : 'bg-gray-50 border-gray-100 hover:border-blue-300'
+              : 'bg-gray-50 border-gray-200 hover:border-[#c9a96e]/30'
           }`}>
-          <div className={`w-5 h-5 rounded-[7px] border-2 flex-shrink-0 flex items-center justify-center transition-all mt-0.5 ${
+          <div className={`w-5 h-5 border-2 flex-shrink-0 flex items-center justify-center transition-all mt-0.5 ${
             form.aceitou_termos ? 'bg-green-500 border-green-500' : 'border-gray-300'
           }`}>
             {form.aceitou_termos && <Check className="w-3 h-3 text-white" />}
           </div>
           <p className="text-xs font-bold text-gray-700 leading-relaxed">
             Concordo com os{' '}
-            <span className="text-blue-700 underline">Termos de Serviço</span>
+            <span className="text-[#1a2b4a] underline">Termos de Serviço</span>
             {' '}e a{' '}
-            <span className="text-blue-700 underline">Política de Privacidade</span>
+            <span className="text-[#1a2b4a] underline">Política de Privacidade</span>
             {' '}da NorthWindy.
           </p>
         </button>
       </div>
 
-      <div className="bg-amber-50 border-2 border-amber-100 rounded-[18px] px-5 py-4 flex items-start gap-3">
+      <div className="bg-[#c9a96e]/5 border border-[#c9a96e]/20 px-5 py-4 flex items-start gap-3">
         <span className="text-lg flex-shrink-0">⏳</span>
         <div>
-          <p className="font-black text-amber-800 text-sm">Análise em curso</p>
-          <p className="text-xs text-amber-600 font-bold mt-0.5">
+          <p className="font-semibold text-[#1a2b4a] text-sm">Análise em curso</p>
+          <p className="text-xs text-[#1a2b4a]/70 font-bold mt-0.5">
             Após o envio, a equipa NorthWindy irá verificar os dados e entrar em contacto pelo e-mail fornecido.
           </p>
         </div>

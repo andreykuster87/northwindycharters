@@ -12,7 +12,7 @@ export function CompanyRegStep2({ form, setForm }: Props) {
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-      <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-2">
+      <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-2">
         🆔 Identificação Fiscal
       </p>
 
@@ -45,9 +45,9 @@ export function CompanyRegStep2({ form, setForm }: Props) {
         </p>
       </div>
 
-      <div className="bg-blue-50 border-2 border-blue-100 rounded-[18px] px-5 py-4 flex items-start gap-3">
-        <Globe className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-        <p className="text-xs font-bold text-blue-700">
+      <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 px-5 py-4 flex items-start gap-3">
+        <Globe className="w-4 h-4 text-[#c9a96e] flex-shrink-0 mt-0.5" />
+        <p className="text-xs font-bold text-[#1a2b4a]">
           Os dados fiscais são utilizados para emissão de contratos e documentação oficial.
           Insira apenas informações válidas e verificáveis.
         </p>

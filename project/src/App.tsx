@@ -13,6 +13,7 @@ import { useModals }      from './hooks/useModals';
 // Componentes carregados imediatamente (acima da dobra / críticos)
 import { Hero }            from './components/pages/Hero';
 import { FeaturedCarousels } from './components/pages/FeaturedCarousels';
+import { AgendaSemanalMarketplace } from './components/pages/AgendaSemanalMarketplace';
 import { SiteFooter }      from './components/pages/SiteFooter';
 
 // Áreas autenticadas — carregadas sob demanda
@@ -27,6 +28,9 @@ const ParceirosPage           = lazy(() => import('./components/pages/ParceirosP
 const ComunidadePage          = lazy(() => import('./components/pages/ComunidadePage').then(m => ({ default: m.ComunidadePage })));
 const TermosPage              = lazy(() => import('./components/pages/TermosPage').then(m => ({ default: m.TermosPage })));
 const FAQPage                 = lazy(() => import('./components/pages/FAQPage').then(m => ({ default: m.FAQPage })));
+const OfertasTrabalhoPage     = lazy(() => import('./components/pages/OfertasTrabalhoPage').then(m => ({ default: m.OfertasTrabalhoPage })));
+const NegocieEmbarcacoesPage  = lazy(() => import('./components/pages/NegocieEmbarcacoesPage').then(m => ({ default: m.NegocieEmbarcacoesPage })));
+const MarketplacePage         = lazy(() => import('./components/pages/MarketplacePage').then(m => ({ default: m.MarketplacePage })));
 
 // Modais — carregados sob demanda
 const BookingModal            = lazy(() => import('./components/modals/BookingModal').then(m => ({ default: m.BookingModal })));
@@ -47,7 +51,7 @@ import { refreshAll } from './lib/localStore';
 function App() {
   const navigate = useNavigate();
   const { auth, loginAsAdmin, loginAsSailor, loginAsClient, loginAsCompany, logout } = useAuth();
-  const { catalogBoats, loadPublicTrips }                            = useTrips();
+  const { catalogBoats, loadFromCache, loadPublicTrips }             = useTrips();
   const { selectedBoat, preDate, preSlot, selectBoat, clearBoat, confirmPublicBooking } = useBooking();
   const { pendingBoat, holdForLogin, flushToSession, clear: clearPending } = usePendingBoat();
   const { modals, open, close, switchTo } = useModals();
@@ -57,10 +61,10 @@ function App() {
 
   useEffect(() => {
     refreshAll()
-      .then(() => loadPublicTrips())
+      .then(() => loadFromCache())
       .catch((err) => {
         console.error('[NorthWindy] Supabase refreshAll falhou:', err);
-        loadPublicTrips();
+        loadPublicTrips(); // fallback: busca direto se o cache falhou
       });
   }, []); // eslint-disable-line
 
@@ -119,9 +123,21 @@ function App() {
         />
       } />
       <Route path="/parceiros"  element={<ParceirosPage  onBack={() => navigate('/')} onOpenAccess={() => { navigate('/'); setTimeout(() => open('companyLogin'), 100); }} onCompanyReg={() => { navigate('/'); setTimeout(() => open('companyReg'), 100); }} />} />
-      <Route path="/comunidade" element={<ComunidadePage onBack={() => navigate('/')} onSailorLogin={() => { navigate('/'); setTimeout(() => open('sailorLogin'), 100); }} onCompanyLogin={() => { navigate('/'); setTimeout(() => open('companyLogin'), 100); }} />} />
+      <Route path="/comunidade" element={
+        <ComunidadePage
+          onBack={() => navigate('/')}
+          onSailorLogin={() => { navigate('/'); setTimeout(() => open('sailorLogin'), 100); }}
+          onCompanyLogin={() => { navigate('/'); setTimeout(() => open('companyLogin'), 100); }}
+          onSailorReg={() => { navigate('/'); setTimeout(() => open('sailorReg'), 100); }}
+          onCompanyReg={() => { navigate('/'); setTimeout(() => open('companyReg'), 100); }}
+          onAdminClick={() => { navigate('/'); setTimeout(() => setAdminLoginOpen(true), 100); }}
+        />
+      } />
       <Route path="/termos"     element={<TermosPage     onBack={() => navigate('/')} />} />
       <Route path="/faq"        element={<FAQPage        onBack={() => navigate('/')} />} />
+      <Route path="/ofertas-de-trabalho"  element={<OfertasTrabalhoPage    onBack={() => navigate('/')} />} />
+      <Route path="/negocie-embarcacoes"  element={<NegocieEmbarcacoesPage onBack={() => navigate('/')} />} />
+      <Route path="/marketplace"          element={<MarketplacePage         onBack={() => navigate('/')} />} />
       <Route path="*" element={
         <div className="min-h-screen bg-white">
           <style>{`
@@ -235,6 +251,7 @@ function App() {
             onOpenAbout={() => navigate('/quem-somos')}
           />
 
+          <AgendaSemanalMarketplace />
           <FeaturedCarousels boats={catalogBoats} onSelectBoat={handleSelectBoat} />
           <SiteFooter onAdminClick={() => setAdminLoginOpen(true)} />
         </div>

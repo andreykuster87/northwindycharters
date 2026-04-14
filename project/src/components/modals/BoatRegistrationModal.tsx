@@ -178,32 +178,33 @@ export function BoatRegistrationModal({ onClose, onSuccess, sailorId }: Props) {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-blue-900/50 backdrop-blur-md">
-      <div className="bg-white w-full max-w-xl max-h-[92vh] flex flex-col rounded-[32px] shadow-2xl border-4 border-blue-900 animate-in zoom-in-95 duration-300 overflow-hidden">
+    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4" style={{ background: 'rgba(4,10,24,0.88)', backdropFilter: 'blur(8px)' }}>
+      <div className="bg-white w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl border border-[#c9a96e]/30 animate-in zoom-in-95 duration-300 overflow-hidden">
 
         {/* Header */}
-        <div className="bg-blue-900 px-6 py-5 flex-shrink-0">
+        <div className="bg-[#0a1628] px-6 py-5 flex-shrink-0 relative border-b border-[#c9a96e]"
+          style={{ backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(201,169,110,0.04) 24px,rgba(201,169,110,0.04) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(201,169,110,0.04) 24px,rgba(201,169,110,0.04) 25px)' }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Ship className="w-5 h-5 text-white" />
-              <span className="text-white font-black uppercase text-sm tracking-widest">Cadastro de Embarcação</span>
+              <Ship className="w-5 h-5 text-[#c9a96e]" />
+              <span className="text-white font-semibold uppercase text-sm tracking-[0.15em]">Cadastro de Embarcação</span>
             </div>
-            <button onClick={onClose} className="bg-blue-800 hover:bg-blue-700 text-white p-2 rounded-full transition-all">
+            <button onClick={onClose} className="bg-white/10 hover:bg-white/20 text-white p-2 transition-all">
               <X className="w-4 h-4" />
             </button>
           </div>
           <div className="flex gap-1.5 mb-3">
             {STEPS_META.map((_, i) => (
-              <div key={i} className={`flex-1 h-1.5 rounded-full transition-all duration-300 ${i + 1 <= step ? 'bg-white' : 'bg-blue-700'}`} />
+              <div key={i} className={`flex-1 h-1 transition-all duration-300 ${i + 1 <= step ? 'bg-[#c9a96e]' : 'bg-white/20'}`} />
             ))}
           </div>
-          <p className="text-white font-black uppercase text-lg italic">{STEPS_META[step - 1].label}</p>
-          <p className="text-blue-300 text-xs font-bold uppercase tracking-widest">{STEPS_META[step - 1].sub}</p>
+          <p className="text-white font-['Playfair_Display'] font-bold text-lg">{STEPS_META[step - 1].label}</p>
+          <p className="text-[#c9a96e] text-xs font-semibold uppercase tracking-[0.15em]">{STEPS_META[step - 1].sub}</p>
         </div>
 
         <div className="overflow-y-auto flex-1 px-6 py-5">
           {formError && (
-            <div className="mb-4 bg-red-50 border-2 border-red-200 rounded-2xl px-4 py-3 flex items-center gap-2">
+            <div className="mb-4 bg-red-50 border border-red-200 px-4 py-3 flex items-center gap-2">
               <span className="text-red-500 text-sm flex-shrink-0">⚠️</span>
               <p className="text-red-700 font-bold text-sm">{formError}</p>
             </div>

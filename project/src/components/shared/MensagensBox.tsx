@@ -23,25 +23,25 @@ export function MensagensBox({ clientId }: { clientId: string }) {
   }
 
   return (
-    <div className="bg-white rounded-[30px] border-2 border-blue-50 shadow-sm overflow-hidden w-full">
+    <div className="bg-white border-2 border-gray-100 shadow-sm overflow-hidden w-full">
 
       {/* Cabeçalho */}
       <button onClick={handleOpen} className="w-full flex items-center justify-between px-6 py-5 hover:bg-gray-50 transition-all">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="bg-blue-900 p-2 rounded-full">
+            <div className="bg-[#0a1628] p-2 rounded-full">
               <Bell className="w-4 h-4 text-white" />
             </div>
             {unread > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-semibold rounded-full flex items-center justify-center">
                 {unread > 9 ? '9+' : unread}
               </span>
             )}
           </div>
           <div>
-            <span className="font-black text-blue-900 text-sm uppercase tracking-wide">Mensagens</span>
+            <span className="font-semibold text-[#1a2b4a] text-sm uppercase tracking-wide">Mensagens</span>
             {unread > 0 && (
-              <span className="ml-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">
+              <span className="ml-2 bg-red-500 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full">
                 {unread} nova{unread !== 1 ? 's' : ''}
               </span>
             )}
@@ -62,7 +62,7 @@ export function MensagensBox({ clientId }: { clientId: string }) {
               <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center">
                 <Inbox className="w-7 h-7 text-gray-300" />
               </div>
-              <p className="font-black text-gray-300 uppercase italic text-sm">Sem mensagens</p>
+              <p className="font-semibold text-gray-300 uppercase italic text-sm">Sem mensagens</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
@@ -76,16 +76,16 @@ export function MensagensBox({ clientId }: { clientId: string }) {
                   <div
                     key={msg.id}
                     onClick={() => handleMarkRead(msg.id)}
-                    className={`border-l-4 px-6 py-5 cursor-pointer transition-all hover:bg-gray-50 ${color} ${!msg.read ? 'bg-blue-50/30' : 'bg-white'}`}
+                    className={`border-l-4 px-6 py-5 cursor-pointer transition-all hover:bg-gray-50 ${color} ${!msg.read ? 'bg-[#0a1628]/5' : 'bg-white'}`}
                   >
                     {/* Cabeçalho da mensagem */}
                     <div className="flex items-start justify-between gap-3 mb-1.5">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-lg leading-none flex-shrink-0">{icon}</span>
-                        <p className={`text-sm leading-tight ${!msg.read ? 'font-black text-blue-900' : 'font-bold text-gray-600'}`}>
+                        <p className={`text-sm leading-tight ${!msg.read ? 'font-semibold text-[#1a2b4a]' : 'font-bold text-gray-600'}`}>
                           {msg.title}
                         </p>
-                        {!msg.read && <div className="w-2 h-2 bg-blue-900 rounded-full flex-shrink-0" />}
+                        {!msg.read && <div className="w-2 h-2 bg-[#0a1628] rounded-full flex-shrink-0" />}
                       </div>
                       <span className="text-[10px] text-gray-300 font-bold flex-shrink-0 whitespace-nowrap">{date}</span>
                     </div>
@@ -98,16 +98,16 @@ export function MensagensBox({ clientId }: { clientId: string }) {
                     {/* Meta de reserva */}
                     {msg.meta?.booking_date && (
                       <div className="ml-7 mt-2 flex items-center gap-2 flex-wrap">
-                        <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                           📅 {new Date(msg.meta.booking_date + 'T12:00').toLocaleDateString('pt-BR')}
                         </span>
                         {msg.meta.time_slot && (
-                          <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                             🕐 {msg.meta.time_slot}
                           </span>
                         )}
                         {msg.meta.passengers && (
-                          <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                             👥 {msg.meta.passengers} pax
                           </span>
                         )}

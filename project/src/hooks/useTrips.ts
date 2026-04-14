@@ -1,6 +1,7 @@
 // src/hooks/useTrips.ts — MIGRADO PARA SUPABASE
 import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { getTrips, getSailors } from '../lib/localStore';
 import type { CatalogBoat } from '../lib/catalog';
 
 function tripToBoat(t: any, sailorsMap: Map<string, any>): CatalogBoat {
@@ -60,6 +61,15 @@ function tripToBoat(t: any, sailorsMap: Map<string, any>): CatalogBoat {
 export function useTrips() {
   const [catalogBoats, setCatalogBoats] = useState<CatalogBoat[]>([]);
 
+  // Popula o catálogo a partir do cache do refreshAll (sem queries extras ao Supabase)
+  const loadFromCache = useCallback(() => {
+    const trips = getTrips(); // já filtra status=active
+    const sailors = getSailors().filter(s => s.status === 'approved');
+    const sailorsMap = new Map(sailors.map(s => [s.id, s]));
+    setCatalogBoats(trips.map(t => tripToBoat(t, sailorsMap)));
+  }, []);
+
+  // Busca direto do Supabase (usado quando o cache ainda não foi populado)
   const loadPublicTrips = useCallback(async () => {
     const [{ data: trips }, { data: sailors }] = await Promise.all([
       supabase.from('trips').select('*').eq('status', 'active').order('created_at', { ascending: false }),
@@ -70,5 +80,5 @@ export function useTrips() {
     setCatalogBoats((trips ?? []).map(t => tripToBoat(t, sailorsMap)));
   }, []);
 
-  return { catalogBoats, loadPublicTrips };
+  return { catalogBoats, loadFromCache, loadPublicTrips };
 }

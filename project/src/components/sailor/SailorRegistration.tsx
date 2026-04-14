@@ -17,7 +17,7 @@ import type { DocTypeValue } from '../../lib/localStore';
 type TabN = 1 | 2 | 3 | 4;
 
 interface Form1 {
-  nomeCompleto: string; email: string; idioma: string;
+  nomeCompleto: string; email: string; idioma: string; username: string;
   cpfNif: string; endereco: string; funcao: string[]; funcaoOutro: string; cadernetaNumero: string;
 }
 interface Form2 {
@@ -25,7 +25,7 @@ interface Form2 {
   cartaNumero: string; cartaEmissao: string; cartaValidade: string;
   caderneta_possui: boolean; caderneta_numero: string;
 }
-interface Form4 { medicoEmissao: string; medicoValidade: string; }
+interface Form4 { medicoNumero: string; medicoEmissao: string; medicoValidade: string; }
 interface Experiencia { empresa: string; funcao: string; periodo_inicio: string; periodo_fim: string; }
 
 const BLANK_EXP: Experiencia = { empresa: '', funcao: '', periodo_inicio: '', periodo_fim: '' };
@@ -53,7 +53,7 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
   const [phoneCountry, setPhoneCountry] = useState<Country>(COUNTRIES[1]);
   const [phoneRaw,     setPhoneRaw]     = useState('');
   const [form1, setForm1] = useState<Form1>({
-    nomeCompleto: '', email: '', idioma: 'pt-PT',
+    nomeCompleto: '', email: '', idioma: 'pt-PT', username: '',
     cpfNif: '', endereco: '', funcao: [], funcaoOutro: '', cadernetaNumero: '',
   });
   const [birthDay,   setBirthDay]   = useState('');
@@ -99,7 +99,7 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
 
   // Step 4
   const [possuiMedico,  setPossuiMedico]  = useState(true); // default Sim
-  const [form4,         setForm4]         = useState<Form4>({ medicoEmissao: '', medicoValidade: '' });
+  const [form4,         setForm4]         = useState<Form4>({ medicoNumero: '', medicoEmissao: '', medicoValidade: '' });
   const [medicoFile,    setMedicoFile]    = useState<File | null>(null);
   const [medicoPreview, setMedicoPreview] = useState<string | null>(null);
   const [disponivelImediato,      setDisponivelImediato]      = useState<boolean | null>(null);
@@ -125,6 +125,7 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
 
   const handleNext1 = async () => {
     if (!form1.nomeCompleto.trim()) { showErr('Preencha o nome completo.'); return; }
+    if (!form1.username.trim() || form1.username.length < 3) { showErr('Defina um @ com pelo menos 3 caracteres.'); return; }
     if (!phoneRaw.trim())           { showErr('Preencha o WhatsApp.'); return; }
     if (!form1.email.trim())        { showErr('Preencha o e-mail.'); return; }
     if (!birthDay || !birthMonth || !birthYear) { showErr('Informe a data de nascimento.'); return; }
@@ -169,6 +170,7 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
       const fullPhone = `${phoneCountry.ddi} ${phoneRaw}`;
 
       const sailor = await saveSailor({
+        username:      form1.username || undefined,
         name:          form1.nomeCompleto,
         phone:         fullPhone,
         email:         form1.email,
@@ -200,8 +202,8 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
         stcw,
         stcw_validades: stcwValidades,
         medico: possuiMedico
-          ? { emissao: form4.medicoEmissao, validade: form4.medicoValidade, doc_url: medicoUrl }
-          : { emissao: undefined, validade: undefined, doc_url: null },
+          ? { numero: form4.medicoNumero || undefined, emissao: form4.medicoEmissao, validade: form4.medicoValidade, doc_url: medicoUrl }
+          : { numero: undefined, emissao: undefined, validade: undefined, doc_url: null },
         possui_medico:            possuiMedico,
         experiencia_embarcado:    experienciaEmbarcado ?? undefined,
         experiencias:             experienciaEmbarcado ? experiencias.filter(e => e.empresa || e.funcao) : undefined,
@@ -253,29 +255,31 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
   if (submitted) {
     return (
       <div className="w-full max-w-md mx-auto">
-        <div className="bg-white rounded-[40px] p-12 text-center shadow-2xl">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10 text-green-500" />
+        <div className="bg-white p-12 text-center shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/60 to-transparent" />
+          <div className="w-20 h-20 bg-[#c9a96e]/15 border border-[#c9a96e]/30 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-10 h-10 text-[#c9a96e]" />
           </div>
-          <h2 className="text-3xl font-black text-blue-900 uppercase italic mb-3">Candidatura Enviada!</h2>
+          <h2 className="font-['Playfair_Display'] font-bold italic text-2xl text-[#1a2b4a] mb-3">Candidatura Enviada!</h2>
           {profileNumber && (
-            <div className="bg-blue-900 rounded-[20px] px-6 py-4 mb-5 inline-flex items-center gap-3">
-              <Hash className="w-5 h-5 text-blue-300 flex-shrink-0" />
+            <div className="bg-[#0a1628] px-6 py-4 mb-5 inline-flex items-center gap-3 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/60 to-transparent" />
+              <Hash className="w-5 h-5 text-[#c9a96e] flex-shrink-0" />
               <div className="text-left">
-                <p className="text-blue-300 text-[10px] font-black uppercase tracking-widest">Nº de Perfil</p>
-                <p className="text-white text-2xl font-black tracking-widest">#{formatProfileNumber(profileNumber)}</p>
+                <p className="text-[#c9a96e]/70 text-[10px] font-semibold uppercase tracking-[0.15em]">Nº de Perfil</p>
+                <p className="text-white font-['Playfair_Display'] font-bold text-2xl tracking-widest">#{formatProfileNumber(profileNumber)}</p>
               </div>
             </div>
           )}
-          <p className="text-gray-500 font-bold text-sm leading-relaxed mb-4">
+          <p className="text-gray-500 font-medium text-sm leading-relaxed mb-4">
             A nossa equipa analisará os seus documentos e entrará em contacto via WhatsApp em breve.
           </p>
-          <div className="bg-amber-50 border-2 border-amber-100 rounded-[20px] px-5 py-3 mb-8 flex items-center gap-3">
+          <div className="bg-amber-50 border border-amber-200 px-5 py-3 mb-8 flex items-center gap-3">
             <span className="text-xl">⏳</span>
-            <p className="text-xs font-black text-amber-700 text-left">Verificação pendente — prazo habitual de 48 horas úteis.</p>
+            <p className="text-xs font-semibold text-amber-700 text-left">Verificação pendente — prazo habitual de 48 horas úteis.</p>
           </div>
           <button onClick={() => onClose ? onClose() : window.location.reload()}
-            className="w-full bg-blue-900 text-white py-4 rounded-[25px] font-black uppercase hover:bg-blue-800 transition-all">
+            className="w-full bg-[#0a1628] text-white py-4 font-semibold uppercase tracking-wider hover:bg-[#1a2b4a] transition-all">
             Voltar ao Início
           </button>
         </div>
@@ -292,18 +296,21 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
         />
       )}
 
-      <div className="w-full max-w-md mx-auto bg-white rounded-[36px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="flex-shrink-0 bg-blue-900 px-5 pt-6 pb-4">
-          <p className="text-[10px] font-black text-blue-300 uppercase tracking-widest mb-1">Registo de Marinheiro</p>
-          <h2 className="text-xl font-black text-white uppercase italic mb-4">⚓ Candidatura</h2>
+      <div className="w-full max-w-md mx-auto bg-white shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="flex-shrink-0 bg-[#0a1628] px-5 pt-6 pb-4 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.04]"
+            style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 0,transparent 60px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 0,transparent 60px)' }} />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/40 to-transparent" />
+          <p className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase tracking-[0.15em] mb-1 relative">Registo de Marinheiro</p>
+          <h2 className="font-['Playfair_Display'] font-bold italic text-xl text-white mb-4 relative">⚓ Candidatura</h2>
           <SailorStepper current={tab} done={doneTabs} />
         </div>
 
         <div ref={bodyRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
           {error && (
-            <div className="bg-red-50 border-2 border-red-200 rounded-[18px] px-4 py-3 flex items-start gap-3">
+            <div className="bg-red-50 border border-red-200 px-4 py-3 flex items-start gap-3">
               <span className="text-red-400 text-lg flex-shrink-0">⚠️</span>
-              <p className="text-sm font-bold text-red-700">{error}</p>
+              <p className="text-sm font-medium text-red-700">{error}</p>
             </div>
           )}
 
@@ -389,7 +396,7 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
               declaracaoData={declaracaoData}
               aceitouTermos={aceitouTermos}
               loading={loading}
-              onPossuiMedicoChange={v => { setPossuiMedico(v); if (!v) setForm4({ medicoEmissao: '', medicoValidade: '' }); }}
+              onPossuiMedicoChange={v => { setPossuiMedico(v); if (!v) setForm4({ medicoNumero: '', medicoEmissao: '', medicoValidade: '' }); }}
               onForm4Change={patch => setForm4(p => ({ ...p, ...patch }))}
               onMedicoSelect={(f,p) => { setMedicoFile(f); setMedicoPreview(p); }}
               onMedicoClear={() =>    { setMedicoFile(null); setMedicoPreview(null); }}

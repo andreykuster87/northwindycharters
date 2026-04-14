@@ -33,6 +33,7 @@ import type { SailorApplication } from './store/sailor-applications';
 
 export type { SailorApplication } from './store/sailor-applications';
 export { APP_REJECT_REASONS, FUNCOES_MARITIMAS } from './store/sailor-applications';
+export type { NauticEvent, JobOffer, EventBooking, EventGuest } from './store/events';
 
 // ── Cache em memória ──────────────────────────────────────────────────────────
 const cache = {
@@ -51,43 +52,100 @@ const cache = {
 
 let _initialized = false;
 
+/** Verdadeiro logo que o primeiro refreshAll() termina. */
+export function isInitialized() { return _initialized; }
+
 // ── Inicialização / Refresh ───────────────────────────────────────────────────
 export async function refreshAll(): Promise<void> {
   try {
+    // Todas as 10 queries correm em paralelo — um único round-trip HTTP/2
     const results = await Promise.allSettled([
-      supabase.from('sailors').select('*').order('created_at', { ascending: false }),
-      supabase.from('clients').select('*').order('created_at', { ascending: false }),
-      supabase.from('companies').select('*').order('created_at', { ascending: false }),
-      supabase.from('boats').select('*').order('created_at', { ascending: false }),
-      supabase.from('trips').select('*').order('created_at', { ascending: false }),
-      supabase.from('bookings').select('*, trip:trips(*)').order('created_at', { ascending: false }),
-      supabase.from('events').select('*').order('created_at', { ascending: false }),
-      supabase.from('job_offers').select('*').order('created_at', { ascending: false }),
-      supabase.from('event_bookings').select('*').order('created_at', { ascending: false }),
+      supabase.from('sailors').select('*').order('created_at', { ascending: false }).limit(500),
+      supabase.from('clients').select('*').order('created_at', { ascending: false }).limit(1000),
+      supabase.from('companies').select('*').order('created_at', { ascending: false }).limit(500),
+      supabase.from('boats').select('*').order('created_at', { ascending: false }).limit(500),
+      supabase.from('trips').select('*').order('created_at', { ascending: false }).limit(500),
+      // Sem JOIN: apenas campos essenciais de bookings para não duplicar trip data
+      supabase.from('bookings').select('id,booking_number,trip_id,sailor_id,client_id,customer_name,customer_phone,booking_date,time_slot,passengers,notes,total_price,status,guests,guests_obs,created_at,cancelled_at').order('created_at', { ascending: false }).limit(1000),
+      supabase.from('events').select('*').order('created_at', { ascending: false }).limit(300),
+      supabase.from('job_offers').select('*').order('created_at', { ascending: false }).limit(300),
+      supabase.from('event_bookings').select('*').order('created_at', { ascending: false }).limit(500),
+      // sailor_applications agora em paralelo com as demais (antes era sequencial — +1 round trip)
+      supabase.from('sailor_applications').select('*').order('created_at', { ascending: false }),
     ]);
 
     const get = (i: number) => results[i].status === 'fulfilled' ? (results[i] as any).value.data ?? [] : [];
 
     cache.sailors       = get(0).map((r: any) => mapSailor(r));
-    cache.clients       = get(1);
+
+    // ── Heal legado: promoções antigas criavam sailor com UUID/profile_number novos ──
+    // Cruzamos sailors e clients por email para detectar e corrigir dois problemas:
+    //   1. client.role não marcado como 'converted_to_sailor'
+    //   2. sailor.profile_number diferente do client.profile_number original
+    // Ambas as correcções são aplicadas em memória (imediato) e persistidas no Supabase (background).
+
+    // Mapa email → { sailor_id, sailor_profile_number }
+    const sailorByEmail = new Map(
+      cache.sailors.map(s => [s.email.toLowerCase(), { id: s.id, profile_number: s.profile_number }])
+    );
+    // Mapa email → client_profile_number (para corrigir o sailor)
+    const rawClients: any[] = get(1);
+    const clientProfileByEmail = new Map(
+      rawClients.map((c: any) => [c.email?.toLowerCase(), c.profile_number])
+    );
+
+    // 1. Corrigir clients legados (role não actualizado)
+    const staleClientIds: string[] = [];
+    cache.clients = rawClients.map((c: any) => {
+      if (c.role !== 'converted_to_sailor' && sailorByEmail.has(c.email?.toLowerCase())) {
+        staleClientIds.push(c.id);
+        return { ...c, role: 'converted_to_sailor' };
+      }
+      return c;
+    });
+    if (staleClientIds.length > 0) {
+      supabase.from('clients')
+        .update({ role: 'converted_to_sailor' })
+        .in('id', staleClientIds)
+        .then(() => {});
+    }
+
+    // 2. Corrigir sailors legados (profile_number diferente do client original)
+    const staleSailorFixes: { id: string; profile_number: string }[] = [];
+    cache.sailors = cache.sailors.map(s => {
+      const clientProfileNum = clientProfileByEmail.get(s.email.toLowerCase());
+      if (clientProfileNum && clientProfileNum !== s.profile_number) {
+        staleSailorFixes.push({ id: s.id, profile_number: clientProfileNum });
+        return { ...s, profile_number: clientProfileNum };
+      }
+      return s;
+    });
+    if (staleSailorFixes.length > 0) {
+      staleSailorFixes.forEach(fix => {
+        supabase.from('sailors')
+          .update({ profile_number: fix.profile_number })
+          .eq('id', fix.id)
+          .then(() => {});
+      });
+    }
+
     cache.companies     = get(2);
     cache.boats         = get(3).map((r: any) => ({ ...r, photos: r.photos ?? [], crew: r.crew ?? [] }));
     cache.trips         = get(4).map((r: any) => ({ ...r, photos: r.photos ?? [], schedule: r.schedule ?? [] }));
-    cache.bookings      = get(5).map((r: any) => ({ ...r, guests: r.guests ?? [] }));
+    // JOIN removido da query — enriquece bookings com trip do cache (sem transferência duplicada)
+    const tripsById = Object.fromEntries(cache.trips.map(t => [t.id, t]));
+    cache.bookings      = get(5).map((r: any) => ({ ...r, guests: r.guests ?? [], trip: tripsById[r.trip_id] ?? null }));
     cache.events        = get(6).map((r: any) => ({ ...r, photos: r.photos ?? [] }));
     cache.jobs          = get(7);
-    cache.eventBookings      = get(8).map((r: any) => ({ ...r, guests: r.guests ?? [] }));
-
-    // Sailor applications
-    const appRes = await supabase.from('sailor_applications').select('*').order('created_at', { ascending: false });
-    cache.sailorApplications = (appRes.data ?? []).map((r: any) => ({
+    cache.eventBookings = get(8).map((r: any) => ({ ...r, guests: r.guests ?? [] }));
+    cache.sailorApplications = get(9).map((r: any) => ({
       ...r,
-      funcoes:     r.funcoes ?? [],
-      stcw:        r.stcw ?? {},
+      funcoes:        r.funcoes        ?? [],
+      stcw:           r.stcw           ?? {},
       stcw_validades: r.stcw_validades ?? {},
-      experiencias: r.experiencias ?? [],
-      idiomas:     r.idiomas ?? [],
-      reject_reason: r.reject_reason ?? [],
+      experiencias:   r.experiencias   ?? [],
+      idiomas:        r.idiomas        ?? [],
+      reject_reason:  r.reject_reason  ?? [],
     }));
 
     _initialized = true;
@@ -131,6 +189,7 @@ function mapSailor(r: any): Sailor {
     aceitou_termos: r.aceitou_termos, status: r.status, verified: r.verified,
     verified_at: r.verified_at, blocked: r.blocked, block_reason: r.block_reason,
     created_at: r.created_at, profile_photo: r.profile_photo ?? null,
+    pending_docs: r.pending_docs ?? null,
   };
 }
 
@@ -164,9 +223,10 @@ function sailorToRow(data: Partial<Sailor>): any {
     delete row.cartahabitacao;
   }
   if (data.medico) {
-    row.medico_emissao = toIsoDate(data.medico.emissao);
+    row.medico_numero   = data.medico.numero   ?? null;
+    row.medico_emissao  = toIsoDate(data.medico.emissao);
     row.medico_validade = toIsoDate(data.medico.validade);
-    row.medico_doc_url = data.medico.doc_url ?? null;
+    row.medico_doc_url  = data.medico.doc_url  ?? null;
     delete row.medico;
   }
   if (data.caderneta_maritima) {

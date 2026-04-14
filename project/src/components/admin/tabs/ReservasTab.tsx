@@ -5,6 +5,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState } from 'react';
 import { XCircle, X, Calendar, Clock, Users, User, Hash, Phone, FileText, Ticket } from 'lucide-react';
+import { usePagination } from '../../../hooks/usePagination';
+import { Pagination }    from '../../shared/Pagination';
 import {
   getAllTrips,
   getBookings,
@@ -59,6 +61,7 @@ export function ReservasTab({
     ? bookings.filter(b => filteredTrips.some(t => t.id === b.trip_id))
     : bookings;
   const displayBookings  = role === 'admin' ? allDisplay : allDisplay.filter(b => b.status !== 'cancelado');
+  const pg = usePagination(displayBookings, 20);
   const pendingBookings  = bookings.filter(b => b.status === 'pending');
 
   const kpiRevenue = bookings
@@ -116,23 +119,23 @@ export function ReservasTab({
           filteredTrips!.some(t => t.id === b.trip_id)
         );
         return (
-          <div className="bg-blue-900 rounded-[25px] p-5 flex items-center justify-between gap-4">
+          <div className="bg-[#0a1628] p-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
               {filteredBoat.cover_photo
-                ? <img src={filteredBoat.cover_photo} alt="" className="w-12 h-12 rounded-[12px] object-cover flex-shrink-0" />
-                : <div className="w-12 h-12 rounded-[12px] bg-blue-800 flex items-center justify-center text-xl flex-shrink-0">⛵</div>
+                ? <img src={filteredBoat.cover_photo} alt="" className="w-12 h-12 object-cover flex-shrink-0" />
+                : <div className="w-12 h-12 bg-[#1a2b4a] flex items-center justify-center text-xl flex-shrink-0">⛵</div>
               }
               <div className="min-w-0">
-                <p className="text-blue-300 text-[10px] font-black uppercase">Filtrando por embarcação</p>
-                <p className="text-white font-black truncate">{filteredBoat.name}</p>
-                <p className="text-blue-300 text-[10px] font-bold">
+                <p className="text-[#c9a96e] text-[10px] font-semibold uppercase">Filtrando por embarcação</p>
+                <p className="text-white font-bold truncate">{filteredBoat.name}</p>
+                <p className="text-[#c9a96e] text-[10px] font-bold">
                   {filteredBookings.length} reserva{filteredBookings.length !== 1 ? 's' : ''} · {filteredTrips!.length} passeio{filteredTrips!.length !== 1 ? 's' : ''}
                 </p>
               </div>
             </div>
             <button
               onClick={onClearFilter}
-              className="bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-black text-xs uppercase transition-all flex-shrink-0 flex items-center gap-1.5"
+              className="bg-[#1a2b4a] hover:bg-[#c9a96e]/20 text-white px-4 py-2 font-semibold text-xs uppercase transition-all flex-shrink-0 flex items-center gap-1.5"
             >
               <XCircle className="w-3.5 h-3.5" /> Ver todas
             </button>
@@ -147,9 +150,9 @@ export function ReservasTab({
             { l: 'Reservas',  v: bookings.length },
             { l: 'Pendentes', v: kpiPending       },
           ].map(({ l, v }) => (
-            <div key={l} className="bg-white rounded-[30px] p-6 border-2 border-blue-50 shadow-sm">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{l}</p>
-              <p className="text-4xl font-black text-blue-900 mt-2">{v}</p>
+            <div key={l} className="bg-white p-6 border-2 border-[#0a1628]/5 shadow-sm">
+              <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">{l}</p>
+              <p className="text-4xl font-bold text-[#1a2b4a] mt-2">{v}</p>
             </div>
           ))}
         </div>
@@ -157,11 +160,11 @@ export function ReservasTab({
 
       {/* Reservas pendentes de confirmação */}
       {!filterBoatId && pendingBookings.length > 0 && (
-        <div className="bg-amber-50 border-2 border-amber-200 rounded-[30px] p-6 space-y-3">
+        <div className="bg-[#c9a96e]/5 border-2 border-[#c9a96e]/20 p-6 space-y-3">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-xl">⏳</span>
-            <h2 className="text-base font-black text-amber-800 uppercase">Aguardando sua confirmação</h2>
-            <span className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+            <h2 className="text-base font-bold text-[#1a2b4a] uppercase">Aguardando sua confirmação</h2>
+            <span className="bg-amber-500 text-white text-[10px] font-semibold px-2 py-0.5">
               {pendingBookings.length}
             </span>
           </div>
@@ -170,16 +173,16 @@ export function ReservasTab({
             const tripData = getTripData(b.trip_id);
             const photo    = tripData?.cover_photo || tripData?.photos?.[0] || '';
             return (
-              <div key={b.id} className="bg-white rounded-[20px] border-2 border-amber-100 overflow-hidden shadow-sm">
+              <div key={b.id} className="bg-white border-2 border-[#c9a96e]/20 overflow-hidden shadow-sm">
                 <div className="flex items-stretch">
-                  <div className="w-20 flex-shrink-0 bg-blue-900 overflow-hidden">
+                  <div className="w-20 flex-shrink-0 bg-[#0a1628] overflow-hidden">
                     {photo
                       ? <img src={photo} alt="" className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center text-xl opacity-30">⛵</div>
                     }
                   </div>
                   <div className="flex-1 p-4 min-w-0">
-                    <p className="font-black text-blue-900 uppercase italic text-sm truncate">
+                    <p className="font-bold text-[#1a2b4a] uppercase text-sm truncate">
                       {tripData?.boat_name || 'Passeio'}
                     </p>
                     <p className="text-xs text-gray-500 font-bold">
@@ -195,13 +198,13 @@ export function ReservasTab({
                   <div className="flex flex-col gap-1.5 p-3 justify-center">
                     <button
                       onClick={() => handleQuickConfirm(b)}
-                      className="bg-green-500 hover:bg-green-400 text-white px-3 py-2 rounded-full font-black text-[10px] uppercase transition-all"
+                      className="bg-green-500 hover:bg-green-400 text-white px-3 py-2 font-semibold text-[10px] uppercase transition-all"
                     >
                       ✓ Confirmar
                     </button>
                     <button
                       onClick={() => onCancelRequest(b.id)}
-                      className="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-2 rounded-full font-black text-[10px] uppercase transition-all"
+                      className="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-2 font-semibold text-[10px] uppercase transition-all"
                     >
                       ✗ Recusar
                     </button>
@@ -214,9 +217,9 @@ export function ReservasTab({
       )}
 
       {/* Histórico de reservas */}
-      <div className="bg-white rounded-[40px] border-2 border-blue-50 p-8 shadow-sm">
+      <div className="bg-white border-2 border-[#0a1628]/5 p-8 shadow-sm">
         <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
-          <h2 className="text-xl font-black text-blue-900 uppercase italic">
+          <h2 className="font-['Playfair_Display'] font-bold text-xl text-[#1a2b4a] uppercase">
             {filteredBoat ? `Reservas — ${filteredBoat.name}` : 'Histórico de Reservas'}
           </h2>
           <div className="flex items-center gap-2">
@@ -226,13 +229,13 @@ export function ReservasTab({
                   displayBookings.filter(b => b.status === 'cancelado').forEach(b => deleteBooking(b.id));
                   onReload();
                 }}
-                className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 border-2 border-red-100 text-red-600 px-3 py-1.5 rounded-full font-black text-[10px] uppercase transition-all"
+                className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 border-2 border-red-100 text-red-600 px-3 py-1.5 font-semibold text-[10px] uppercase transition-all"
               >
                 🗑️ Limpar canceladas ({displayBookings.filter(b => b.status === 'cancelado').length})
               </button>
             )}
             {displayBookings.length > 0 && (
-              <span className="bg-blue-50 text-blue-900 text-xs font-black px-3 py-1 rounded-full border-2 border-blue-100">
+              <span className="bg-[#0a1628]/5 text-[#1a2b4a] text-xs font-semibold px-3 py-1 border-2 border-[#c9a96e]/20">
                 {displayBookings.length} reserva{displayBookings.length !== 1 ? 's' : ''}
               </span>
             )}
@@ -242,27 +245,27 @@ export function ReservasTab({
         {displayBookings.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-5xl mb-4">📋</div>
-            <p className="text-gray-400 font-black uppercase italic">
+            <p className="text-gray-400 font-semibold uppercase">
               {filteredBoat ? 'Nenhuma reserva para esta embarcação' : 'Nenhuma reserva ainda'}
             </p>
           </div>
         ) : (
           <div className="space-y-3">
-            {displayBookings.map(b => {
+            {pg.paged.map(b => {
               const tripData = getTripData(b.trip_id);
               const photo    = tripData?.cover_photo || tripData?.photos?.[0] || '';
               return (
                 <div key={b.id}
-                  className="flex items-stretch bg-gray-50 rounded-[20px] overflow-hidden border-2 border-gray-100 cursor-pointer hover:border-blue-200 hover:shadow-sm transition-all group"
+                  className="flex items-stretch bg-gray-50 overflow-hidden border-2 border-gray-100 cursor-pointer hover:border-[#c9a96e]/30 hover:shadow-sm transition-all group"
                   onClick={() => setSelectedBooking(b)}>
-                  <div className="w-16 flex-shrink-0 bg-blue-900 overflow-hidden">
+                  <div className="w-16 flex-shrink-0 bg-[#0a1628] overflow-hidden">
                     {photo
                       ? <img src={photo} alt="" className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center text-lg opacity-30">⛵</div>
                     }
                   </div>
                   <div className="flex-1 px-4 py-3 min-w-0">
-                    <p className="font-black text-blue-900 text-sm truncate italic">
+                    <p className="font-bold text-[#1a2b4a] text-sm truncate">
                       {tripData?.boat_name || 'Passeio'}
                     </p>
                     <p className="text-xs text-gray-500 font-bold truncate">
@@ -285,7 +288,7 @@ export function ReservasTab({
                             handleStatusChange(b.id, e.target.value);
                           }
                         }}
-                        className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase border-2 cursor-pointer outline-none ${STATUS_CLASSES[b.status] || 'bg-gray-100 text-gray-500 border-gray-200'}`}
+                        className={`px-3 py-1.5 text-[10px] font-semibold uppercase border-2 cursor-pointer outline-none ${STATUS_CLASSES[b.status] || 'bg-gray-100 text-gray-500 border-gray-200'}`}
                       >
                         <option value="pending">Aguardando</option>
                         <option value="confirmed">Confirmada</option>
@@ -293,13 +296,13 @@ export function ReservasTab({
                       </select>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className="px-3 py-1.5 rounded-full text-[10px] font-black uppercase border-2 bg-red-100 text-red-600 border-red-200">
+                        <span className="px-3 py-1.5 text-[10px] font-semibold uppercase border-2 bg-red-100 text-red-600 border-red-200">
                           Cancelada
                         </span>
                         {role === 'admin' && (
                           <button
                             onClick={() => { deleteBooking(b.id); onReload(); }}
-                            className="bg-red-100 hover:bg-red-500 text-red-500 hover:text-white p-1.5 rounded-full transition-all border-2 border-red-200 hover:border-red-500"
+                            className="bg-red-100 hover:bg-red-500 text-red-500 hover:text-white p-1.5 transition-all border-2 border-red-200 hover:border-red-500"
                           >
                             <XCircle className="w-3.5 h-3.5" />
                           </button>
@@ -312,6 +315,7 @@ export function ReservasTab({
             })}
           </div>
         )}
+        <Pagination {...pg} onPrev={pg.prev} onNext={pg.next} onPage={pg.setPage} />
       </div>
 
       {/* ── Reservas de Eventos ── */}

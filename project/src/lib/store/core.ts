@@ -84,6 +84,8 @@ export interface Sailor {
   verified_at?:   string;
   created_at:     string;
   profile_photo?: string | null;
+  username?:      string;
+  pending_docs?:  Record<string, { doc_url: string; validade?: string; numero?: string; submitted_at: string; status: 'pending' | 'approved' | 'rejected' }> | null;
 }
 
 export interface Client {
@@ -109,6 +111,7 @@ export interface Client {
   role:             string;
   created_at:       string;
   profile_photo?:   string | null;
+  username?:        string;
 }
 
 export interface Boat {

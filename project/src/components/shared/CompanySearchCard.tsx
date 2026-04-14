@@ -84,23 +84,23 @@ export function CompanySearchCard({ onCompanyClick, onToggle, expanded: extExpan
             onChange={e => set(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
             placeholder={placeholder}
-            className="bg-gray-50 border-2 border-gray-100 rounded-[12px] px-3 py-2.5 text-xs font-bold text-blue-900 focus:border-blue-400 outline-none placeholder:text-gray-300 transition-colors" />
+            className="bg-gray-50 border-2 border-gray-100 px-3 py-2.5 text-xs font-bold text-[#1a2b4a] focus:border-[#c9a96e] outline-none placeholder:text-gray-300 transition-colors" />
         ))}
       </div>
       <input value={searchSetor} onChange={e => setSearchSetor(e.target.value)}
         onKeyDown={e => e.key === 'Enter' && handleSearch()}
         placeholder="Setor de negócio"
-        className="w-full bg-gray-50 border-2 border-gray-100 rounded-[12px] px-3 py-2.5 text-xs font-bold text-blue-900 focus:border-blue-400 outline-none placeholder:text-gray-300 transition-colors" />
+        className="w-full bg-gray-50 border-2 border-gray-100 px-3 py-2.5 text-xs font-bold text-[#1a2b4a] focus:border-[#c9a96e] outline-none placeholder:text-gray-300 transition-colors" />
 
       {/* Botões de ação */}
       <div className="flex gap-2">
         <button onClick={handleSearch}
-          className="flex-1 bg-blue-900 hover:bg-blue-800 text-white py-2.5 rounded-[12px] font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-1.5">
+          className="flex-1 bg-[#0a1628] hover:bg-[#0a1628]/90 text-white py-2.5 font-semibold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-1.5">
           <Search className="w-3.5 h-3.5" /> Pesquisar
         </button>
         {(results !== null || hasFilters) && (
           <button onClick={clearSearch}
-            className="px-4 border-2 border-gray-200 text-gray-500 hover:border-red-200 hover:text-red-500 rounded-[12px] font-black text-xs transition-all">
+            className="px-4 border-2 border-gray-200 text-gray-500 hover:border-red-200 hover:text-red-500 font-semibold text-xs transition-all">
             <X className="w-4 h-4" />
           </button>
         )}
@@ -114,18 +114,18 @@ export function CompanySearchCard({ onCompanyClick, onToggle, expanded: extExpan
           ) : (
             results.map(c => (
               <button key={c.id} onClick={() => onCompanyClick(c)}
-                className="w-full bg-gray-50 hover:bg-blue-50 hover:border-blue-200 border-2 border-transparent rounded-[14px] px-3 py-2.5 flex items-center gap-3 transition-all text-left">
-                <div className="w-9 h-9 rounded-full overflow-hidden bg-amber-100 flex items-center justify-center flex-shrink-0">
+                className="w-full bg-gray-50 hover:bg-gray-50 hover:border-[#c9a96e]/30 border-2 border-transparent px-3 py-2.5 flex items-center gap-3 transition-all text-left">
+                <div className="w-9 h-9 rounded-full overflow-hidden bg-[#c9a96e]/15 flex items-center justify-center flex-shrink-0">
                   {(c as any).profile_photo
                     ? <img src={(c as any).profile_photo} alt={c.nome_fantasia} className="w-full h-full object-cover" />
-                    : <Building2 className="w-4 h-4 text-amber-600" />
+                    : <Building2 className="w-4 h-4 text-[#c9a96e]" />
                   }
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-blue-900 text-xs truncate">{c.nome_fantasia}</p>
+                  <p className="font-semibold text-[#1a2b4a] text-xs truncate">{c.nome_fantasia}</p>
                   <p className="text-[10px] font-bold text-gray-400 truncate">{c.cidade} · {c.setor.split(',')[0]}</p>
                 </div>
-                <span className="text-[9px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full flex-shrink-0">{c.profile_number}</span>
+                <span className="text-[9px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full flex-shrink-0">{c.profile_number}</span>
               </button>
             ))
           )}
@@ -138,7 +138,7 @@ export function CompanySearchCard({ onCompanyClick, onToggle, expanded: extExpan
   if (isControlled) {
     if (!expanded) return null;
     return (
-      <div className="bg-white border-2 border-gray-100 rounded-[20px] p-4">
+      <div className="bg-white border-2 border-gray-100 p-4">
         {panel}
       </div>
     );
@@ -146,14 +146,14 @@ export function CompanySearchCard({ onCompanyClick, onToggle, expanded: extExpan
 
   // ── Modo auto-gerido: card com header ─────────────────────────────────────
   return (
-    <div className="bg-white border-2 border-gray-100 rounded-[20px] overflow-hidden">
+    <div className="bg-white border-2 border-gray-100 overflow-hidden">
       <button onClick={handleInternalToggle}
         className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition-colors">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
-            <Search className="w-4 h-4 text-blue-700" />
+          <div className="w-8 h-8 bg-[#0a1628]/5 rounded-full flex items-center justify-center flex-shrink-0">
+            <Search className="w-4 h-4 text-[#c9a96e]" />
           </div>
-          <p className="text-xs font-black text-blue-900 uppercase tracking-wide">Procurar empresas</p>
+          <p className="text-xs font-semibold text-[#1a2b4a] uppercase tracking-wide">Procurar empresas</p>
         </div>
         <span className="text-gray-400 text-lg leading-none">{intExpanded ? '▲' : '▼'}</span>
       </button>

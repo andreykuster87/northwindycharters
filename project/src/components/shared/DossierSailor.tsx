@@ -105,22 +105,22 @@ export function DossierSailor({
   const badges = (
     <>
       {isPending && (
-        <span className="bg-yellow-400 text-yellow-900 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
+        <span className="bg-yellow-400 text-yellow-900 text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full">
           ⏳ Pendente
         </span>
       )}
       {isVerified && (
-        <span className="bg-green-400 text-green-900 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+        <span className="bg-green-400 text-green-900 text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
           <ShieldCheck className="w-3 h-3" /> Verificado
         </span>
       )}
       {isBlocked && (
-        <span className="bg-red-500 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
+        <span className="bg-red-500 text-white text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full">
           🚫 Bloqueado
         </span>
       )}
       {(sailor as any).profile_number && (
-        <span className="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">
+        <span className="bg-white/20 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full">
           Perfil #{String(parseInt((sailor as any).profile_number, 10))}
         </span>
       )}
@@ -153,7 +153,7 @@ export function DossierSailor({
           <button
             onClick={handleGenerateCredentials}
             disabled={genLoading}
-            className="w-full bg-blue-900 hover:bg-blue-800 disabled:opacity-50 text-white py-4 rounded-[25px] font-black uppercase text-sm transition-all flex items-center justify-center gap-2 shadow-md"
+            className="w-full bg-[#0a1628] hover:bg-[#0a1628]/90 disabled:opacity-50 text-white py-4 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2 shadow-md"
           >
             <Key className="w-4 h-4" />
             {genLoading ? '⏳ A gerar...' : '🔑 Gerar Credenciais de Acesso'}
@@ -183,7 +183,7 @@ export function DossierSailor({
             href={`https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(msg)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full bg-green-500 hover:bg-green-400 text-white py-3.5 rounded-[25px] font-black uppercase text-sm transition-all flex items-center justify-center gap-2 shadow-md"
+            className="w-full bg-green-500 hover:bg-green-400 text-white py-3.5 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2 shadow-md"
           >
             💬 Enviar senha por WhatsApp
           </a>
@@ -195,14 +195,14 @@ export function DossierSailor({
         <div className="flex gap-3">
           <button
             onClick={() => onReject?.(sailor)}
-            className="flex-1 bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-600 py-5 rounded-full font-black uppercase text-sm transition-all flex items-center justify-center gap-2"
+            className="flex-1 bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-600 py-5 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2"
           >
             <XCircle className="w-5 h-5" /> Recusar
           </button>
           <button
             onClick={() => onApprove?.(sailor)}
             disabled={approveLoading}
-            className="flex-1 bg-green-600 hover:bg-green-500 text-white py-5 rounded-full font-black uppercase text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 bg-green-600 hover:bg-green-500 text-white py-5 font-semibold uppercase text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <ShieldCheck className="w-5 h-5" />
             {approveLoading ? 'Aprovando...' : 'Aprovar'}
@@ -215,14 +215,14 @@ export function DossierSailor({
         isBlocked ? (
           <button
             onClick={handleUnblock}
-            className="w-full bg-green-600 hover:bg-green-500 text-white py-4 rounded-[25px] font-black uppercase text-sm transition-all flex items-center justify-center gap-2 shadow-md"
+            className="w-full bg-green-600 hover:bg-green-500 text-white py-4 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2 shadow-md"
           >
             🔓 Desbloquear Conta
           </button>
         ) : (
           <button
             onClick={handleBlock}
-            className="w-full bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-600 py-3 rounded-[25px] font-black uppercase text-sm transition-all flex items-center justify-center gap-2"
+            className="w-full bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-600 py-3 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2"
           >
             🚫 Bloquear Conta
           </button>
@@ -233,7 +233,7 @@ export function DossierSailor({
       {isVerified && onDeleteRequest && (
         <button
           onClick={() => onDeleteRequest(sailor.id, sailor.name)}
-          className="w-full bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-500 py-3 rounded-[25px] font-black uppercase text-sm transition-all flex items-center justify-center gap-2"
+          className="w-full bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-500 py-3 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2"
         >
           🗑️ Excluir Cadastro
         </button>

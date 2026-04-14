@@ -7,8 +7,8 @@ import { saveEvent, approveEvent } from '../../../lib/localStore';
 const TIPOS_EVENTO_ADMIN = ['Regata','Passeio','Formação','Desportivo','Tour','Festa','Outro'];
 const EMOJIS_ADMIN       = ['⛵','🏁','🎓','🏊','🗺️','🎉','🌊','⚓','🐬','🚣','🤿','🏄','📌'];
 
-const inputCls = "w-full bg-gray-50 border-2 border-gray-100 rounded-[14px] py-3 px-4 font-bold text-blue-900 focus:border-blue-900 outline-none text-sm placeholder:text-gray-300";
-const labelCls = "text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 block";
+const inputCls = "w-full bg-gray-50 border-2 border-gray-100 py-3 px-4 font-bold text-[#1a2b4a] focus:border-[#c9a96e] outline-none text-sm placeholder:text-gray-300";
+const labelCls = "text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em] ml-1 mb-1.5 block";
 
 interface Props {
   onSuccess: () => void;
@@ -69,21 +69,21 @@ export function NovoEventoAdminForm({ onSuccess, onCancel }: Props) {
   }
 
   return (
-    <div className="bg-white border-2 border-blue-100 rounded-[22px] p-5 space-y-4">
+    <div className="bg-white border-2 border-[#c9a96e]/20 p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-black text-blue-900 uppercase tracking-wider">Novo Evento (Admin)</p>
-        <button onClick={onCancel} className="text-gray-400 hover:text-red-500 transition-colors text-xs font-black">✕ Cancelar</button>
+        <p className="text-xs font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Novo Evento (Admin)</p>
+        <button onClick={onCancel} className="text-gray-400 hover:text-red-500 transition-colors text-xs font-semibold">✕ Cancelar</button>
       </div>
 
       {error && (
-        <div className="bg-red-50 border-2 border-red-100 rounded-[12px] px-4 py-3 flex items-center gap-2">
+        <div className="bg-red-50 border-2 border-red-100 px-4 py-3 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
           <p className="text-red-700 font-bold text-xs">{error}</p>
         </div>
       )}
 
-      <div className="bg-blue-50 border-2 border-blue-100 rounded-[14px] px-4 py-3">
-        <p className="text-xs font-bold text-blue-800">
+      <div className="bg-[#0a1628]/5 border-2 border-[#c9a96e]/20 px-4 py-3">
+        <p className="text-xs font-bold text-[#1a2b4a]">
           ✅ Eventos criados pelo admin são publicados directamente no Mural, sem necessidade de aprovação.
         </p>
       </div>
@@ -94,8 +94,8 @@ export function NovoEventoAdminForm({ onSuccess, onCancel }: Props) {
         <div className="flex flex-wrap gap-2">
           {EMOJIS_ADMIN.map(e => (
             <button key={e} onClick={() => f('cover_emoji', e)}
-              className={`w-9 h-9 rounded-[10px] text-lg flex items-center justify-center transition-all border-2 ${
-                form.cover_emoji === e ? 'bg-blue-900 border-blue-900' : 'bg-gray-50 border-gray-100 hover:border-blue-300'
+              className={`w-9 h-9 text-lg flex items-center justify-center transition-all border-2 ${
+                form.cover_emoji === e ? 'bg-[#0a1628] border-[#0a1628]' : 'bg-gray-50 border-gray-100 hover:border-[#c9a96e]/30'
               }`}>
               {e}
             </button>
@@ -114,8 +114,8 @@ export function NovoEventoAdminForm({ onSuccess, onCancel }: Props) {
         <div className="flex flex-wrap gap-2">
           {TIPOS_EVENTO_ADMIN.map(t => (
             <button key={t} onClick={() => f('tipo', t)}
-              className={`px-3 py-2 rounded-[12px] text-xs font-black border-2 transition-all ${
-                form.tipo === t ? 'bg-blue-900 text-white border-blue-900' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-blue-300'
+              className={`px-3 py-2 text-xs font-semibold border-2 transition-all ${
+                form.tipo === t ? 'bg-[#0a1628] text-white border-[#0a1628]' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-[#c9a96e]/30'
               }`}>
               {t}
             </button>
@@ -165,7 +165,7 @@ export function NovoEventoAdminForm({ onSuccess, onCancel }: Props) {
         <label className={labelCls}>Descrição</label>
         <textarea value={form.description} onChange={e => f('description', e.target.value)}
           rows={3} placeholder="Descrição do evento…"
-          className="w-full bg-gray-50 border-2 border-gray-100 rounded-[14px] py-3 px-4 font-bold text-blue-900 focus:border-blue-900 outline-none text-sm placeholder:text-gray-300 resize-none" />
+          className="w-full bg-gray-50 border-2 border-gray-100 py-3 px-4 font-bold text-[#1a2b4a] focus:border-[#c9a96e] outline-none text-sm placeholder:text-gray-300 resize-none" />
       </div>
 
       {/* Fotos */}
@@ -175,11 +175,11 @@ export function NovoEventoAdminForm({ onSuccess, onCancel }: Props) {
           {form.photos.length > 0 && (
             <div className="grid grid-cols-3 gap-2">
               {form.photos.map((p, i) => (
-                <div key={i} className="relative group rounded-[10px] overflow-hidden aspect-square">
+                <div key={i} className="relative group overflow-hidden aspect-square">
                   <img src={p} alt="" className="w-full h-full object-cover" />
                   <button type="button"
                     onClick={() => setForm(prev => ({ ...prev, photos: prev.photos.filter((_, idx) => idx !== i) }))}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    className="absolute top-1 right-1 bg-red-500 text-white p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
@@ -187,7 +187,7 @@ export function NovoEventoAdminForm({ onSuccess, onCancel }: Props) {
             </div>
           )}
           {form.photos.length < 6 && (
-            <label className="flex items-center justify-center gap-2 border-2 border-dashed border-blue-200 hover:border-blue-400 bg-blue-50 text-blue-600 py-3 rounded-[12px] font-black text-xs uppercase cursor-pointer transition-all">
+            <label className="flex items-center justify-center gap-2 border-2 border-dashed border-[#c9a96e]/30 hover:border-[#c9a96e] bg-[#c9a96e]/5 text-[#1a2b4a] py-3 font-semibold text-xs uppercase cursor-pointer transition-all">
               <Camera className="w-4 h-4" /> Carregar Fotos
               <input type="file" accept="image/*" multiple className="sr-only"
                 onChange={e => {
@@ -208,9 +208,9 @@ export function NovoEventoAdminForm({ onSuccess, onCancel }: Props) {
       </div>
 
       <button onClick={handleSubmit} disabled={loading}
-        className="w-full bg-blue-900 hover:bg-blue-800 disabled:opacity-50 text-white py-3.5 rounded-[14px] font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg">
+        className="w-full bg-[#0a1628] hover:bg-[#0a1628]/90 disabled:opacity-50 text-white py-3.5 font-semibold text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg">
         {loading
-          ? <span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
+          ? <span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white" />
           : <><Plus className="w-4 h-4" /> Publicar Evento</>
         }
       </button>

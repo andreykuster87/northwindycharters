@@ -4,6 +4,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState } from 'react';
 import { XCircle, ChevronDown, Pencil } from 'lucide-react';
+import { usePagination } from '../../../hooks/usePagination';
+import { Pagination }    from '../../shared/Pagination';
 import {
   cancelTrip,
   updateTrip,
@@ -46,6 +48,7 @@ export function PasseiosTab({
 }: PasseiosTabProps) {
   const [expandedTripId, setExpandedTripId] = useState<string | null>(null);
   const [editingTrip,    setEditingTrip]    = useState<Trip | null>(null);
+  const pg = usePagination(trips, 20);
 
   function handleCancelTrip(id: string) {
     if (!window.confirm('Cancelar este passeio?')) return;
@@ -70,7 +73,7 @@ export function PasseiosTab({
     <div className="space-y-6">
       {/* Cabeçalho */}
       <div>
-        <h2 className="text-3xl font-black text-blue-900 uppercase italic">
+        <h2 className="font-['Playfair_Display'] font-bold text-3xl text-[#1a2b4a]">
           {role === 'admin' ? 'Passeios Cadastrados' : 'Meus Passeios'}
         </h2>
         <p className="text-gray-400 font-bold text-sm uppercase mt-1">
@@ -80,22 +83,22 @@ export function PasseiosTab({
 
       {/* Estado vazio */}
       {trips.length === 0 ? (
-        <div className="bg-white rounded-[40px] p-16 text-center border-2 border-dashed border-gray-200 flex flex-col items-center justify-center min-h-[320px]">
+        <div className="bg-white p-16 text-center border-2 border-dashed border-gray-200 flex flex-col items-center justify-center min-h-[320px]">
           <div className="text-5xl mb-6">🧭</div>
-          <p className="text-gray-400 font-black uppercase italic text-lg mb-4">
+          <p className="text-gray-400 font-semibold uppercase text-lg mb-4">
             Nenhum passeio ainda
           </p>
           <button
             onClick={onGoToFrota}
-            className="bg-blue-900 text-white px-8 py-4 rounded-full font-black text-sm uppercase hover:bg-blue-800 transition-all"
+            className="bg-[#0a1628] text-white px-8 py-4 font-semibold text-sm uppercase hover:bg-[#0a1628]/90 transition-all"
           >
             Ir para Minha Frota →
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-[40px] border-2 border-blue-50 shadow-sm overflow-hidden">
+        <div className="bg-white border-2 border-[#0a1628]/5 shadow-sm overflow-hidden">
           <div className="divide-y divide-gray-50">
-            {trips.map(t => {
+            {pg.paged.map(t => {
               const isOpen       = expandedTripId === t.id;
               const tripBookings = bookings.filter(b => b.trip_id === t.id);
               const confirmedB   = tripBookings.filter(b => ['confirmed', 'completed', 'concluido'].includes(b.status));
@@ -109,9 +112,9 @@ export function PasseiosTab({
                   {/* Linha de sumário */}
                   <div
                     onClick={() => setExpandedTripId(isOpen ? null : t.id)}
-                    className={`flex items-center gap-4 px-6 py-4 cursor-pointer transition-all hover:bg-blue-50/50 ${isOpen ? 'bg-blue-50 border-l-4 border-blue-900' : ''}`}
+                    className={`flex items-center gap-4 px-6 py-4 cursor-pointer transition-all hover:bg-gray-50 ${isOpen ? 'bg-[#0a1628]/5 border-l-4 border-[#0a1628]' : ''}`}
                   >
-                    <div className="w-16 h-16 flex-shrink-0 rounded-[14px] overflow-hidden bg-blue-900">
+                    <div className="w-16 h-16 flex-shrink-0 overflow-hidden bg-[#0a1628]">
                       {(t as any).cover_photo
                         ? <img src={(t as any).cover_photo} alt="" className="w-full h-full object-cover" />
                         : <div className="w-full h-full flex items-center justify-center text-2xl opacity-30">⛵</div>
@@ -122,8 +125,8 @@ export function PasseiosTab({
                         {(t as any).country_flag && (
                           <span className="text-lg">{(t as any).country_flag}</span>
                         )}
-                        <p className="font-black text-blue-900 uppercase italic truncate">{t.boat_name}</p>
-                        <span className="text-[10px] font-black text-green-600 bg-green-100 px-2 py-0.5 rounded-full flex-shrink-0 border border-green-200">
+                        <p className="font-bold text-[#1a2b4a] uppercase truncate">{t.boat_name}</p>
+                        <span className="text-[10px] font-semibold text-green-600 bg-green-100 px-2 py-0.5 flex-shrink-0 border border-green-200">
                           ● Ativo
                         </span>
                       </div>
@@ -132,18 +135,18 @@ export function PasseiosTab({
                         {' · '}{t.marina_saida} → {t.marina_chegada} · {t.duracao}
                       </p>
                       <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                        <span className="text-[10px] font-black text-blue-900">{priceDisplay}/pessoa</span>
+                        <span className="text-[10px] font-bold text-[#1a2b4a]">{priceDisplay}/pessoa</span>
                         <span className="text-[10px] text-gray-300">·</span>
                         <span className="text-[10px] font-bold text-gray-400">
                           {futureDates.length} data{futureDates.length !== 1 ? 's' : ''} futuras
                         </span>
                         {confirmedB.length > 0 && (
-                          <span className="text-[10px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
+                          <span className="text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 border border-green-200">
                             {confirmedB.length} confirmada{confirmedB.length !== 1 ? 's' : ''}
                           </span>
                         )}
                         {pendingB.length > 0 && (
-                          <span className="text-[10px] font-black text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                          <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 border border-amber-200">
                             ⏳ {pendingB.length} pendente{pendingB.length !== 1 ? 's' : ''}
                           </span>
                         )}
@@ -152,35 +155,35 @@ export function PasseiosTab({
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
                         onClick={e => { e.stopPropagation(); setEditingTrip(t); }}
-                        className="bg-blue-50 hover:bg-blue-100 text-blue-500 hover:text-blue-900 p-2 rounded-full transition-all border border-blue-100"
+                        className="bg-[#0a1628]/5 hover:bg-[#0a1628]/10 text-[#c9a96e] p-2 transition-all border border-[#c9a96e]/30"
                         title="Editar passeio"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
                         onClick={e => { e.stopPropagation(); handleCancelTrip(t.id); }}
-                        className="bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 p-2 rounded-full transition-all border border-red-100"
+                        className="bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 p-2 transition-all border border-red-100"
                         title="Cancelar passeio"
                       >
                         <XCircle className="w-4 h-4" />
                       </button>
-                      <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-900' : ''}`} />
+                      <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#1a2b4a]' : ''}`} />
                     </div>
                   </div>
 
                   {/* Painel expandido */}
                   {isOpen && (
-                    <div className="border-t-2 border-blue-50 bg-gray-50/40 px-6 py-6 space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="border-t-2 border-[#0a1628]/5 bg-gray-50/40 px-6 py-6 space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
 
                       {/* Fotos */}
                       {((t as any).photos?.length > 0 || (t as any).cover_photo) && (
                         <div>
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">📷 Fotos</p>
+                          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">📷 Fotos</p>
                           <div className="flex gap-2 overflow-x-auto pb-1">
                             {[...new Set([(t as any).cover_photo, ...((t as any).photos || [])])].filter(Boolean).map((p: string, i: number) => (
                               <div
                                 key={i}
-                                className={`flex-shrink-0 w-24 h-24 rounded-[14px] overflow-hidden border-2 ${p === (t as any).cover_photo ? 'border-blue-900' : 'border-gray-100'}`}
+                                className={`flex-shrink-0 w-24 h-24 overflow-hidden border-2 ${p === (t as any).cover_photo ? 'border-[#0a1628]' : 'border-gray-100'}`}
                               >
                                 <img src={p} alt="" className="w-full h-full object-cover" />
                               </div>
@@ -191,7 +194,7 @@ export function PasseiosTab({
 
                       {/* Detalhes */}
                       <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">📋 Detalhes</p>
+                        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">📋 Detalhes</p>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                           {([
                             ['País',           [(t as any).country_flag, (t as any).country_name].filter(Boolean).join(' ') || '—'],
@@ -207,9 +210,9 @@ export function PasseiosTab({
                             ['Comida',         ({ inclusa: '🍽️ Inclusa', nao_inclusa: '🚫 Não inclusa' } as any)[(t as any).comida] || '—'],
                             ['Bar',            ({ tem: '🍹 Tem bar', nao_tem: '🚫 Sem bar' } as any)[(t as any).bar] || '—'],
                           ] as [string, string][]).map(([l, v]) => (
-                            <div key={l} className="bg-white rounded-[14px] px-4 py-3 border-2 border-gray-100">
-                              <p className="text-[9px] font-black text-gray-400 uppercase">{l}</p>
-                              <p className="font-black text-blue-900 text-sm mt-0.5">{v}</p>
+                            <div key={l} className="bg-white px-4 py-3 border border-gray-100">
+                              <p className="text-[9px] font-semibold text-gray-400 uppercase">{l}</p>
+                              <p className="font-bold text-[#1a2b4a] text-sm mt-0.5">{v}</p>
                             </div>
                           ))}
                         </div>
@@ -218,8 +221,8 @@ export function PasseiosTab({
                       {/* Descrição */}
                       {t.descricao && (
                         <div>
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">📝 Descrição</p>
-                          <div className="bg-white rounded-[14px] px-5 py-4 border-2 border-gray-100">
+                          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-2">📝 Descrição</p>
+                          <div className="bg-white px-5 py-4 border border-gray-100">
                             <p className="text-sm font-bold text-gray-600 leading-relaxed">{t.descricao}</p>
                           </div>
                         </div>
@@ -228,7 +231,7 @@ export function PasseiosTab({
                       {/* Agenda */}
                       {futureDates.length > 0 && (
                         <div>
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">📅 Agenda</p>
+                          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">📅 Agenda</p>
                           <div className="space-y-2">
                             {futureDates.map((entry: any, i: number) => {
                               const [y, m, d] = entry.date.split('-');
@@ -236,18 +239,18 @@ export function PasseiosTab({
                               return (
                                 <div
                                   key={i}
-                                  className={`bg-white rounded-[16px] px-5 py-3.5 border-2 ${spotsLeft > 0 ? 'border-blue-100' : 'border-gray-100 opacity-60'}`}
+                                  className={`bg-white px-5 py-3.5 border-2 ${spotsLeft > 0 ? 'border-[#c9a96e]/20' : 'border-gray-100 opacity-60'}`}
                                 >
                                   <div className="flex items-center justify-between mb-2">
-                                    <p className="font-black text-blue-900 text-sm">{d}/{m}/{y}</p>
-                                    <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full ${spotsLeft > 3 ? 'bg-green-100 text-green-700' : spotsLeft > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-500'}`}>
+                                    <p className="font-bold text-[#1a2b4a] text-sm">{d}/{m}/{y}</p>
+                                    <span className={`text-[10px] font-semibold px-2.5 py-0.5 ${spotsLeft > 3 ? 'bg-green-100 text-green-700' : spotsLeft > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-500'}`}>
                                       {spotsLeft > 0 ? `${spotsLeft} vaga${spotsLeft !== 1 ? 's' : ''} disponíveis` : 'Esgotado'}
                                     </span>
                                   </div>
                                   {entry.time_slots?.length > 0 && (
                                     <div className="flex flex-wrap gap-1.5">
                                       {entry.time_slots.map((slot: string) => (
-                                        <span key={slot} className="text-[10px] font-black bg-blue-50 border border-blue-200 text-blue-900 px-2.5 py-1 rounded-full">
+                                        <span key={slot} className="text-[10px] font-semibold bg-[#0a1628]/5 border border-[#c9a96e]/30 text-[#1a2b4a] px-2.5 py-1">
                                           {slot}
                                         </span>
                                       ))}
@@ -263,28 +266,28 @@ export function PasseiosTab({
                       {/* Reservas do passeio */}
                       <div>
                         <div className="flex items-center justify-between mb-3">
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">🎟️ Reservas deste passeio</p>
-                          <span className="text-[10px] font-black bg-blue-50 text-blue-900 px-3 py-0.5 rounded-full border border-blue-100">
+                          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">🎟️ Reservas deste passeio</p>
+                          <span className="text-[10px] font-semibold bg-[#0a1628]/5 text-[#1a2b4a] px-3 py-0.5 border border-[#0a1628]/10">
                             {tripBookings.length} total · {confirmedB.length} confirmadas · {pendingB.length} pendentes
                           </span>
                         </div>
                         {tripBookings.length === 0 ? (
-                          <div className="bg-white rounded-[16px] border-2 border-dashed border-gray-100 py-6 text-center">
-                            <p className="text-gray-300 font-black text-xs uppercase italic">Nenhuma reserva para este passeio</p>
+                          <div className="bg-white border-2 border-dashed border-gray-100 py-6 text-center">
+                            <p className="text-gray-300 font-semibold text-xs uppercase">Nenhuma reserva para este passeio</p>
                           </div>
                         ) : (
                           <div className="space-y-2">
                             {tripBookings.map(b => {
                               const st = STATUS_MAP[b.status] || { label: b.status, cls: 'bg-gray-100 text-gray-500 border-gray-200' };
                               return (
-                                <div key={b.id} className="bg-white rounded-[16px] border-2 border-gray-100 px-5 py-3 flex items-center gap-4">
+                                <div key={b.id} className="bg-white border border-gray-100 px-5 py-3 flex items-center gap-4">
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-black text-blue-900 text-sm truncate">{b.customer_name}</p>
+                                    <p className="font-bold text-[#1a2b4a] text-sm truncate">{b.customer_name}</p>
                                     <p className="text-xs text-gray-400 font-bold">
                                       📅 {b.booking_date ? new Date(b.booking_date + 'T12:00').toLocaleDateString('pt-BR') : '—'} · 👥 {b.passengers} pessoa{b.passengers !== 1 ? 's' : ''} · 💰 {fmt(b.total_price)}
                                     </p>
                                   </div>
-                                  <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border-2 flex-shrink-0 ${st.cls}`}>
+                                  <span className={`text-[10px] font-semibold uppercase px-2.5 py-1 border-2 flex-shrink-0 ${st.cls}`}>
                                     {st.label}
                                   </span>
                                 </div>
@@ -296,7 +299,7 @@ export function PasseiosTab({
 
                       {/* Gerir fotos */}
                       <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">📷 Gerir Fotos</p>
+                        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">📷 Gerir Fotos</p>
                         <PhotoAlbumManager
                           entityId={t.id}
                           entityType="trips"
@@ -312,6 +315,7 @@ export function PasseiosTab({
               );
             })}
           </div>
+          <Pagination {...pg} onPrev={pg.prev} onNext={pg.next} onPage={pg.setPage} />
         </div>
       )}
 

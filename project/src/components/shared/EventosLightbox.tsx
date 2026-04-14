@@ -42,7 +42,7 @@ export function Lightbox({ photos, index, onClose }: { photos: string[]; index: 
       <img
         src={photos[cur]}
         alt={`Foto ${cur + 1}`}
-        className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
+        className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl"
         onClick={e => e.stopPropagation()}
       />
 
@@ -70,7 +70,7 @@ export function PhotoAlbum({ photos, emoji }: { photos: string[]; emoji: string 
 
   if (!photos || photos.length === 0) {
     return (
-      <div className="w-full h-36 bg-gradient-to-br from-blue-900 to-blue-700 rounded-[16px] flex items-center justify-center text-5xl">
+      <div className="w-full h-36 bg-gradient-to-br from-[#0a1628] to-[#1a2b4a] flex items-center justify-center text-5xl">
         {emoji}
       </div>
     );
@@ -80,7 +80,7 @@ export function PhotoAlbum({ photos, emoji }: { photos: string[]; emoji: string 
     return (
       <>
         <div
-          className="relative w-full h-48 rounded-[16px] overflow-hidden cursor-zoom-in group"
+          className="relative w-full h-48 overflow-hidden cursor-zoom-in group"
           onClick={() => setLightboxIdx(0)}
         >
           <img src={photos[0]} alt="Foto" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -96,7 +96,7 @@ export function PhotoAlbum({ photos, emoji }: { photos: string[]; emoji: string 
   if (photos.length === 2) {
     return (
       <>
-        <div className="grid grid-cols-2 gap-1.5 rounded-[16px] overflow-hidden h-40">
+        <div className="grid grid-cols-2 gap-1.5 overflow-hidden h-40">
           {photos.map((p, i) => (
             <div key={i} className="relative cursor-zoom-in group overflow-hidden"
               onClick={() => setLightboxIdx(i)}>
@@ -115,9 +115,9 @@ export function PhotoAlbum({ photos, emoji }: { photos: string[]; emoji: string 
   // 3+ fotos: destaque + grid
   return (
     <>
-      <div className="grid grid-cols-3 gap-1.5 rounded-[16px] overflow-hidden h-44">
+      <div className="grid grid-cols-3 gap-1.5 overflow-hidden h-44">
         <div
-          className="col-span-2 row-span-2 relative cursor-zoom-in group overflow-hidden rounded-tl-[16px] rounded-bl-[16px]"
+          className="col-span-2 row-span-2 relative cursor-zoom-in group overflow-hidden"
           onClick={() => setLightboxIdx(0)}
         >
           <img src={photos[0]} alt="Foto principal" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -128,13 +128,13 @@ export function PhotoAlbum({ photos, emoji }: { photos: string[]; emoji: string 
         {photos.slice(1, 3).map((p, i) => (
           <div
             key={i}
-            className={`relative cursor-zoom-in group overflow-hidden ${i === 0 ? 'rounded-tr-[16px]' : 'rounded-br-[16px]'}`}
+            className="relative cursor-zoom-in group overflow-hidden"
             onClick={() => setLightboxIdx(i + 1)}
           >
             <img src={p} alt={`Foto ${i+2}`} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
             {i === 1 && photos.length > 3 && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <span className="text-white font-black text-lg">+{photos.length - 3}</span>
+                <span className="text-white font-bold text-lg">+{photos.length - 3}</span>
               </div>
             )}
             {!(i === 1 && photos.length > 3) && (

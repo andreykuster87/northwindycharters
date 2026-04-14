@@ -9,21 +9,21 @@ interface Props {
 
 export function CredentialsBlock({ login, password }: Props) {
   return (
-    <div className="bg-blue-900 rounded-[20px] p-5">
-      <p className="text-blue-300 text-[10px] font-black uppercase tracking-widest mb-3">
+    <div className="bg-[#0a1628] p-5">
+      <p className="text-[#c9a96e] text-[10px] font-semibold uppercase tracking-[0.15em] mb-3">
         🔑 Credenciais de Acesso
       </p>
       {([['Login', login], ['Senha', password]] as [string, string][]).map(([label, value]) => (
         <div
           key={label}
-          className="flex items-center justify-between bg-blue-800 rounded-[12px] px-4 py-2.5 mb-2 last:mb-0"
+          className="flex items-center justify-between bg-[#0a1628]/60 border border-[#c9a96e]/20 px-4 py-2.5 mb-2 last:mb-0"
         >
-          <span className="text-blue-300 text-xs font-bold uppercase">{label}</span>
+          <span className="text-[#c9a96e] text-xs font-bold uppercase">{label}</span>
           <div className="flex items-center gap-2">
-            <span className="text-white font-black text-sm">{value}</span>
+            <span className="text-white font-bold text-sm">{value}</span>
             <button
               onClick={() => navigator.clipboard.writeText(value)}
-              className="bg-blue-700 hover:bg-blue-600 text-white p-1 rounded-lg transition-all"
+              className="bg-[#c9a96e]/20 hover:bg-[#c9a96e]/30 text-[#c9a96e] p-1 transition-all"
             >
               <Copy className="w-3 h-3" />
             </button>

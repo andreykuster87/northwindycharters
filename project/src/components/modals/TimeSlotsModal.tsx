@@ -39,30 +39,37 @@ export function TimeSlotsModal({ entry, boatName, onClose, onBook }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-blue-900/60 backdrop-blur-md"
+      className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+      style={{ background: 'rgba(4,10,24,0.88)', backdropFilter: 'blur(8px)' }}
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-sm rounded-[35px] shadow-2xl border-4 border-blue-900 animate-in zoom-in-95 duration-300 overflow-hidden"
+        className="bg-white w-full max-w-sm shadow-2xl border border-[#c9a96e]/30 animate-in zoom-in-95 duration-300 overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-blue-900 px-6 py-5 flex items-start justify-between gap-3">
+        <div
+          className="bg-[#0a1628] px-6 py-5 flex items-start justify-between gap-3 relative"
+          style={{
+            backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(201,169,110,0.04) 24px,rgba(201,169,110,0.04) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(201,169,110,0.04) 24px,rgba(201,169,110,0.04) 25px)',
+          }}
+        >
           <div>
-            <p className="text-blue-300 text-[10px] font-black uppercase tracking-widest mb-0.5">
+            <p className="text-[#c9a96e] text-[10px] font-semibold uppercase tracking-[0.15em] mb-0.5">
               {boatName}
             </p>
-            <h3 className="text-2xl font-black text-white leading-tight">{d}/{m}/{y}</h3>
-            <p className="text-blue-300 text-xs font-bold mt-1 uppercase tracking-wide">
+            <h3 className="text-2xl font-['Playfair_Display'] font-bold text-white leading-tight">{d}/{m}/{y}</h3>
+            <p className="text-[#c9a96e]/70 text-xs font-semibold mt-1 uppercase tracking-[0.15em]">
               Vagas e horários disponíveis
             </p>
           </div>
           <button
             onClick={onClose}
-            className="bg-blue-800 hover:bg-blue-700 text-white p-2.5 rounded-full transition-all flex-shrink-0 mt-0.5"
+            className="bg-white/10 hover:bg-white/20 text-white p-2.5 transition-all flex-shrink-0 mt-0.5"
           >
             <X className="w-4 h-4" />
           </button>
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-[#c9a96e]/40" />
         </div>
 
         <div className="p-6 space-y-5">
@@ -70,17 +77,17 @@ export function TimeSlotsModal({ entry, boatName, onClose, onBook }: Props) {
           {/* Sold Out */}
           {soldOut ? (
             <div className="flex flex-col items-center gap-3 py-2">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-red-100 flex items-center justify-center">
                 <span className="text-3xl">🚫</span>
               </div>
-              <p className="font-black text-red-600 text-2xl uppercase tracking-widest">Sold Out</p>
-              <div className="w-full bg-red-50 border-2 border-red-200 rounded-[16px] px-4 py-3 text-center">
-                <p className="text-red-600 font-black text-sm">0 vagas disponíveis neste dia</p>
+              <p className="font-semibold text-red-600 text-2xl uppercase tracking-[0.15em]">Sold Out</p>
+              <div className="w-full bg-red-50 border border-red-200 px-4 py-3 text-center">
+                <p className="text-red-600 font-semibold text-sm">0 vagas disponíveis neste dia</p>
                 <p className="text-red-400 font-bold text-xs mt-0.5">Tente selecionar outra data</p>
               </div>
               <button
                 onClick={onClose}
-                className="w-full border-2 border-gray-100 text-gray-400 py-4 rounded-[25px] font-black uppercase text-sm hover:border-blue-900 hover:text-blue-900 transition-all"
+                className="w-full border border-gray-200 text-gray-400 py-4 font-semibold uppercase text-sm hover:border-[#c9a96e] hover:text-[#1a2b4a] transition-all"
               >
                 Escolher outra data
               </button>
@@ -88,10 +95,10 @@ export function TimeSlotsModal({ entry, boatName, onClose, onBook }: Props) {
           ) : (
             <>
               {/* Total do dia */}
-              <div className={`flex items-center gap-3 rounded-[18px] px-5 py-4 border-2 ${dayBg}`}>
+              <div className={`flex items-center gap-3 px-5 py-4 border ${dayBg}`}>
                 <Users className={`w-5 h-5 flex-shrink-0 ${dayText}`} />
                 <div>
-                  <p className={`font-black text-sm ${dayText}`}>
+                  <p className={`font-semibold text-sm ${dayText}`}>
                     {totalAvailable} vaga{totalAvailable !== 1 ? 's' : ''} disponíve{totalAvailable !== 1 ? 'is' : 'l'} neste dia
                   </p>
                   <p className="text-[10px] font-bold text-gray-400 mt-0.5">
@@ -103,7 +110,7 @@ export function TimeSlotsModal({ entry, boatName, onClose, onBook }: Props) {
               {/* Horários */}
               {entry.time_slots.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">
+                  <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">
                     Escolha o horário
                   </p>
                   <div className="space-y-2">
@@ -112,12 +119,12 @@ export function TimeSlotsModal({ entry, boatName, onClose, onBook }: Props) {
                       const ok  = sv > 0;
 
                       const btnCls =
-                        sv > 3 ? 'bg-blue-900 text-white hover:bg-blue-800 shadow-sm' :
+                        sv > 3 ? 'bg-[#0a1628] text-white hover:bg-[#0a1628]/90 shadow-sm' :
                         sv > 0 ? 'bg-amber-500 text-white hover:bg-amber-400 shadow-sm' :
                                  'bg-gray-100 text-gray-400 cursor-not-allowed opacity-60';
 
                       const badgeCls =
-                        sv > 3 ? 'bg-blue-700 text-blue-200' :
+                        sv > 3 ? 'bg-white/10 text-[#c9a96e]' :
                         sv > 0 ? 'bg-amber-400 text-amber-900' :
                                  'bg-gray-200 text-gray-400';
 
@@ -127,15 +134,15 @@ export function TimeSlotsModal({ entry, boatName, onClose, onBook }: Props) {
                           type="button"
                           disabled={!ok}
                           onClick={() => ok && onBook(entry.date, slot)}
-                          className={`w-full flex items-center justify-between px-5 py-3.5 rounded-[18px] transition-all active:scale-[0.98] ${btnCls}`}
+                          className={`w-full flex items-center justify-between px-5 py-3.5 transition-all active:scale-[0.98] ${btnCls}`}
                         >
                           <div className="flex items-center gap-3">
-                            <span className="font-black text-lg tabular-nums">{slot}</span>
+                            <span className="font-semibold text-lg tabular-nums">{slot}</span>
                             <span className="text-[10px] font-bold opacity-80 uppercase tracking-wide">
                               {ok ? 'Clique para reservar' : 'Esgotado'}
                             </span>
                           </div>
-                          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black ${
+                          <div className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold ${
                             ok ? badgeCls : 'bg-red-100 text-red-500'
                           }`}>
                             {ok ? (

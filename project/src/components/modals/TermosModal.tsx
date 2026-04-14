@@ -55,11 +55,11 @@ const categories = [
 function AccordionItem({ title, content }: { title: string; content: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className={`border rounded-xl overflow-hidden transition-all ${open ? 'border-blue-900' : 'border-gray-100'}`}>
+    <div className={`border overflow-hidden transition-all ${open ? 'border-[#c9a96e]' : 'border-gray-100'}`}>
       <button onClick={() => setOpen(v => !v)}
         className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left">
-        <span className="font-black text-blue-900 text-xs">{title}</span>
-        <ChevronDown className={`w-3.5 h-3.5 text-blue-900 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <span className="font-semibold text-[#1a2b4a] text-xs">{title}</span>
+        <ChevronDown className={`w-3.5 h-3.5 text-[#c9a96e] flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
         <div className="px-4 pb-4">
@@ -72,27 +72,28 @@ function AccordionItem({ title, content }: { title: string; content: string }) {
 
 export function TermosModal({ onClose }: TermosModalProps) {
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: 'rgba(4,10,24,0.88)', backdropFilter: 'blur(8px)' }}
       onClick={onClose}>
-      <div className="bg-white w-full max-w-lg rounded-[28px] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300"
+      <div className="bg-white w-full max-w-lg shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-[#c9a96e]/30"
         style={{ maxHeight: '88vh' }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">
+        <div className="bg-[#0a1628] flex items-center justify-between px-6 py-5 border-b border-[#c9a96e] flex-shrink-0"
+          style={{ backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(201,169,110,0.04) 24px,rgba(201,169,110,0.04) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(201,169,110,0.04) 24px,rgba(201,169,110,0.04) 25px)' }}>
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-blue-900" />
-            <h2 className="font-black text-blue-900 text-base uppercase italic">Termos & Condições</h2>
+            <Shield className="w-4 h-4 text-[#c9a96e]" />
+            <h2 className="font-['Playfair_Display'] font-bold text-white text-base">Termos & Condições</h2>
           </div>
           <button onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-300 hover:text-blue-900 hover:bg-blue-50 transition-all">
+            className="w-8 h-8 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Aviso */}
-        <div className="px-6 py-3 bg-blue-50 border-b border-blue-100 flex-shrink-0">
-          <p className="text-blue-900 font-bold text-xs leading-relaxed">
+        <div className="px-6 py-3 bg-[#0a1628]/5 border-b border-[#c9a96e]/20 flex-shrink-0">
+          <p className="text-[#1a2b4a] font-bold text-xs leading-relaxed">
             Leia os termos abaixo antes de criar a sua conta. Ao aceitar, confirma que leu e compreendeu todas as condições.
           </p>
         </div>
@@ -103,7 +104,7 @@ export function TermosModal({ onClose }: TermosModalProps) {
             <div key={ci}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">{cat.emoji}</span>
-                <h3 className="font-black text-blue-900 text-sm uppercase italic">{cat.title}</h3>
+                <h3 className="font-semibold text-[#c9a96e] text-sm uppercase tracking-[0.15em]">{cat.title}</h3>
               </div>
               <div className="space-y-2">
                 {cat.sections.map((sec, si) => (

@@ -11,7 +11,7 @@ export function CompanyRegStep3({ form, setForm }: Props) {
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-      <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-2">
+      <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-2">
         📞 Contacto Corporativo
       </p>
 
@@ -21,7 +21,7 @@ export function CompanyRegStep3({ form, setForm }: Props) {
           <select
             value={form.ddi}
             onChange={e => { f('ddi', e.target.value); f('telefone', ''); }}
-            className="bg-gray-50 border-2 border-gray-100 rounded-[18px] py-4 px-3 font-black text-blue-900 focus:border-blue-900 outline-none transition-all text-sm">
+            className="bg-gray-50 border border-gray-200 py-4 px-3 font-semibold text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all text-sm">
             {DDI_OPTIONS.map(d => (
               <option key={d.code} value={d.ddi}>{d.flag} {d.ddi || 'Outro'}</option>
             ))}
@@ -51,37 +51,37 @@ export function CompanyRegStep3({ form, setForm }: Props) {
           placeholder="https://www.empresa.com" type="url" />
       </div>
 
-      <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-2 pt-2">
+      <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-2 pt-2">
         📲 Redes Sociais (opcional)
       </p>
 
       <div>
         <Label>Instagram</Label>
-        <div className="flex items-center bg-gray-50 border-2 border-gray-100 rounded-[18px] overflow-hidden focus-within:border-blue-900 transition-all">
-          <span className="px-4 py-4 text-sm font-black text-gray-400 border-r-2 border-gray-100 bg-gray-100 flex-shrink-0">instagram.com/</span>
+        <div className="flex items-center bg-gray-50 border border-gray-200 overflow-hidden focus-within:border-[#c9a96e] transition-all">
+          <span className="px-4 py-4 text-sm font-semibold text-gray-400 border-r border-gray-200 bg-gray-100 flex-shrink-0">instagram.com/</span>
           <input value={form.instagram} onChange={e => f('instagram', e.target.value.replace(/^@/,''))}
             placeholder="suaempresa"
-            className="flex-1 bg-transparent py-4 px-3 font-bold text-blue-900 outline-none text-sm placeholder:text-gray-300" />
+            className="flex-1 bg-transparent py-4 px-3 font-bold text-[#1a2b4a] outline-none text-sm placeholder:text-gray-300" />
         </div>
       </div>
 
       <div>
         <Label>LinkedIn</Label>
-        <div className="flex items-center bg-gray-50 border-2 border-gray-100 rounded-[18px] overflow-hidden focus-within:border-blue-900 transition-all">
-          <span className="px-4 py-4 text-sm font-black text-gray-400 border-r-2 border-gray-100 bg-gray-100 flex-shrink-0">linkedin.com/company/</span>
+        <div className="flex items-center bg-gray-50 border border-gray-200 overflow-hidden focus-within:border-[#c9a96e] transition-all">
+          <span className="px-4 py-4 text-sm font-semibold text-gray-400 border-r border-gray-200 bg-gray-100 flex-shrink-0">linkedin.com/company/</span>
           <input value={form.linkedin} onChange={e => f('linkedin', e.target.value)}
             placeholder="suaempresa"
-            className="flex-1 bg-transparent py-4 px-3 font-bold text-blue-900 outline-none text-sm placeholder:text-gray-300" />
+            className="flex-1 bg-transparent py-4 px-3 font-bold text-[#1a2b4a] outline-none text-sm placeholder:text-gray-300" />
         </div>
       </div>
 
       <div>
         <Label>Facebook</Label>
-        <div className="flex items-center bg-gray-50 border-2 border-gray-100 rounded-[18px] overflow-hidden focus-within:border-blue-900 transition-all">
-          <span className="px-4 py-4 text-sm font-black text-gray-400 border-r-2 border-gray-100 bg-gray-100 flex-shrink-0">facebook.com/</span>
+        <div className="flex items-center bg-gray-50 border border-gray-200 overflow-hidden focus-within:border-[#c9a96e] transition-all">
+          <span className="px-4 py-4 text-sm font-semibold text-gray-400 border-r border-gray-200 bg-gray-100 flex-shrink-0">facebook.com/</span>
           <input value={form.facebook} onChange={e => f('facebook', e.target.value)}
             placeholder="suaempresa"
-            className="flex-1 bg-transparent py-4 px-3 font-bold text-blue-900 outline-none text-sm placeholder:text-gray-300" />
+            className="flex-1 bg-transparent py-4 px-3 font-bold text-[#1a2b4a] outline-none text-sm placeholder:text-gray-300" />
         </div>
       </div>
 

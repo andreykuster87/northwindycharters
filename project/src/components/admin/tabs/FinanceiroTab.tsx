@@ -70,7 +70,6 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
     : 0;
 
   // ── Eventos ─────────────────────────────────────────────────────────────────
-  // Lê do cache em memória (populado do Supabase)
   const allEventBookings: EventBooking[] = getEventBookings();
 
   const filteredEventBookings = allEventBookings.filter(b => {
@@ -81,7 +80,6 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
     return (now.getTime() - new Date(b.created_at).getTime()) / 86400000 <= dias;
   });
 
-  // Evento passado → receita confirmada | evento futuro → receita pendente
   const evtConfirmados = filteredEventBookings.filter(b => isEventPast(b.event_date, b.event_time));
   const evtPendentes   = filteredEventBookings.filter(b => !isEventPast(b.event_date, b.event_time));
 
@@ -135,16 +133,16 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
       {/* Cabeçalho + filtro período */}
       <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-3xl font-black text-blue-900 uppercase italic">Financeiro</h2>
+          <h2 className="font-['Playfair_Display'] font-bold text-3xl text-[#1a2b4a]">Financeiro</h2>
           <p className="text-gray-400 font-bold text-sm uppercase mt-1">
             Passeios + Eventos · {fmt(totalConfirmado + totalPendente)} em aberto
           </p>
         </div>
-        <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
+        <div className="flex items-center gap-1 bg-gray-100 p-1">
           {(['tudo', '30d', '7d'] as const).map(p => (
             <button key={p} onClick={() => setPeriodoFiltro(p)}
-              className={`px-4 py-1.5 rounded-full font-black text-xs uppercase transition-all ${
-                periodoFiltro === p ? 'bg-blue-900 text-white shadow' : 'text-gray-500 hover:text-blue-900'
+              className={`px-4 py-1.5 font-semibold text-xs uppercase transition-all ${
+                periodoFiltro === p ? 'bg-[#0a1628] text-white shadow' : 'text-gray-500 hover:text-[#1a2b4a]'
               }`}>
               {p === 'tudo' ? 'Tudo' : p === '30d' ? '30 dias' : '7 dias'}
             </button>
@@ -157,60 +155,60 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
         {[
           { label: 'Confirmada',  value: fmt(totalConfirmado),  emoji: '💰', color: 'border-green-200 bg-green-50',  txt: 'text-green-700' },
           { label: 'Pendente',    value: fmt(totalPendente),    emoji: '⏳', color: 'border-amber-200 bg-amber-50',  txt: 'text-amber-700' },
-          { label: 'Ticket Médio',value: fmt(ticketMedio),      emoji: '🎟️', color: 'border-blue-200 bg-blue-50',   txt: 'text-blue-700'  },
+          { label: 'Ticket Médio',value: fmt(ticketMedio),      emoji: '🎟️', color: 'border-[#c9a96e]/20 bg-[#c9a96e]/5', txt: 'text-[#1a2b4a]' },
           { label: 'Cancelado',   value: fmt(receitaCancelada), emoji: '❌', color: 'border-red-200 bg-red-50',      txt: 'text-red-600'   },
         ].map(k => (
-          <div key={k.label} className={`rounded-[20px] border-2 px-5 py-4 ${k.color}`}>
+          <div key={k.label} className={`border-2 px-5 py-4 ${k.color}`}>
             <p className="text-2xl mb-1">{k.emoji}</p>
-            <p className={`text-xl font-black ${k.txt}`}>{k.value}</p>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{k.label}</p>
+            <p className={`text-xl font-bold ${k.txt}`}>{k.value}</p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.15em] mt-0.5">{k.label}</p>
           </div>
         ))}
       </div>
 
       {/* Split ⛵ Passeios vs 🎟️ Eventos */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white border-2 border-blue-100 rounded-[20px] px-5 py-4">
+        <div className="bg-white border-2 border-[#c9a96e]/20 px-5 py-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">⛵</span>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Passeios</p>
+            <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Passeios</p>
           </div>
-          <p className="text-lg font-black text-blue-900">{fmt(receitaPasseiosConf)}</p>
+          <p className="text-lg font-bold text-[#1a2b4a]">{fmt(receitaPasseiosConf)}</p>
           <p className="text-[10px] font-bold text-amber-600 mt-0.5">+ {fmt(receitaPasseiosPend)} pendente</p>
           <p className="text-[10px] font-bold text-gray-400">{totalReservasPasseios} reserva{totalReservasPasseios !== 1 ? 's' : ''}</p>
         </div>
-        <div className="bg-white border-2 border-purple-100 rounded-[20px] px-5 py-4">
+        <div className="bg-white border-2 border-purple-100 px-5 py-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">🎟️</span>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Eventos</p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.15em]">Eventos</p>
           </div>
-          <p className="text-lg font-black text-purple-800">{fmt(receitaEventosConf)}</p>
+          <p className="text-lg font-bold text-purple-800">{fmt(receitaEventosConf)}</p>
           <p className="text-[10px] font-bold text-amber-600 mt-0.5">+ {fmt(receitaEventosPend)} pendente</p>
           <p className="text-[10px] font-bold text-gray-400">{filteredEventBookings.length} bilhete{filteredEventBookings.length !== 1 ? 's' : ''}</p>
         </div>
       </div>
 
       {/* ── Receita de Eventos ── */}
-      <div className="bg-white rounded-[30px] border-2 border-purple-100 shadow-sm overflow-hidden">
+      <div className="bg-white border-2 border-purple-100 shadow-sm overflow-hidden">
         <button
           onClick={() => setShowEventos(v => !v)}
-          className="w-full flex items-center justify-between px-6 py-5 border-b-2 border-gray-50 hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center justify-between px-6 py-5 border-b border-gray-100 hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <h3 className="text-base font-black text-blue-900 uppercase italic">🎟️ Receita de Eventos</h3>
+            <h3 className="text-base font-bold text-[#1a2b4a] uppercase">🎟️ Receita de Eventos</h3>
             {receitaEventosPend > 0 && (
-              <span className="bg-amber-100 text-amber-700 text-xs font-black px-2.5 py-0.5 rounded-full">
+              <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-0.5">
                 ⏳ {fmt(receitaEventosPend)} pendente
               </span>
             )}
             {receitaEventosConf > 0 && (
-              <span className="bg-green-100 text-green-700 text-xs font-black px-2.5 py-0.5 rounded-full">
+              <span className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-0.5">
                 ✅ {fmt(receitaEventosConf)} confirmada
               </span>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <span className="bg-purple-100 text-purple-700 text-xs font-black px-3 py-1 rounded-full">
+            <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1">
               {filteredEventBookings.length} bilhete{filteredEventBookings.length !== 1 ? 's' : ''}
             </span>
             {showEventos ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
@@ -223,7 +221,7 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
             {filteredEventBookings.length === 0 ? (
               <div className="text-center py-10">
                 <div className="text-4xl mb-3">🎟️</div>
-                <p className="font-black text-gray-300 uppercase italic text-sm">Sem bilhetes de eventos</p>
+                <p className="font-semibold text-gray-300 uppercase text-sm">Sem bilhetes de eventos</p>
                 <p className="text-xs text-gray-400 font-bold mt-1">
                   Assim que alguém comprar um bilhete, aparece aqui como receita pendente.
                 </p>
@@ -232,39 +230,39 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
               <>
                 {/* KPIs internos */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-amber-50 border-2 border-amber-100 rounded-[16px] px-4 py-3">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-0.5">⏳ Pendente</p>
-                    <p className="text-xl font-black text-amber-700">{fmt(receitaEventosPend)}</p>
+                  <div className="bg-amber-50 border-2 border-amber-100 px-4 py-3">
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.15em] mb-0.5">⏳ Pendente</p>
+                    <p className="text-xl font-bold text-amber-700">{fmt(receitaEventosPend)}</p>
                     <p className="text-[10px] font-bold text-gray-400">{evtPendentes.length} bilhete{evtPendentes.length !== 1 ? 's' : ''} · eventos futuros</p>
                   </div>
-                  <div className="bg-green-50 border-2 border-green-100 rounded-[16px] px-4 py-3">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-0.5">✅ Confirmada</p>
-                    <p className="text-xl font-black text-green-700">{fmt(receitaEventosConf)}</p>
+                  <div className="bg-green-50 border-2 border-green-100 px-4 py-3">
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.15em] mb-0.5">✅ Confirmada</p>
+                    <p className="text-xl font-bold text-green-700">{fmt(receitaEventosConf)}</p>
                     <p className="text-[10px] font-bold text-gray-400">{evtConfirmados.length} bilhete{evtConfirmados.length !== 1 ? 's' : ''} · eventos realizados</p>
                   </div>
                 </div>
 
                 {/* Nota explicativa */}
-                <div className="bg-blue-50 border-2 border-blue-100 rounded-[14px] px-4 py-3">
-                  <p className="text-xs font-bold text-blue-800">
-                    💡 A receita muda automaticamente de <span className="font-black text-amber-700">Pendente → Confirmada</span> quando a data/hora do evento passa.
+                <div className="bg-[#0a1628]/5 border-2 border-[#c9a96e]/20 px-4 py-3">
+                  <p className="text-xs font-bold text-[#1a2b4a]">
+                    💡 A receita muda automaticamente de <span className="font-bold text-amber-700">Pendente → Confirmada</span> quando a data/hora do evento passa.
                   </p>
                 </div>
 
                 {/* Por Evento */}
                 {porEvento.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Por Evento</p>
+                    <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">Por Evento</p>
                     <div className="space-y-2">
                       {porEvento.map((ev, i) => (
-                        <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-[14px] px-4 py-3">
-                          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-lg">
+                        <div key={i} className="flex items-center gap-3 bg-gray-50 px-4 py-3">
+                          <div className="w-9 h-9 flex items-center justify-center flex-shrink-0 text-lg">
                             {ev.isPast ? '✅' : '⏳'}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-black text-blue-900 text-sm truncate">{ev.title}</p>
+                            <p className="font-bold text-[#1a2b4a] text-sm truncate">{ev.title}</p>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full ${
+                              <span className={`text-[9px] font-semibold uppercase px-1.5 py-0.5 ${
                                 ev.isPast ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
                               }`}>
                                 {ev.isPast ? 'Realizado' : 'Pendente'}
@@ -274,7 +272,7 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
                               </span>
                             </div>
                           </div>
-                          <p className="font-black text-blue-900 flex-shrink-0">{fmt(ev.total)}</p>
+                          <p className="font-bold text-[#1a2b4a] flex-shrink-0">{fmt(ev.total)}</p>
                         </div>
                       ))}
                     </div>
@@ -283,34 +281,34 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
 
                 {/* Bilhetes individuais */}
                 <div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Bilhetes Recentes</p>
+                  <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">Bilhetes Recentes</p>
                   <div className="space-y-2">
                     {filteredEventBookings.map(b => {
                       const isPast = isEventPast(b.event_date, b.event_time);
                       const isOpen = expandedEvt === b.id;
                       return (
                         <div key={b.id}
-                          className={`rounded-[16px] overflow-hidden border-2 transition-all ${
+                          className={`overflow-hidden border-2 transition-all ${
                             isPast ? 'border-green-100 bg-green-50/30' : 'border-amber-100 bg-amber-50/30'
                           }`}>
                           <button
                             className="w-full text-left px-4 py-3 flex items-center gap-3"
                             onClick={() => setExpandedEvt(isOpen ? null : b.id)}
                           >
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-base">
+                            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 text-base">
                               {isPast ? '✅' : '⏳'}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-black text-blue-900 text-sm truncate">{b.event_title}</p>
+                              <p className="font-bold text-[#1a2b4a] text-sm truncate">{b.event_title}</p>
                               <p className="text-xs font-bold text-gray-500 truncate">
                                 {b.customer_name} · {b.tickets} bilhete{b.tickets !== 1 ? 's' : ''} · {new Date(b.event_date + 'T12:00').toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })}
                               </p>
                             </div>
                             <div className="text-right flex-shrink-0">
-                              <p className={`font-black text-sm ${isPast ? 'text-green-700' : 'text-amber-700'}`}>
+                              <p className={`font-bold text-sm ${isPast ? 'text-green-700' : 'text-amber-700'}`}>
                                 {fmt(b.total_price)}
                               </p>
-                              <p className={`text-[9px] font-black uppercase ${isPast ? 'text-green-600' : 'text-amber-600'}`}>
+                              <p className={`text-[9px] font-semibold uppercase ${isPast ? 'text-green-600' : 'text-amber-600'}`}>
                                 {isPast ? 'Confirmada' : 'Pendente'}
                               </p>
                             </div>
@@ -326,9 +324,9 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
                                 ['Bilhetes',  `${b.tickets} pessoa${b.tickets !== 1 ? 's' : ''}`],
                                 ['Empresa',   b.company_name || 'NorthWindy'],
                               ].map(([l, v]) => (
-                                <div key={l} className="bg-white rounded-[12px] px-3 py-2">
-                                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">{l}</p>
-                                  <p className="text-sm font-black text-blue-900 mt-0.5 truncate">{v}</p>
+                                <div key={l} className="bg-white px-3 py-2">
+                                  <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-[0.15em]">{l}</p>
+                                  <p className="text-sm font-bold text-[#1a2b4a] mt-0.5 truncate">{v}</p>
                                 </div>
                               ))}
                             </div>
@@ -346,9 +344,9 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
 
       {/* ── Receita por Comandante ── */}
       {role === 'admin' && porComandante.length > 0 && (
-        <div className="bg-white rounded-[30px] border-2 border-blue-50 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b-2 border-gray-50">
-            <h3 className="text-base font-black text-blue-900 uppercase italic">⚓ Receita por Comandante</h3>
+        <div className="bg-white border-2 border-[#0a1628]/5 shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-gray-100">
+            <h3 className="text-base font-bold text-[#1a2b4a] uppercase">⚓ Receita por Comandante</h3>
           </div>
           <div className="divide-y divide-gray-50">
             {porComandante.map(({ sailor, receita, pendente, qtd, sailorTrips, sailorBookings }) => {
@@ -360,33 +358,33 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
                     onClick={() => setExpandedSailor(isOpen ? null : sailor.id)}
                     className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors text-left"
                   >
-                    <div className="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center text-white font-black text-sm flex-shrink-0">
+                    <div className="w-10 h-10 bg-[#0a1628] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                       {sailor.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-black text-blue-900 text-sm truncate">{sailor.name}</p>
-                        <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full flex-shrink-0">
+                        <p className="font-bold text-[#1a2b4a] text-sm truncate">{sailor.name}</p>
+                        <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 flex-shrink-0">
                           {qtd} reserva{qtd !== 1 ? 's' : ''}
                         </span>
                         {pendente > 0 && (
-                          <span className="text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full flex-shrink-0">
+                          <span className="text-[10px] font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 flex-shrink-0">
                             {fmt(pendente)} pendente
                           </span>
                         )}
                       </div>
-                      <div className="mt-1.5 h-1.5 bg-gray-100 rounded-full overflow-hidden w-full max-w-xs">
-                        <div className="h-full bg-blue-900 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                      <div className="mt-1.5 h-1.5 bg-gray-100 overflow-hidden w-full max-w-xs">
+                        <div className="h-full bg-[#c9a96e] transition-all" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      <p className="font-black text-blue-900 text-base">{fmt(receita)}</p>
+                      <p className="font-bold text-[#1a2b4a] text-base">{fmt(receita)}</p>
                       {isOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
                     </div>
                   </button>
                   {isOpen && (
-                    <div className="px-6 pb-4 bg-blue-50/40">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 pt-3">Passeios</p>
+                    <div className="px-6 pb-4 bg-[#0a1628]/5">
+                      <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3 pt-3">Passeios</p>
                       <div className="space-y-2">
                         {sailorTrips.map(trip => {
                           const tb  = sailorBookings.filter(b => b.trip_id === trip.id);
@@ -394,12 +392,12 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
                           const tqd = tb.filter(b => b.status !== 'cancelado').length;
                           if (tqd === 0 && tr === 0) return null;
                           return (
-                            <div key={trip.id} className="flex items-center justify-between bg-white rounded-[14px] px-4 py-2.5 border border-gray-100">
+                            <div key={trip.id} className="flex items-center justify-between bg-white px-4 py-2.5 border border-gray-100">
                               <div className="min-w-0">
-                                <p className="font-black text-blue-900 text-xs truncate">{trip.boat_name}</p>
+                                <p className="font-bold text-[#1a2b4a] text-xs truncate">{trip.boat_name}</p>
                                 <p className="text-[10px] text-gray-400 font-bold">{tqd} reserva{tqd !== 1 ? 's' : ''}</p>
                               </div>
-                              <p className="font-black text-blue-900 text-sm flex-shrink-0 ml-4">{fmt(tr)}</p>
+                              <p className="font-bold text-[#1a2b4a] text-sm flex-shrink-0 ml-4">{fmt(tr)}</p>
                             </div>
                           );
                         })}
@@ -418,26 +416,26 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
 
       {/* ── Top Passeios ── */}
       {porPasseio.length > 0 && (
-        <div className="bg-white rounded-[30px] border-2 border-blue-50 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b-2 border-gray-50">
-            <h3 className="text-base font-black text-blue-900 uppercase italic">🧭 Top Passeios por Receita</h3>
+        <div className="bg-white border-2 border-[#0a1628]/5 shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-gray-100">
+            <h3 className="text-base font-bold text-[#1a2b4a] uppercase">🧭 Top Passeios por Receita</h3>
           </div>
           <div className="divide-y divide-gray-50">
             {porPasseio.map(({ trip, receita, qtd }, i) => {
               const pct = totalConfirmado > 0 ? (receita / totalConfirmado) * 100 : 0;
               return (
                 <div key={trip.id} className="flex items-center gap-4 px-6 py-3.5">
-                  <span className="text-sm font-black text-gray-300 w-5 flex-shrink-0">{i + 1}</span>
+                  <span className="text-sm font-bold text-gray-300 w-5 flex-shrink-0">{i + 1}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="font-black text-blue-900 text-sm truncate">{trip.boat_name}</p>
+                    <p className="font-bold text-[#1a2b4a] text-sm truncate">{trip.boat_name}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden flex-1 max-w-[120px]">
-                        <div className="h-full bg-blue-900 rounded-full" style={{ width: `${pct}%` }} />
+                      <div className="h-1.5 bg-gray-100 overflow-hidden flex-1 max-w-[120px]">
+                        <div className="h-full bg-[#c9a96e]" style={{ width: `${pct}%` }} />
                       </div>
-                      <span className="text-[10px] font-black text-gray-400">{qtd} reserva{qtd !== 1 ? 's' : ''}</span>
+                      <span className="text-[10px] font-semibold text-gray-400">{qtd} reserva{qtd !== 1 ? 's' : ''}</span>
                     </div>
                   </div>
-                  <p className="font-black text-blue-900 flex-shrink-0">{fmt(receita)}</p>
+                  <p className="font-bold text-[#1a2b4a] flex-shrink-0">{fmt(receita)}</p>
                 </div>
               );
             })}
@@ -447,9 +445,9 @@ export function FinanceiroTab({ bookings, sailors, trips, boats, role }: Finance
 
       {/* Estado vazio */}
       {porComandante.length === 0 && porPasseio.length === 0 && filteredEventBookings.length === 0 && (
-        <div className="bg-white rounded-[40px] border-2 border-dashed border-gray-200 p-16 text-center">
+        <div className="bg-white border-2 border-dashed border-gray-200 p-16 text-center">
           <div className="text-5xl mb-4">💰</div>
-          <p className="font-black text-gray-300 uppercase italic text-lg">Sem dados financeiros</p>
+          <p className="font-semibold text-gray-300 uppercase text-lg">Sem dados financeiros</p>
           <p className="text-gray-400 font-bold text-sm mt-1">
             As receitas aparecem aqui quando houver reservas confirmadas ou bilhetes de eventos vendidos.
           </p>

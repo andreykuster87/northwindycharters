@@ -39,10 +39,13 @@ function rowToSailor(r: any): Sailor {
     caderneta_maritima: {
       possui:  r.caderneta_possui ?? false,
       numero:  r.caderneta_numero,
+      validade: r.caderneta_validade,
+      doc_url:  r.caderneta_doc_url,
     },
     stcw:                     r.stcw             ?? {},
     stcw_validades:           r.stcw_validades   ?? {},
     medico: {
+      numero:   r.medico_numero,
       emissao:  r.medico_emissao,
       validade: r.medico_validade,
       doc_url:  r.medico_doc_url,
@@ -91,6 +94,7 @@ function sailorToRow(data: Partial<Sailor>): any {
     delete row.cartahabitacao;
   }
   if (data.medico) {
+    row.medico_numero   = data.medico.numero   ?? null;
     row.medico_emissao  = data.medico.emissao  ?? null;
     row.medico_validade = data.medico.validade ?? null;
     row.medico_doc_url  = data.medico.doc_url  ?? null;

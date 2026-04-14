@@ -72,16 +72,16 @@ export function DossierClient({
 
   const badges = (
     <>
-      <span className="bg-green-400 text-green-900 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
+      <span className="bg-green-400 text-green-900 text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full">
         ✓ Verificado
       </span>
       {isBlocked && (
-        <span className="bg-red-500 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
+        <span className="bg-red-500 text-white text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full">
           🚫 Bloqueado
         </span>
       )}
       {(client as any).profile_number && (
-        <span className="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">
+        <span className="bg-white/20 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full">
           Perfil #{String(parseInt((client as any).profile_number, 10))}
         </span>
       )}
@@ -98,7 +98,7 @@ export function DossierClient({
     >
       {/* 1. Dados Pessoais */}
       <div>
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">
           👤 Dados Pessoais
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -119,10 +119,10 @@ export function DossierClient({
 
       {/* 2. Documento de Identificação */}
       <div>
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">
           🪪 Documento de Identificação
         </p>
-        <div className="bg-gray-50 rounded-[18px] p-4 space-y-3">
+        <div className="bg-gray-50 p-4 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             {([
               ['Tipo Doc.',    DOC_TYPE_LABELS[(client as any).doc_type || ''] || (client as any).doc_type || '—'],
@@ -131,9 +131,9 @@ export function DossierClient({
                 ? new Date(client.passport_expires + 'T12:00').toLocaleDateString('pt-BR')
                 : '—'],
             ] as [string, string][]).map(([l, v]) => (
-              <div key={l} className="bg-white rounded-[12px] p-3">
-                <p className="text-[9px] font-black text-gray-400 uppercase">{l}</p>
-                <p className="font-black text-blue-900 text-sm mt-0.5">{v}</p>
+              <div key={l} className="bg-white p-3">
+                <p className="text-[9px] font-semibold text-gray-400 uppercase">{l}</p>
+                <p className="font-semibold text-[#1a2b4a] text-sm mt-0.5">{v}</p>
               </div>
             ))}
           </div>
@@ -149,7 +149,7 @@ export function DossierClient({
         ) : (
           <button
             onClick={handleGenerateCredentials}
-            className="w-full bg-blue-900 hover:bg-blue-800 text-white py-3.5 rounded-[20px] font-black uppercase text-sm transition-all flex items-center justify-center gap-2 shadow-md"
+            className="w-full bg-[#0a1628] hover:bg-[#0a1628]/90 text-white py-3.5 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2 shadow-md"
           >
             🔑 Gerar Credenciais Agora
           </button>
@@ -162,7 +162,7 @@ export function DossierClient({
           href={`https://wa.me/${stripNonDigits(client.phone)}?text=${encodeURIComponent('Olá ' + client.name + '! Como posso ajudar?')}`}
           target="_blank"
           rel="noreferrer"
-          className="w-full bg-green-500 hover:bg-green-400 text-white py-4 rounded-[25px] font-black uppercase text-sm transition-all flex items-center justify-center gap-2 shadow-md"
+          className="w-full bg-green-500 hover:bg-green-400 text-white py-4 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2 shadow-md"
         >
           <span className="text-lg">📲</span> Contactar via WhatsApp
         </a>
@@ -172,14 +172,14 @@ export function DossierClient({
       {isBlocked ? (
         <button
           onClick={handleUnblock}
-          className="w-full bg-green-600 hover:bg-green-500 text-white py-4 rounded-[25px] font-black uppercase text-sm transition-all flex items-center justify-center gap-2 shadow-md"
+          className="w-full bg-green-600 hover:bg-green-500 text-white py-4 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2 shadow-md"
         >
           🔓 Desbloquear Conta
         </button>
       ) : (
         <button
           onClick={handleBlock}
-          className="w-full bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-600 py-3 rounded-[25px] font-black uppercase text-sm transition-all flex items-center justify-center gap-2"
+          className="w-full bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-600 py-3 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2"
         >
           🚫 Bloquear Conta
         </button>
@@ -188,7 +188,7 @@ export function DossierClient({
       {/* 6. Excluir */}
       <button
         onClick={() => onDeleteRequest(client.id, client.name)}
-        className="w-full bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-500 py-3 rounded-[25px] font-black uppercase text-sm transition-all flex items-center justify-center gap-2"
+        className="w-full bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-500 py-3 font-semibold uppercase text-sm transition-all flex items-center justify-center gap-2"
       >
         🗑️ Excluir Cadastro
       </button>

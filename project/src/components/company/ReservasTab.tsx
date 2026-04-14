@@ -26,18 +26,18 @@ const BOOK_STATUS: Record<string,string> = {
 function ReservaCard({ b }: { b: typeof BOOKINGS[0] }) {
   const [expanded, setExpanded] = useState(false);
   return (
-    <div className={`bg-white border-2 rounded-[16px] overflow-hidden transition-all cursor-pointer ${expanded ? 'border-blue-200' : 'border-gray-100 hover:border-blue-100'}`}
+    <div className={`bg-white border rounded-none overflow-hidden transition-all cursor-pointer ${expanded ? 'border-[#c9a96e]/30' : 'border-gray-100 hover:border-[#c9a96e]/20'}`}
       onClick={() => setExpanded(v => !v)}>
       <div className="px-4 py-3 flex items-center gap-3">
-        <div className="w-9 h-9 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
-          <ClipboardList className="w-4 h-4 text-blue-500" />
+        <div className="w-9 h-9 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
+          <ClipboardList className="w-4 h-4 text-[#c9a96e]" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-            <p className="font-black text-blue-900 text-sm">{b.cliente}</p>
-            <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full ${BOOK_STATUS[b.status]}`}>{b.status}</span>
+            <p className="font-bold text-[#1a2b4a] text-sm">{b.cliente}</p>
+            <span className={`text-[9px] font-semibold uppercase px-1.5 py-0.5 ${BOOK_STATUS[b.status]}`}>{b.status}</span>
           </div>
-          <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 flex-wrap">
+          <div className="flex items-center gap-2 text-[10px] font-semibold text-gray-500 flex-wrap">
             <span>📅 {fmtDate(b.data)}</span>
             <span>👥 {b.pax} convidados</span>
             <span>⛵ {b.embarcacao}</span>
@@ -45,14 +45,14 @@ function ReservaCard({ b }: { b: typeof BOOKINGS[0] }) {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <p className="font-black text-sm text-blue-900">{currency(b.valor)}</p>
+          <p className="font-bold text-sm text-[#1a2b4a]">{currency(b.valor)}</p>
           {expanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
         </div>
       </div>
 
       {expanded && (
         <div className="border-t border-gray-100 px-4 py-4 space-y-3" onClick={e => e.stopPropagation()}>
-          <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Dossié da Reserva</p>
+          <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Dossié da Reserva</p>
           <div className="grid grid-cols-2 gap-2">
             {[
               ['Nº Reserva',   b.id],
@@ -62,22 +62,22 @@ function ReservaCard({ b }: { b: typeof BOOKINGS[0] }) {
               ['Nº Convidados', String(b.pax)],
               ['Valor Total',  currency(b.valor)],
             ].map(([l, v]) => (
-              <div key={l} className="bg-gray-50 rounded-[10px] px-3 py-2">
-                <p className="text-[9px] font-black text-gray-400 uppercase">{l}</p>
-                <p className="text-sm font-black text-blue-900">{v}</p>
+              <div key={l} className="bg-gray-50 px-3 py-2">
+                <p className="text-[9px] font-semibold text-gray-400 uppercase">{l}</p>
+                <p className="text-sm font-semibold text-[#1a2b4a]">{v}</p>
               </div>
             ))}
           </div>
           {b.convidados.length > 0 && (
-            <div className="bg-blue-50 rounded-[12px] px-3 py-3">
-              <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-2">Lista de Convidados</p>
+            <div className="bg-[#0a1628]/5 px-3 py-3">
+              <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-2">Lista de Convidados</p>
               <div className="space-y-1.5">
                 {b.convidados.map((c, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <div className="w-5 h-5 bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white font-black text-[8px]">{c.charAt(0)}</span>
+                    <div className="w-5 h-5 bg-[#0a1628] flex items-center justify-center flex-shrink-0">
+                      <span className="text-white font-semibold text-[8px]">{c.charAt(0)}</span>
                     </div>
-                    <p className="text-xs font-bold text-blue-900">{c}</p>
+                    <p className="text-xs font-semibold text-[#1a2b4a]">{c}</p>
                   </div>
                 ))}
               </div>
@@ -85,10 +85,10 @@ function ReservaCard({ b }: { b: typeof BOOKINGS[0] }) {
           )}
           {b.status === 'pendente' && (
             <div className="flex gap-2">
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-green-50 hover:bg-green-100 border-2 border-green-100 text-green-700 rounded-[10px] font-black text-[10px] uppercase transition-all">
+              <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-green-50 hover:bg-green-100 border border-green-100 text-green-700 font-semibold text-[10px] uppercase transition-all">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Confirmar
               </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-red-50 hover:bg-red-100 border-2 border-red-100 text-red-600 rounded-[10px] font-black text-[10px] uppercase transition-all">
+              <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-red-50 hover:bg-red-100 border border-red-100 text-red-600 font-semibold text-[10px] uppercase transition-all">
                 <XCircle className="w-3.5 h-3.5" /> Cancelar
               </button>
             </div>
@@ -117,12 +117,12 @@ export function ReservasTab({ companyId }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <h2 className="text-lg font-black text-blue-900 uppercase italic">Reservas</h2>
-          <p className="text-xs text-gray-400 font-bold">Histórico de reservas</p>
+          <h2 className="text-lg font-['Playfair_Display'] font-bold text-[#1a2b4a] uppercase italic">Reservas</h2>
+          <p className="text-xs text-gray-400 font-semibold">Histórico de reservas</p>
         </div>
-        <div className="bg-green-50 border-2 border-green-100 rounded-[14px] px-4 py-2 text-right flex-shrink-0">
-          <p className="text-[9px] font-black text-green-600 uppercase">Confirmadas</p>
-          <p className="text-base font-black text-green-700">{currency(total)}</p>
+        <div className="bg-green-50 border border-green-100 px-4 py-2 text-right flex-shrink-0">
+          <p className="text-[9px] font-semibold text-green-600 uppercase">Confirmadas</p>
+          <p className="text-base font-bold text-green-700">{currency(total)}</p>
         </div>
       </div>
 
@@ -132,13 +132,13 @@ export function ReservasTab({ companyId }: Props) {
           { key: 'eventos'  as const, label: '🎟️ Eventos',  count: allEventBookings.length },
         ].map(t => (
           <button key={t.key} onClick={() => setActiveTab(t.key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-[12px] font-black text-xs uppercase transition-all ${
-              activeTab === t.key ? 'bg-blue-900 text-white' : 'bg-gray-50 border-2 border-gray-100 text-gray-500'
+            className={`flex items-center gap-2 px-4 py-2 font-semibold text-xs uppercase transition-all ${
+              activeTab === t.key ? 'bg-[#0a1628] text-white' : 'bg-gray-50 border border-gray-100 text-gray-500'
             }`}>
             {t.label}
             {t.count > 0 && (
-              <span className={`text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center ${
-                activeTab === t.key ? 'bg-white text-blue-900' : 'bg-blue-900 text-white'
+              <span className={`text-[9px] font-semibold w-4 h-4 flex items-center justify-center ${
+                activeTab === t.key ? 'bg-white text-[#0a1628]' : 'bg-[#0a1628] text-white'
               }`}>{t.count}</span>
             )}
           </button>
@@ -150,8 +150,8 @@ export function ReservasTab({ companyId }: Props) {
           <div className="flex gap-2 flex-wrap">
             {(['todas','confirmada','pendente','cancelada'] as const).map(f => (
               <button key={f} onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 rounded-[10px] text-[10px] font-black uppercase transition-all ${
-                  filter === f ? 'bg-blue-900 text-white' : 'bg-gray-50 border-2 border-gray-100 text-gray-500'
+                className={`px-3 py-1.5 text-[10px] font-semibold uppercase transition-all ${
+                  filter === f ? 'bg-[#0a1628] text-white' : 'bg-gray-50 border border-gray-100 text-gray-500'
                 }`}>
                 {f}
               </button>
@@ -162,7 +162,7 @@ export function ReservasTab({ companyId }: Props) {
             {filtered.length === 0 && (
               <div className="text-center py-10">
                 <ClipboardList className="w-10 h-10 text-gray-200 mx-auto mb-2" />
-                <p className="font-black text-gray-300 uppercase italic text-xs">Sem reservas</p>
+                <p className="font-semibold text-gray-300 uppercase italic text-xs">Sem reservas</p>
               </div>
             )}
           </div>
@@ -174,34 +174,34 @@ export function ReservasTab({ companyId }: Props) {
           {allEventBookings.length === 0 ? (
             <div className="text-center py-10">
               <span className="text-4xl block mb-2">🎟️</span>
-              <p className="font-black text-gray-300 uppercase italic text-xs">Sem bilhetes de eventos</p>
+              <p className="font-semibold text-gray-300 uppercase italic text-xs">Sem bilhetes de eventos</p>
             </div>
           ) : (
             allEventBookings.map(b => {
               const isPast = new Date(`${b.event_date}T${b.event_time || '23:59'}`) < new Date();
               const statusLabel = isPast ? 'Realizado' : 'Confirmado';
-              const statusCls   = isPast ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700';
+              const statusCls   = isPast ? 'bg-[#0a1628]/10 text-[#1a2b4a]' : 'bg-green-100 text-green-700';
               return (
-                <div key={b.id} className="bg-white border-2 border-gray-100 rounded-[16px] px-4 py-3 flex items-center gap-3">
-                  <div className="w-9 h-9 bg-purple-50 rounded-full flex items-center justify-center flex-shrink-0 text-base">🎟️</div>
+                <div key={b.id} className="bg-white border border-gray-100 px-4 py-3 flex items-center gap-3">
+                  <div className="w-9 h-9 bg-purple-50 flex items-center justify-center flex-shrink-0 text-base">🎟️</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                      <p className="font-black text-blue-900 text-sm truncate">{b.event_title}</p>
-                      <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full ${statusCls}`}>{statusLabel}</span>
+                      <p className="font-bold text-[#1a2b4a] text-sm truncate">{b.event_title}</p>
+                      <span className={`text-[9px] font-semibold uppercase px-1.5 py-0.5 ${statusCls}`}>{statusLabel}</span>
                     </div>
-                    <p className="text-xs font-bold text-gray-500 truncate">
+                    <p className="text-xs font-semibold text-gray-500 truncate">
                       {b.customer_name} · {new Date(b.event_date+'T12:00').toLocaleDateString('pt-PT',{day:'2-digit',month:'short'})} · {b.tickets} bilhete{b.tickets!==1?'s':''}
                     </p>
                   </div>
-                  <p className="font-black text-sm text-blue-900 flex-shrink-0">{currency(b.total_price)}</p>
+                  <p className="font-bold text-sm text-[#1a2b4a] flex-shrink-0">{currency(b.total_price)}</p>
                 </div>
               );
             })
           )}
           {allEventBookings.length > 0 && (
-            <div className="bg-gradient-to-r from-blue-900 to-blue-700 rounded-[16px] px-5 py-3 flex items-center justify-between">
-              <p className="text-blue-300 text-xs font-black uppercase">Total Eventos</p>
-              <p className="text-white font-black text-lg">{currency(totalEventos)}</p>
+            <div className="bg-gradient-to-r from-[#0a1628] to-[#1a2b4a] px-5 py-3 flex items-center justify-between">
+              <p className="text-[#c9a96e] text-xs font-semibold uppercase tracking-[0.15em]">Total Eventos</p>
+              <p className="text-white font-bold text-lg">{currency(totalEventos)}</p>
             </div>
           )}
         </div>

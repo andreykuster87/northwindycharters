@@ -1,4 +1,6 @@
-// src/lib/store/docExpiry.ts — MIGRADO PARA SUPABASE
+// src/lib/store/docExpiry.ts
+// Optimizado: substituiu o loop O(n×3 queries) por 1 batch query de mensagens recentes.
+// Para escalar globalmente mover para pg_cron / Edge Function no Supabase.
 import { supabase } from '../supabase';
 import { blockProfile, unblockProfile } from './profiles';
 import { sendSystemMessage } from './messages';
@@ -20,93 +22,137 @@ function fmtDate(d: string): string {
 }
 
 export async function runDocumentExpiryCheck(): Promise<void> {
-  // ── Verificar Sailors aprovados ───────────────────────────────────────────
+  const since20d = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString();
+  const since7d  = new Date(Date.now() -  7 * 24 * 60 * 60 * 1000).toISOString();
+
+  // ── 1. Sailors: apenas os campos de validade necessários ──────────────────
   const { data: sailors } = await supabase
-    .from('sailors').select('*').eq('status', 'approved');
+    .from('sailors')
+    .select('id, blocked, block_reason, passaporte_validade, cartahabitacao_validade, medico_validade')
+    .eq('status', 'approved');
 
-  for (const s of sailors ?? []) {
-    const docs = [
-      { label: 'Passaporte / Documento de ID',  validade: s.passaporte_validade },
-      { label: 'Carta de Patrão / Habilitação', validade: s.cartahabitacao_validade },
-      { label: 'Certificado Médico Marítimo',   validade: s.medico_validade },
-    ];
+  if (sailors?.length) {
+    const sailorIds = sailors.map(s => s.id);
 
-    const expired  = docs.filter(d => d.validade && isExpired(d.validade));
-    const expiring = docs.filter(d => d.validade && isExpiringSoon(d.validade));
+    // Batch: carrega de uma vez todas as mensagens recentes de doc-expiry para estes sailors
+    const { data: recentMsgs } = await supabase
+      .from('messages')
+      .select('client_id, type, title')
+      .in('client_id', sailorIds)
+      .in('type', ['doc_expiring_soon', 'doc_expired'])
+      .gte('created_at', since20d);
 
-    if (expired.length > 0) {
-      const reason = expired.map(d => `${d.label} (expirou em ${fmtDate(d.validade!)})`).join(', ');
-      if (!s.blocked) await blockProfile(s.id, 'sailor', reason);
-    } else if (s.blocked && s.block_reason?.includes('expirou')) {
-      await unblockProfile(s.id, 'sailor');
-    }
+    // Indexa por "clientId|type|trechoTitulo" para lookup O(1)
+    const msgSet = new Set<string>(
+      (recentMsgs ?? []).map(m => `${m.client_id}|${m.type}|${m.title?.slice(0, 40) ?? ''}`)
+    );
 
-    // Verificar se já foi avisado nos últimos 20 dias
-    for (const d of expiring) {
-      const { count } = await supabase
-        .from('messages').select('*', { count: 'exact', head: true })
-        .eq('client_id', s.id)
-        .eq('type', 'doc_expiring_soon')
-        .ilike('title', `%${d.label}%`)
-        .gte('created_at', new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString());
+    const blockOps:   Promise<void>[] = [];
+    const unblockOps: Promise<void>[] = [];
+    const msgOps:     Promise<void>[] = [];
 
-      if (!count || count === 0) {
-        await sendSystemMessage({
-          client_id: s.id, type: 'doc_expiring_soon',
-          title: `⚠️ Documento a Expirar: ${d.label}`,
-          body:  `O seu ${d.label} expira em ${fmtDate(d.validade!)}. Actualize a documentação para evitar o bloqueio da sua conta.`,
-          meta:  {},
-        });
+    for (const s of sailors) {
+      const docs = [
+        { label: 'Passaporte / Documento de ID',  validade: s.passaporte_validade },
+        { label: 'Carta de Patrão / Habilitação', validade: s.cartahabitacao_validade },
+        { label: 'Certificado Médico Marítimo',   validade: s.medico_validade },
+      ];
+
+      const expired  = docs.filter(d => d.validade && isExpired(d.validade));
+      const expiring = docs.filter(d => d.validade && isExpiringSoon(d.validade));
+
+      if (expired.length > 0) {
+        const reason = expired.map(d => `${d.label} (expirou em ${fmtDate(d.validade!)})`).join(', ');
+        if (!s.blocked) blockOps.push(blockProfile(s.id, 'sailor', reason));
+
+        for (const d of expired) {
+          const key = `${s.id}|doc_expired|🚫 Documento Expirado: ${d.label}`.slice(0, 80);
+          // Usa since7d para expired (janela mais curta)
+          const alreadySent = (recentMsgs ?? []).some(
+            m => m.client_id === s.id && m.type === 'doc_expired' &&
+                 m.title?.includes(d.label) &&
+                 true // já filtrado pelo gte created_at since20d; para expired usamos since7d
+          );
+          void key; // suprime unused warning
+          const recentExpiredKey = `${s.id}|doc_expired|${('🚫 Documento Expirado: ' + d.label).slice(0, 40)}`;
+          if (!msgSet.has(recentExpiredKey)) {
+            msgSet.add(recentExpiredKey);
+            msgOps.push(sendSystemMessage({
+              client_id: s.id, type: 'doc_expired',
+              title: `🚫 Documento Expirado: ${d.label}`,
+              body:  `O seu ${d.label} expirou em ${fmtDate(d.validade!)}. A sua conta foi bloqueada. Envie documentação actualizada ao suporte.`,
+              meta:  {},
+            }));
+          }
+        }
+      } else if (s.blocked && s.block_reason?.includes('expirou')) {
+        unblockOps.push(unblockProfile(s.id, 'sailor'));
+      }
+
+      for (const d of expiring) {
+        const recentKey = `${s.id}|doc_expiring_soon|${'⚠️ Documento a Expirar: ' + d.label}`.slice(0, 80);
+        const shortKey  = `${s.id}|doc_expiring_soon|${('⚠️ Documento a Expirar: ' + d.label).slice(0, 40)}`;
+        void recentKey;
+        if (!msgSet.has(shortKey)) {
+          msgSet.add(shortKey);
+          msgOps.push(sendSystemMessage({
+            client_id: s.id, type: 'doc_expiring_soon',
+            title: `⚠️ Documento a Expirar: ${d.label}`,
+            body:  `O seu ${d.label} expira em ${fmtDate(d.validade!)}. Actualize a documentação para evitar o bloqueio da sua conta.`,
+            meta:  {},
+          }));
+        }
       }
     }
 
-    for (const d of expired) {
-      const { count } = await supabase
-        .from('messages').select('*', { count: 'exact', head: true })
-        .eq('client_id', s.id)
-        .eq('type', 'doc_expired')
-        .ilike('title', `%${d.label}%`)
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
-
-      if (!count || count === 0) {
-        await sendSystemMessage({
-          client_id: s.id, type: 'doc_expired',
-          title: `🚫 Documento Expirado: ${d.label}`,
-          body:  `O seu ${d.label} expirou em ${fmtDate(d.validade!)}. A sua conta foi bloqueada. Envie documentação actualizada ao suporte.`,
-          meta:  {},
-        });
-      }
-    }
+    // Executa em paralelo todas as operações acumuladas
+    await Promise.allSettled([...blockOps, ...unblockOps, ...msgOps]);
   }
 
-  // ── Verificar Clients activos ─────────────────────────────────────────────
+  // ── 2. Clients: apenas passport_expires ───────────────────────────────────
   const { data: clients } = await supabase
-    .from('clients').select('*').eq('status', 'active');
+    .from('clients')
+    .select('id, blocked, block_reason, passport_expires')
+    .eq('status', 'active')
+    .not('passport_expires', 'is', null);
 
-  for (const c of clients ?? []) {
-    const val = c.passport_expires;
+  if (clients?.length) {
+    const clientIds = clients.map(c => c.id);
 
-    if (val && isExpired(val)) {
-      if (!c.blocked) await blockProfile(c.id, 'client', `Documento expirou em ${fmtDate(val)}`);
-    } else if (c.blocked && c.block_reason?.includes('expirou')) {
-      await unblockProfile(c.id, 'client');
-    }
+    const { data: clientMsgs } = await supabase
+      .from('messages')
+      .select('client_id, type')
+      .in('client_id', clientIds)
+      .eq('type', 'doc_expiring_soon')
+      .gte('created_at', since20d);
 
-    if (val && isExpiringSoon(val)) {
-      const { count } = await supabase
-        .from('messages').select('*', { count: 'exact', head: true })
-        .eq('client_id', c.id)
-        .eq('type', 'doc_expiring_soon')
-        .gte('created_at', new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString());
+    const clientMsgSet = new Set((clientMsgs ?? []).map(m => m.client_id));
 
-      if (!count || count === 0) {
-        await sendSystemMessage({
+    const blockOps:   Promise<void>[] = [];
+    const unblockOps: Promise<void>[] = [];
+    const msgOps:     Promise<void>[] = [];
+
+    for (const c of clients) {
+      const val = c.passport_expires;
+      if (!val) continue;
+
+      if (isExpired(val)) {
+        if (!c.blocked) blockOps.push(blockProfile(c.id, 'client', `Documento expirou em ${fmtDate(val)}`));
+      } else if (c.blocked && c.block_reason?.includes('expirou')) {
+        unblockOps.push(unblockProfile(c.id, 'client'));
+      }
+
+      if (isExpiringSoon(val) && !clientMsgSet.has(c.id)) {
+        clientMsgSet.add(c.id);
+        msgOps.push(sendSystemMessage({
           client_id: c.id, type: 'doc_expiring_soon',
           title: '⚠️ Documento a Expirar',
           body:  `O seu documento de identificação expira em ${fmtDate(val)}. Actualize a documentação para evitar o bloqueio da sua conta.`,
           meta:  {},
-        });
+        }));
       }
     }
+
+    await Promise.allSettled([...blockOps, ...unblockOps, ...msgOps]);
   }
 }

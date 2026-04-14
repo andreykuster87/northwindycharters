@@ -38,7 +38,7 @@ export function DocUploadSlot({
 
   return (
     <div>
-      <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1.5">
+      <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1.5">
         <Upload className="w-3 h-3"/>
         {label}
         {required
@@ -53,17 +53,17 @@ export function DocUploadSlot({
 
       {!file ? (
         <button type="button" onClick={() => ref.current?.click()}
-          className="w-full border-2 border-dashed border-blue-200 rounded-[18px] py-6 flex flex-col items-center gap-2 hover:border-blue-900 hover:bg-blue-50 transition-all group">
-          <div className="w-10 h-10 bg-blue-100 group-hover:bg-blue-900 rounded-full flex items-center justify-center transition-all">
-            <Upload className="w-4 h-4 text-blue-400 group-hover:text-white transition-all"/>
+          className="w-full border-2 border-dashed border-[#c9a96e]/30 py-6 flex flex-col items-center gap-2 hover:border-[#0a1628] hover:bg-gray-50 transition-all group">
+          <div className="w-10 h-10 bg-[#0a1628]/5 group-hover:bg-[#0a1628] rounded-full flex items-center justify-center transition-all">
+            <Upload className="w-4 h-4 text-[#c9a96e] group-hover:text-white transition-all"/>
           </div>
           <div className="text-center">
-            <p className="font-black text-blue-900 text-sm">Clique para enviar</p>
+            <p className="font-semibold text-[#1a2b4a] text-sm">Clique para enviar</p>
             <p className="text-xs text-gray-400 font-bold mt-0.5">JPG, PNG ou PDF · Máx {maxMB}MB</p>
           </div>
         </button>
       ) : (
-        <div className="border-2 border-blue-200 rounded-[18px] overflow-hidden">
+        <div className="border-2 border-[#c9a96e]/30 overflow-hidden">
           {preview ? (
             <div className="relative">
               <img src={preview} alt={label} className="w-full max-h-40 object-contain bg-gray-50"/>
@@ -73,11 +73,11 @@ export function DocUploadSlot({
               </button>
             </div>
           ) : (
-            <div className="flex items-center justify-between p-4 bg-blue-50">
+            <div className="flex items-center justify-between p-4 bg-[#0a1628]/5">
               <div className="flex items-center gap-3">
-                <FileText className="w-7 h-7 text-blue-400"/>
+                <FileText className="w-7 h-7 text-[#c9a96e]"/>
                 <div>
-                  <p className="font-black text-blue-900 text-sm truncate max-w-[180px]">{file.name}</p>
+                  <p className="font-semibold text-[#1a2b4a] text-sm truncate max-w-[180px]">{file.name}</p>
                   <p className="text-xs text-gray-400 font-bold">{(file.size / 1024).toFixed(0)} KB</p>
                 </div>
               </div>
@@ -88,7 +88,7 @@ export function DocUploadSlot({
           )}
           <div className="px-4 py-2 bg-green-50 border-t border-green-100 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0"/>
-            <p className="text-xs font-black text-green-700">Pronto para envio</p>
+            <p className="text-xs font-semibold text-green-700">Pronto para envio</p>
           </div>
         </div>
       )}

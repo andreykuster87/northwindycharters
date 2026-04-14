@@ -12,12 +12,15 @@ export interface Auth {
 
 export type AdminTabKey =
   | 'reservas' | 'frota' | 'passeios' | 'cancelamentos'
-  | 'sol' | 'verificados' | 'clientes' | 'mensagens' | 'financeiro'
-  | 'empresas' | 'eventos' | 'candidatos';
+  | 'sol' | 'clientes' | 'mensagens' | 'financeiro'
+  | 'eventos' | 'candidatos' | 'marketplace';
 
-export type SailorTabKey = 'reservas' | 'frota' | 'passeios' | 'cancelamentos' | 'mensagens' | 'eventos' | 'empresa';
+export type SailorTabKey = 'perfil' | 'reservas' | 'frota' | 'passeios' | 'cancelamentos' | 'mensagens' | 'eventos' | 'empresa' | 'marketplace';
 
 export type TabKey = AdminTabKey | SailorTabKey;
+
+/** Sub-abas dentro da tab "Clientes" (só admin) */
+export type ClientesSubTab = 'usuarios' | 'verificados' | 'empresas' | 'frota';
 
 export interface TabDef {
   key:    TabKey;
@@ -31,11 +34,12 @@ export interface TabDef {
 
 export function KpiCard({ emoji, label, value }: { emoji: string; label: string; value: number }) {
   return (
-    <div className="bg-white rounded-[18px] border-2 border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
+    <div className="bg-white border border-gray-100 px-4 py-3 flex items-center gap-3 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/30 to-transparent" />
       <span className="text-xl">{emoji}</span>
       <div>
-        <p className="text-xl font-black text-blue-900 leading-tight">{value}</p>
-        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{label}</p>
+        <p className="text-xl font-['Playfair_Display'] font-bold text-[#1a2b4a] leading-tight">{value}</p>
+        <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-[0.12em]">{label}</p>
       </div>
     </div>
   );

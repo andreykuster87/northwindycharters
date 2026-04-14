@@ -61,35 +61,35 @@ export function EventosMural({
     <div className="space-y-4">
       {(title || subtitle) && (
         <div>
-          {title   && <h2 className="text-lg font-black text-blue-900 uppercase italic">{title}</h2>}
+          {title   && <h2 className="text-lg font-['Playfair_Display'] font-bold text-[#1a2b4a]">{title}</h2>}
           {subtitle && <p className="text-xs text-gray-400 font-bold mt-0.5">{subtitle}</p>}
         </div>
       )}
 
       {/* Filtros */}
-      <div className="bg-white border-2 border-gray-100 rounded-[18px] p-3 space-y-2.5">
+      <div className="bg-white border-2 border-gray-100 p-3 space-y-2.5">
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Buscar eventos, locais, organizadores…"
-            className="w-full bg-gray-50 border-2 border-gray-100 rounded-[14px] py-2.5 pl-9 pr-4 font-bold text-blue-900 focus:border-blue-900 outline-none text-sm placeholder:text-gray-300" />
+            className="w-full bg-gray-50 border-2 border-gray-100 py-2.5 pl-9 pr-4 font-bold text-[#1a2b4a] focus:border-[#c9a96e] outline-none text-sm placeholder:text-gray-300" />
         </div>
         <div className="flex flex-wrap gap-2">
           <select value={filterTipo} onChange={e => setFilterTipo(e.target.value)}
-            className="bg-gray-50 border-2 border-gray-100 rounded-[12px] py-2 px-3 text-xs font-black text-gray-600 focus:border-blue-900 outline-none transition-all">
+            className="bg-gray-50 border-2 border-gray-100 py-2 px-3 text-xs font-bold text-gray-600 focus:border-[#c9a96e] outline-none transition-all">
             <option value="">🏷️ Todos os tipos</option>
             {tipos.map(t => <option key={t} value={t}>{TIPO_EMOJI[t] || '📌'} {t}</option>)}
           </select>
           {cidades.length > 1 && (
             <select value={filterCidade} onChange={e => setFilterCidade(e.target.value)}
-              className="bg-gray-50 border-2 border-gray-100 rounded-[12px] py-2 px-3 text-xs font-black text-gray-600 focus:border-blue-900 outline-none transition-all">
+              className="bg-gray-50 border-2 border-gray-100 py-2 px-3 text-xs font-bold text-gray-600 focus:border-[#c9a96e] outline-none transition-all">
               <option value="">📍 Todas as cidades</option>
               {cidades.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           )}
           {hasFilters && (
             <button onClick={() => { setSearch(''); setFilterTipo(''); setFilterCidade(''); }}
-              className="text-[10px] font-black text-red-400 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition-all">
+              className="text-[10px] font-bold text-red-400 hover:text-red-600 px-2 py-1 hover:bg-red-50 transition-all">
               Limpar
             </button>
           )}
@@ -103,14 +103,14 @@ export function EventosMural({
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="bg-white border-2 border-dashed border-gray-200 rounded-[24px] py-16 text-center">
+        <div className="bg-white border-2 border-dashed border-gray-200 py-16 text-center">
           <div className="text-5xl mb-4">⚓</div>
-          <p className="font-black text-gray-300 uppercase italic">
+          <p className="font-semibold text-gray-300 uppercase italic">
             {allEvents.length === 0 ? emptyMessage : 'Nenhum evento corresponde aos filtros'}
           </p>
           {hasFilters && (
             <button onClick={() => { setSearch(''); setFilterTipo(''); setFilterCidade(''); }}
-              className="mt-3 text-blue-600 font-black text-sm underline">
+              className="mt-3 text-[#1a2b4a] font-bold text-sm underline">
               Limpar filtros
             </button>
           )}

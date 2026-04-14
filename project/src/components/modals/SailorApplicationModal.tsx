@@ -36,22 +36,22 @@ function StepIndicator({ current, done }: { current: AppStep; done: Set<number> 
         return (
           <div key={tab.n} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center gap-1 flex-shrink-0">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all duration-300 text-sm
-                ${isActive ? 'bg-white border-white shadow-lg scale-110'
+              <div className={`w-9 h-9 flex items-center justify-center border-2 transition-all duration-300 text-sm
+                ${isActive ? 'bg-[#c9a96e] border-[#c9a96e] shadow-lg scale-110'
                   : isDone  ? 'bg-green-400 border-green-400'
                   : 'bg-white/10 border-white/20'}`}>
                 {isDone
                   ? <CheckCircle2 className="w-4 h-4 text-green-900" />
-                  : <span className={isActive ? 'text-blue-900' : 'text-white/40'}>{tab.icon}</span>
+                  : <span className={isActive ? 'text-[#0a1628]' : 'text-white/40'}>{tab.icon}</span>
                 }
               </div>
-              <span className={`text-[9px] font-black uppercase tracking-wider transition-all
-                ${isActive ? 'text-white' : isDone ? 'text-green-300' : 'text-white/30'}`}>
+              <span className={`text-[9px] font-semibold uppercase tracking-wider transition-all
+                ${isActive ? 'text-[#c9a96e]' : isDone ? 'text-green-300' : 'text-white/30'}`}>
                 {tab.short}
               </span>
             </div>
             {i < STEP_LABELS.length - 1 && (
-              <div className={`h-0.5 flex-1 mx-1 mb-4 rounded-full transition-all duration-300 ${isDone ? 'bg-green-400' : 'bg-white/15'}`} />
+              <div className={`h-0.5 flex-1 mx-1 mb-4 transition-all duration-300 ${isDone ? 'bg-green-400' : 'bg-white/15'}`} />
             )}
           </div>
         );
@@ -247,25 +247,28 @@ export function SailorApplicationModal({
   // ── Submitted screen ─────────────────────────────────────────────────────────
   if (submitted) {
     return (
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-        <div className="bg-white rounded-[30px] w-full max-w-sm p-8 text-center space-y-5 shadow-2xl">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+      <div
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+        style={{ background: 'rgba(4,10,24,0.88)', backdropFilter: 'blur(8px)' }}
+      >
+        <div className="bg-white w-full max-w-sm p-8 text-center space-y-5 shadow-2xl border border-[#c9a96e]/30">
+          <div className="w-16 h-16 bg-green-100 flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8 text-green-500" />
           </div>
           <div>
-            <h2 className="font-black text-blue-900 text-xl uppercase italic">Candidatura Enviada!</h2>
+            <h2 className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xl uppercase">Candidatura Enviada!</h2>
             <p className="text-sm text-gray-500 font-bold mt-2">
               A sua candidatura a tripulante está em análise. Em breve receberá uma mensagem com o resultado.
             </p>
           </div>
-          <div className="bg-blue-50 rounded-[18px] p-4 text-left space-y-2">
-            <p className="text-[10px] font-black text-blue-900 uppercase tracking-wide">Próximos passos</p>
-            <p className="text-xs text-blue-700 font-bold">1. Admin analisa a documentação</p>
-            <p className="text-xs text-blue-700 font-bold">2. Se aprovado, recebe credenciais de acesso</p>
-            <p className="text-xs text-blue-700 font-bold">3. Acessa a área do tripulante</p>
+          <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 p-4 text-left space-y-2">
+            <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Próximos passos</p>
+            <p className="text-xs text-[#1a2b4a] font-bold">1. Admin analisa a documentação</p>
+            <p className="text-xs text-[#1a2b4a] font-bold">2. Se aprovado, recebe credenciais de acesso</p>
+            <p className="text-xs text-[#1a2b4a] font-bold">3. Acessa a área do tripulante</p>
           </div>
           <button onClick={onClose}
-            className="w-full bg-blue-900 text-white rounded-[15px] py-3.5 font-black text-sm uppercase tracking-wider hover:bg-blue-800 transition-colors">
+            className="w-full bg-[#0a1628] text-white py-3.5 font-semibold text-sm uppercase tracking-[0.15em] hover:bg-[#0a1628]/90 transition-colors">
             Entendido, obrigado!
           </button>
         </div>
@@ -276,32 +279,41 @@ export function SailorApplicationModal({
   return (
     <div>
       {termosOpen && <TermosModal onClose={() => setTermosOpen(false)} />}
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm">
-        <div className="bg-white w-full sm:max-w-lg sm:rounded-[30px] rounded-t-[30px] overflow-hidden shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col">
+      <div
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+        style={{ background: 'rgba(4,10,24,0.88)', backdropFilter: 'blur(8px)' }}
+      >
+        <div className="bg-white w-full sm:max-w-lg sm:rounded-none rounded-t-[30px] overflow-hidden shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col border border-[#c9a96e]/30">
 
           {/* Header */}
-          <div className="bg-gradient-to-br from-blue-900 to-blue-700 px-5 pt-5 pb-3 flex-shrink-0">
+          <div
+            className="bg-[#0a1628] px-5 pt-5 pb-3 flex-shrink-0 relative"
+            style={{
+              backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(201,169,110,0.04) 24px,rgba(201,169,110,0.04) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(201,169,110,0.04) 24px,rgba(201,169,110,0.04) 25px)',
+            }}
+          >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-white/20 rounded-[10px] flex items-center justify-center">
-                  <Anchor className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 bg-[#c9a96e]/20 flex items-center justify-center">
+                  <Anchor className="w-4 h-4 text-[#c9a96e]" />
                 </div>
                 <div>
-                  <p className="font-black text-white text-sm uppercase tracking-wide leading-tight">Candidatura a Tripulante</p>
-                  <p className="text-blue-200 text-[10px] font-bold">{STEP_LABELS[step - 1].label}</p>
+                  <p className="font-semibold text-white text-sm uppercase tracking-[0.15em] leading-tight">Candidatura a Tripulante</p>
+                  <p className="text-[#c9a96e]/70 text-[10px] font-bold">{STEP_LABELS[step - 1].label}</p>
                 </div>
               </div>
-              <button onClick={onClose} className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+              <button onClick={onClose} className="w-8 h-8 bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
                 <X className="w-4 h-4 text-white" />
               </button>
             </div>
             <StepIndicator current={step} done={done} />
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-[#c9a96e]/40" />
           </div>
 
           {/* Body */}
           <div ref={bodyRef} className="flex-1 overflow-y-auto p-5 space-y-5">
             {error && (
-              <div className="bg-red-50 border-2 border-red-200 rounded-[15px] p-3 flex items-start gap-2">
+              <div className="bg-red-50 border border-red-200 p-3 flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
                 <p className="text-xs font-bold text-red-700">{error}</p>
               </div>
@@ -375,21 +387,21 @@ export function SailorApplicationModal({
           <div className="px-5 pb-5 pt-3 border-t border-gray-100 flex-shrink-0 flex gap-3">
             {step > 1 ? (
               <button onClick={goBack} disabled={loading}
-                className="flex items-center gap-1.5 px-4 py-3 border-2 border-gray-100 rounded-[15px] font-black text-xs text-blue-900 uppercase hover:border-blue-300 transition-all disabled:opacity-50">
+                className="flex items-center gap-1.5 px-4 py-3 border border-gray-200 font-semibold text-xs text-[#1a2b4a] uppercase hover:border-[#c9a96e]/30 transition-all disabled:opacity-50">
                 <ChevronLeft className="w-4 h-4" /> Voltar
               </button>
             ) : (
               <button onClick={onClose} disabled={loading}
-                className="flex items-center gap-1.5 px-4 py-3 border-2 border-gray-100 rounded-[15px] font-black text-xs text-blue-900 uppercase hover:border-blue-300 transition-all">
+                className="flex items-center gap-1.5 px-4 py-3 border border-gray-200 font-semibold text-xs text-[#1a2b4a] uppercase hover:border-[#c9a96e]/30 transition-all">
                 <X className="w-3 h-3" /> Cancelar
               </button>
             )}
             <button
               onClick={step === 4 ? handleSubmit : goNext}
               disabled={loading || !canGoNext()}
-              className="flex-1 bg-blue-900 hover:bg-blue-800 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-[15px] py-3 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+              className="flex-1 bg-[#0a1628] hover:bg-[#0a1628]/90 disabled:bg-gray-200 disabled:text-gray-400 text-white py-3 font-semibold text-xs uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2">
               {loading ? (
-                <span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
+                <span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white" />
               ) : step === 4 ? (
                 <><Anchor className="w-3.5 h-3.5" /> Enviar Candidatura</>
               ) : (

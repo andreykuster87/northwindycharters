@@ -6,9 +6,9 @@ import {
   DollarSign, Headphones, LogOut, Building2,
   MapPin, Phone, Mail, Globe, Bell,
   ChevronRight, XCircle,
-  CheckCircle2, MessageSquare, Anchor, Waves, LifeBuoy, Send,
+  CheckCircle2, MessageSquare, Waves, Send,
   Plus, ChevronDown, ChevronUp, Search, X, Check, UserPlus,
-  Inbox, BookOpen, AlertCircle, Camera, Image, Trash2, Briefcase,
+  Inbox, BookOpen, AlertCircle, Camera, Image, Trash2, Briefcase, Store,
 } from 'lucide-react';
 import { getCompanies, updateCompany, refreshAll, getSailors, getClients, type Company } from '../../lib/localStore';
 import { uploadDoc } from '../../lib/storage';
@@ -26,6 +26,7 @@ import { FinanceiroTab }     from '../company/FinanceiroTab';
 import { SuporteTab }        from '../company/SuporteTab';
 import { CompanySearchCard } from '../shared/CompanySearchCard';
 import { CompanyProfileView } from './CompanyProfileView';
+import { MarketplaceTab }     from '../shared/MarketplaceTab';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -62,17 +63,18 @@ function Toast({ msg, onClose }: { msg: string; onClose: () => void }) {
 
 // ── Tab config ─────────────────────────────────────────────────────────────────
 
-type TabKey = 'eventos' | 'destaques' | 'frota' | 'reservas' | 'funcionarios' | 'mensagens' | 'financeiro' | 'suporte';
+type TabKey = 'eventos' | 'destaques' | 'frota' | 'reservas' | 'funcionarios' | 'mensagens' | 'financeiro' | 'suporte' | 'marketplace';
 
 const TABS: { key: TabKey; icon: React.ElementType; label: string; short: string }[] = [
-  { key: 'destaques',    icon: Star,         label: 'Perfil Público', short: 'Perfil'     },
-  { key: 'eventos',      icon: CalendarDays, label: 'Mural',          short: 'Mural'      },
-  { key: 'reservas',     icon: ClipboardList,label: 'Reservas',       short: 'Reservas'   },
-  { key: 'frota',        icon: Ship,         label: 'Frota',          short: 'Frota'      },
-  { key: 'funcionarios', icon: Briefcase,    label: 'RH',             short: 'RH'         },
-  { key: 'mensagens',    icon: MessageSquare,label: 'Mensagens',      short: 'Mensagens'  },
-  { key: 'financeiro',   icon: DollarSign,   label: 'Financeiro',     short: 'Finanças'   },
-  { key: 'suporte',      icon: Headphones,   label: 'Suporte',        short: 'Suporte'    },
+  { key: 'destaques',    icon: Star,         label: 'Perfil Público',      short: 'Perfil'     },
+  { key: 'eventos',      icon: CalendarDays, label: 'Mural',               short: 'Mural'      },
+  { key: 'reservas',     icon: ClipboardList,label: 'Reservas',            short: 'Reservas'   },
+  { key: 'frota',        icon: Ship,         label: 'Frota',               short: 'Frota'      },
+  { key: 'funcionarios', icon: Briefcase,    label: 'RH',                  short: 'RH'         },
+  { key: 'mensagens',    icon: MessageSquare,label: 'Mensagens',           short: 'Mensagens'  },
+  { key: 'financeiro',   icon: DollarSign,   label: 'Financeiro',          short: 'Finanças'   },
+  { key: 'suporte',      icon: Headphones,   label: 'Suporte',             short: 'Suporte'    },
+  { key: 'marketplace',  icon: Store,        label: 'Marketplace',         short: 'Market'     },
 ];
 
 // ══ COMPONENTE PRINCIPAL ═══════════════════════════════════════════════════════
@@ -94,23 +96,18 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-blue-900">
+      <div className="min-h-screen flex items-center justify-center bg-[#0a1628]">
         <div className="flex flex-col items-center gap-6">
-          {/* Logo animada */}
           <div className="relative flex items-center justify-center">
-            {/* Anel pulsante externo */}
-            <div className="absolute w-28 h-28 rounded-full border-4 border-blue-400/30 animate-ping" />
-            {/* Anel giratório */}
-            <div className="absolute w-24 h-24 rounded-full border-4 border-transparent border-t-blue-300 border-r-blue-400 animate-spin" />
-            {/* Círculo central */}
-            <div className="w-20 h-20 rounded-full bg-blue-800 border-2 border-blue-600 flex items-center justify-center shadow-2xl">
-              <Waves className="w-9 h-9 text-blue-200 animate-pulse" />
+            <div className="absolute w-28 h-28 rounded-full border border-[#c9a96e]/20 animate-ping" />
+            <div className="absolute w-24 h-24 rounded-full border-2 border-transparent border-t-[#c9a96e]/60 border-r-[#c9a96e]/30 animate-spin" />
+            <div className="w-20 h-20 bg-[#1a2b4a] border border-[#c9a96e]/20 flex items-center justify-center shadow-2xl">
+              <Waves className="w-9 h-9 text-[#c9a96e]/60 animate-pulse" />
             </div>
           </div>
-          {/* Nome */}
           <div className="text-center space-y-1">
-            <p className="font-black text-white text-xl italic tracking-wider animate-pulse">NorthWindy</p>
-            <p className="text-blue-400 text-xs font-bold uppercase tracking-widest">A carregar perfil…</p>
+            <p className="font-['Playfair_Display'] font-bold italic text-white text-xl animate-pulse">NorthWindy</p>
+            <p className="text-[#c9a96e]/50 text-xs font-medium uppercase tracking-widest">A carregar perfil…</p>
           </div>
           {/* Barra de progresso */}
           <div className="w-40 h-1 bg-blue-800 rounded-full overflow-hidden">
@@ -169,30 +166,30 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
       {toast && <Toast msg={toast} onClose={() => setToast(null)} />}
 
       {/* ── NAVBAR ── */}
-      <nav className="bg-blue-900 text-white px-4 py-3 sticky top-0 z-40 shadow-xl">
+      <nav className="bg-[#0a1628] text-white px-4 py-3 sticky top-0 z-40 shadow-xl border-b border-[#c9a96e]/10">
         <div className="flex items-center gap-3 max-w-6xl mx-auto">
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Waves className="w-5 h-5 text-blue-300" />
-            <span className="font-black text-base italic hidden sm:inline">NorthWindy</span>
-            <span className="bg-amber-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">Empresa</span>
+            <Waves className="w-5 h-5 text-[#c9a96e]/60" />
+            <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline">NorthWindy</span>
+            <span className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold uppercase px-2 py-0.5 tracking-wider">Empresa</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-black text-white text-sm truncate">{company.nome_fantasia}</p>
-            <p className="text-blue-300 text-[10px] font-bold truncate hidden sm:block">
+            <p className="font-['Playfair_Display'] font-bold text-white text-sm truncate">{company.nome_fantasia}</p>
+            <p className="text-white/40 text-[10px] font-medium truncate hidden sm:block">
               {company.profile_number} · {company.setor.split(',')[0]}
             </p>
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button className="relative bg-blue-800 p-2 rounded-full" onClick={() => handleTabChange('mensagens')}>
+            <button className="relative bg-white/5 hover:bg-white/10 p-2 transition-all" onClick={() => handleTabChange('mensagens')}>
               <Bell className="w-4 h-4 text-white" />
               {unread > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-amber-400 text-blue-900 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 bg-[#c9a96e] text-[#0a1628] text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
                   {unread}
                 </span>
               )}
             </button>
             <button onClick={onLogout}
-              className="bg-blue-800 hover:bg-red-600 px-3 py-2 rounded-full text-xs font-black uppercase flex items-center gap-1 transition-all">
+              className="bg-white/5 hover:bg-red-600/80 px-3 py-2 text-xs font-medium uppercase flex items-center gap-1 transition-all">
               <LogOut className="w-3 h-3" />
               <span className="hidden sm:inline">Sair</span>
             </button>
@@ -205,15 +202,15 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
 
         {/* ── SIDEBAR (desktop ≥ md) ── */}
         <aside className="hidden md:flex flex-col gap-1 w-52 flex-shrink-0 py-6 pl-4 pr-2">
-          <div className="bg-white border-2 border-gray-100 rounded-[22px] p-4 mb-3">
-            <div className="w-12 h-12 bg-amber-50 border-2 border-amber-100 rounded-[12px] flex items-center justify-center mx-auto mb-2">
-              <Building2 className="w-6 h-6 text-amber-500" />
+          <div className="bg-white border border-gray-100 p-4 mb-3" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
+            <div className="w-12 h-12 bg-[#0a1628] flex items-center justify-center mx-auto mb-3">
+              <Building2 className="w-5 h-5 text-[#c9a96e]" />
             </div>
-            <p className="font-black text-blue-900 text-xs text-center uppercase italic leading-tight">{company.nome_fantasia}</p>
-            <p className="text-[10px] font-bold text-gray-400 text-center mt-0.5">{company.profile_number}</p>
-            <div className="mt-2 pt-2 border-t border-gray-50 flex items-center justify-center gap-1">
+            <p className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xs text-center leading-tight">{company.nome_fantasia}</p>
+            <p className="text-[10px] font-medium text-gray-400 text-center mt-0.5">{company.profile_number}</p>
+            <div className="mt-3 pt-2 border-t border-gray-50 flex items-center justify-center gap-1.5">
               <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-              <p className="text-[9px] font-black text-green-600 uppercase">Activa</p>
+              <p className="text-[9px] font-semibold text-green-600 uppercase tracking-wider">Activa</p>
             </div>
           </div>
           {TABS.map(t => {
@@ -221,12 +218,14 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
             const active = tab === t.key;
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={`flex items-center gap-2.5 px-4 py-3 rounded-[14px] text-xs font-black uppercase tracking-wide transition-all ${
-                  active ? 'bg-blue-900 text-white shadow-lg' : 'text-gray-500 hover:bg-white hover:text-blue-900'
+                className={`flex items-center gap-2.5 px-4 py-3 text-xs font-semibold uppercase tracking-wide transition-all ${
+                  active
+                    ? 'bg-[#0a1628] text-white border-l-2 border-[#c9a96e]'
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-[#1a2b4a] border-l-2 border-transparent'
                 }`}>
-                <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${active ? 'text-[#c9a96e]' : ''}`} />
                 {t.label}
-                {active && <ChevronRight className="w-3 h-3 ml-auto" />}
+                {active && <ChevronRight className="w-3 h-3 ml-auto text-[#c9a96e]" />}
               </button>
             );
           })}
@@ -242,6 +241,7 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
           {tab === 'mensagens'    && <MensagensTab    companyId={company.id} />}
           {tab === 'financeiro'   && <FinanceiroTab companyId={company.id} />}
           {tab === 'suporte'      && <SuporteTab      company={company} />}
+          {tab === 'marketplace'  && <MarketplaceTab role="company" company={company} />}
         </main>
       </div>
 
@@ -256,7 +256,7 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
                 return (
                   <button key={t.key} onClick={() => handleTabChange(t.key)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-[14px] font-black text-sm uppercase transition-all ${
-                      active ? 'bg-blue-900 text-white' : 'bg-gray-50 text-gray-500 hover:bg-blue-50'
+                      active ? 'bg-[#0a1628] text-white border-l-2 border-[#c9a96e]' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
                     }`}>
                     <Icon className="w-4 h-4 flex-shrink-0" />
                     {t.label}

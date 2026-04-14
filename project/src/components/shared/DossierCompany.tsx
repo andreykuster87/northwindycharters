@@ -36,9 +36,9 @@ export function DossierCompany({ company, onClose }: DossierCompanyProps) {
       <div className="relative z-10 w-full max-w-lg max-h-[90dvh] overflow-y-auto bg-white rounded-t-[28px] md:rounded-[28px] md:mx-4 flex flex-col">
 
         {/* Header — gradiente com foto */}
-        <div className="bg-gradient-to-br from-blue-900 to-blue-700 p-5 rounded-t-[28px] md:rounded-t-[28px] flex-shrink-0">
+        <div className="bg-gradient-to-br from-[#0a1628] to-[#1a2b4a] p-5 rounded-t-[28px] md:rounded-t-[28px] flex-shrink-0">
           <div className="flex items-start justify-between mb-4">
-            <span className="text-[10px] font-black text-blue-300 bg-white/10 px-2.5 py-1 rounded-full uppercase tracking-widest">
+            <span className="text-[10px] font-semibold text-[#c9a96e] bg-white/10 px-2.5 py-1 rounded-full uppercase tracking-[0.15em]">
               {company.profile_number}
             </span>
             <button onClick={onClose} className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all flex-shrink-0">
@@ -48,7 +48,7 @@ export function DossierCompany({ company, onClose }: DossierCompanyProps) {
 
           <div className="flex items-center gap-4">
             {/* Foto de perfil */}
-            <div className="w-16 h-16 rounded-[16px] overflow-hidden border-2 border-white/30 flex-shrink-0 bg-white/20">
+            <div className="w-16 h-16 overflow-hidden border-2 border-white/30 flex-shrink-0 bg-white/20">
               {profilePhoto
                 ? <img src={profilePhoto} alt={company.nome_fantasia} className="w-full h-full object-cover" />
                 : <div className="w-full h-full flex items-center justify-center">
@@ -58,11 +58,11 @@ export function DossierCompany({ company, onClose }: DossierCompanyProps) {
             </div>
 
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-black uppercase italic leading-tight text-white truncate">{company.nome_fantasia}</h3>
-              <p className="text-blue-300 text-xs font-bold truncate">{company.razao_social}</p>
+              <h3 className="text-lg font-bold uppercase italic leading-tight text-white truncate">{company.nome_fantasia}</h3>
+              <p className="text-[#c9a96e] text-xs font-bold truncate">{company.razao_social}</p>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {company.setor.split(',').slice(0, 2).map(s => (
-                  <span key={s} className="bg-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{s.trim()}</span>
+                  <span key={s} className="bg-white/20 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">{s.trim()}</span>
                 ))}
                 <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                   <MapPin className="w-2.5 h-2.5" /> {company.cidade}, {company.pais_nome}
@@ -79,10 +79,10 @@ export function DossierCompany({ company, onClose }: DossierCompanyProps) {
               { icon: Users,        label: 'Clientes',  value: '—' },
               { icon: Star,         label: 'Avaliação', value: '—' },
             ].map(s => (
-              <div key={s.label} className="bg-white/10 rounded-[12px] py-2 text-center">
-                <s.icon className="w-3.5 h-3.5 text-blue-300 mx-auto mb-0.5" />
-                <p className="text-sm font-black text-white">{s.value}</p>
-                <p className="text-[9px] font-black text-blue-400 uppercase">{s.label}</p>
+              <div key={s.label} className="bg-white/10 py-2 text-center">
+                <s.icon className="w-3.5 h-3.5 text-[#c9a96e] mx-auto mb-0.5" />
+                <p className="text-sm font-bold text-white">{s.value}</p>
+                <p className="text-[9px] font-semibold text-[#c9a96e] uppercase">{s.label}</p>
               </div>
             ))}
           </div>
@@ -93,8 +93,8 @@ export function DossierCompany({ company, onClose }: DossierCompanyProps) {
 
           {/* Descrição */}
           {company.descricao && (
-            <div className="bg-gray-50 rounded-[18px] p-4">
-              <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest mb-2">Sobre a Empresa</p>
+            <div className="bg-gray-50 p-4">
+              <p className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em] mb-2">Sobre a Empresa</p>
               <p className="text-sm font-bold text-gray-600 leading-relaxed">{company.descricao}</p>
             </div>
           )}
@@ -102,10 +102,10 @@ export function DossierCompany({ company, onClose }: DossierCompanyProps) {
           {/* Álbum de fotos */}
           {album.length > 0 && (
             <div>
-              <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest mb-2">Galeria</p>
+              <p className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em] mb-2">Galeria</p>
               <div className="grid grid-cols-3 gap-2">
                 {album.slice(0, 6).map((url, i) => (
-                  <div key={i} className="aspect-square rounded-[12px] overflow-hidden">
+                  <div key={i} className="aspect-square overflow-hidden">
                     <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
                   </div>
                 ))}
@@ -114,20 +114,20 @@ export function DossierCompany({ company, onClose }: DossierCompanyProps) {
           )}
 
           {/* Contactos */}
-          <div className="bg-white border-2 border-gray-100 rounded-[18px] p-4 space-y-3">
-            <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Contacto</p>
+          <div className="bg-white border-2 border-gray-100 p-4 space-y-3">
+            <p className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em]">Contacto</p>
             {[
               { icon: Phone, value: company.telefone,                    label: 'Telefone' },
               { icon: Mail,  value: company.email,                       label: 'Email'    },
               { icon: MapPin,value: `${company.cidade}, ${company.pais_nome}`, label: 'Localização' },
             ].map(r => (
               <div key={r.label} className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
-                  <r.icon className="w-3.5 h-3.5 text-blue-500" />
+                <div className="w-8 h-8 bg-[#0a1628]/5 rounded-full flex items-center justify-center flex-shrink-0">
+                  <r.icon className="w-3.5 h-3.5 text-[#c9a96e]" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[9px] font-black text-gray-400 uppercase">{r.label}</p>
-                  <p className="text-sm font-bold text-blue-900 truncate">{r.value}</p>
+                  <p className="text-[9px] font-semibold text-gray-400 uppercase">{r.label}</p>
+                  <p className="text-sm font-bold text-[#1a2b4a] truncate">{r.value}</p>
                 </div>
               </div>
             ))}
@@ -136,13 +136,13 @@ export function DossierCompany({ company, onClose }: DossierCompanyProps) {
           {/* Redes sociais */}
           {socials.length > 0 && (
             <div>
-              <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest mb-2">Redes</p>
+              <p className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em] mb-2">Redes</p>
               <div className="flex flex-wrap gap-2">
                 {socials.map(s => (
                   <a key={s.label} href={s.href!} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 border-2 border-gray-100 hover:border-blue-200 hover:bg-blue-50 rounded-[12px] transition-all">
-                    <s.icon className="w-3.5 h-3.5 text-blue-700" />
-                    <span className="text-xs font-black text-blue-900">{s.label}</span>
+                    className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 border-2 border-gray-100 hover:border-[#c9a96e]/30 hover:bg-gray-50 transition-all">
+                    <s.icon className="w-3.5 h-3.5 text-[#1a2b4a]" />
+                    <span className="text-xs font-semibold text-[#1a2b4a]">{s.label}</span>
                     <ExternalLink className="w-2.5 h-2.5 text-gray-400" />
                   </a>
                 ))}
@@ -151,10 +151,10 @@ export function DossierCompany({ company, onClose }: DossierCompanyProps) {
           )}
 
           {/* Responsável */}
-          <div className="bg-blue-50 border-2 border-blue-100 rounded-[18px] p-4">
-            <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest mb-2">Responsável</p>
-            <p className="text-sm font-black text-blue-900">{company.resp_nome}</p>
-            <p className="text-xs font-bold text-blue-600">{company.resp_cargo}</p>
+          <div className="bg-[#0a1628]/5 border-2 border-[#0a1628]/10 p-4">
+            <p className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em] mb-2">Responsável</p>
+            <p className="text-sm font-bold text-[#1a2b4a]">{company.resp_nome}</p>
+            <p className="text-xs font-bold text-[#1a2b4a]">{company.resp_cargo}</p>
           </div>
 
         </div>

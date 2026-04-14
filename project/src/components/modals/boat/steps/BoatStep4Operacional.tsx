@@ -61,7 +61,7 @@ export function BoatStep4Operacional({
         placeholder="EX: ZONA COSTEIRA..."
       />
       <div>
-        <label className="block text-xs font-black text-blue-900 uppercase mb-2">
+        <label className="block text-xs font-semibold text-[#1a2b4a] uppercase mb-2">
           Tipo de atividade
         </label>
         <div className="grid grid-cols-2 gap-2">
@@ -71,10 +71,10 @@ export function BoatStep4Operacional({
                 key={opt}
                 type="button"
                 onClick={() => toggleAtividade(opt)}
-                className={`py-2.5 px-3 rounded-xl font-bold text-xs uppercase border-2 text-left transition-all ${
+                className={`py-2.5 px-3 font-semibold text-xs uppercase border text-left transition-all ${
                   tipoAtividadeArray.includes(opt)
-                    ? 'bg-blue-900 text-white border-blue-900'
-                    : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-blue-900 hover:text-blue-900'
+                    ? 'bg-[#0a1628] text-white border-[#0a1628]'
+                    : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-[#c9a96e]/30 hover:text-[#1a2b4a]'
                 }`}
               >
                 {opt}
@@ -87,7 +87,7 @@ export function BoatStep4Operacional({
             value={f.tipoAtividadeOutro}
             onChange={(e) => fd('tipoAtividadeOutro', e.target.value)}
             placeholder="ESPECIFIQUE..."
-            className="w-full mt-2 bg-gray-50 border-2 border-gray-100 rounded-2xl py-3 px-4 font-bold text-blue-900 text-sm focus:border-blue-900 outline-none transition-all placeholder:text-gray-300"
+            className="w-full mt-2 bg-gray-50 border border-gray-200 py-3 px-4 font-bold text-[#1a2b4a] text-sm focus:border-[#c9a96e] outline-none transition-all placeholder:text-gray-300"
           />
         )}
       </div>
@@ -160,7 +160,7 @@ export function BoatStep4Operacional({
         />
       </div>
       <div>
-        <label className="block text-xs font-black text-blue-900 uppercase mb-1.5">
+        <label className="block text-xs font-semibold text-[#1a2b4a] uppercase mb-1.5">
           Histórico de manutenção
         </label>
         <textarea
@@ -168,12 +168,12 @@ export function BoatStep4Operacional({
           rows={3}
           onChange={(e) => fd('historicoManu', e.target.value)}
           placeholder="DESCREVA MANUTENÇÕES RELEVANTES..."
-          className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-3 px-4 font-bold text-blue-900 text-sm focus:border-blue-900 outline-none transition-all resize-none placeholder:text-gray-300 uppercase"
+          className="w-full bg-gray-50 border border-gray-200 py-3 px-4 font-bold text-[#1a2b4a] text-sm focus:border-[#c9a96e] outline-none transition-all resize-none placeholder:text-gray-300 uppercase"
         />
       </div>
 
-      <div className="bg-blue-50 border-2 border-blue-100 rounded-2xl p-4">
-        <p className="text-xs font-black text-blue-900 uppercase mb-2">Declaração</p>
+      <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 p-4">
+        <p className="text-xs font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-2">Declaração</p>
         <p className="text-xs text-gray-600 font-bold leading-relaxed mb-3">
           Declaro que as informações prestadas são verdadeiras e que a embarcação cumpre os
           requisitos legais e de segurança aplicáveis.
@@ -184,13 +184,13 @@ export function BoatStep4Operacional({
           className="flex items-center gap-3"
         >
           <div
-            className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-              declaracao ? 'bg-blue-900 border-blue-900' : 'bg-white border-gray-300'
+            className={`w-5 h-5 border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+              declaracao ? 'bg-[#0a1628] border-[#0a1628]' : 'bg-white border-gray-300'
             }`}
           >
             {declaracao && <CheckCircle2 className="w-3 h-3 text-white" />}
           </div>
-          <span className="text-xs font-bold text-blue-900">Confirmo a declaração acima</span>
+          <span className="text-xs font-bold text-[#1a2b4a]">Confirmo a declaração acima</span>
         </button>
       </div>
 
@@ -198,14 +198,14 @@ export function BoatStep4Operacional({
         <button
           type="button"
           onClick={onBack}
-          className="px-5 py-4 border-2 border-gray-100 text-gray-400 rounded-2xl font-black text-sm uppercase hover:border-blue-900 hover:text-blue-900 transition-all flex items-center gap-1"
+          className="px-5 py-4 border border-gray-200 text-gray-400 font-semibold text-sm uppercase hover:border-[#0a1628] hover:text-[#1a2b4a] transition-all flex items-center gap-1"
         >
           <ChevronLeft className="w-4 h-4" /> Voltar
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 bg-blue-900 text-white py-4 rounded-2xl font-black uppercase text-sm hover:bg-blue-800 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          className="flex-1 bg-[#0a1628] text-white py-4 font-semibold uppercase text-sm hover:bg-[#0a1628]/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {loading ? (
             'A guardar...'

@@ -94,7 +94,15 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
       const doc_url      = await uploadDoc(frontFile, 'clients', 'doc-front');
       const doc_back_url = await uploadDoc(backFile, 'clients', 'doc-back');
 
-      const client = saveClient({
+      // Converte DD/MM/YYYY → YYYY-MM-DD para colunas tipo date no Postgres
+      const toIso = (v?: string | null): string | null => {
+        if (!v) return null;
+        const p = v.split('/');
+        if (p.length === 3 && p[2].length === 4) return `${p[2]}-${p[1]}-${p[0]}`;
+        return v || null;
+      };
+
+      const client = await saveClient({
         name:             form.nomeCompleto,
         email:            form.email,
         phone:            fullPhone,
@@ -102,11 +110,11 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
         country_name:     country.name,
         timezone:         form.timezone || country.tz,
         language:         form.idioma,
-        birth_date:       `${birthDay.padStart(2,'0')}/${birthMonth.padStart(2,'0')}/${birthYear}`,
+        birth_date:       toIso(`${birthYear}-${birthMonth.padStart(2,'0')}-${birthDay.padStart(2,'0')}`),
         doc_type:         docType,
         passport_number:  form.documento,
-        passport_issued:  form.docEmissao || null,
-        passport_expires: form.docValidade,
+        passport_issued:  toIso(form.docEmissao) || null,
+        passport_expires: toIso(form.docValidade),
         doc_url,
         doc_back_url,
       });

@@ -3,24 +3,27 @@
 // Painel Admin / Sailor — orquestra tabs, dados e modais globais.
 // Layout (navbar, sidebar, bottom bar) extraído para sub-componentes.
 // ─────────────────────────────────────────────────────────────────────────────
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Users, Ship, Compass, ShieldCheck, XCircle,
   UserCheck, Bell, DollarSign, Building2,
-  CalendarDays,
+  CalendarDays, Store, User,
 } from 'lucide-react';
+import { MarketplaceTab } from '../shared/MarketplaceTab';
 import { EmpresaFuncionarioTab } from '../company/EmpresaFuncionarioTab';
 import { loadEmpresaUnread } from '../../lib/rh';
+import type { Company } from '../../lib/store/companies';
 import {
   getSailors, getClients, getBoats, getTrips, getBookings,
   getPendingBoats, approveBoat, rejectBoat,
   approveSailor, approveClient, updateSailor, updateClient, updateBookingStatus,
   getMessages, markAllMessagesRead,
-  notifyBookingStatusChange, runDocumentExpiryCheck,
-  sendWelcomeMessage, getCompanies, refreshAll,
+  notifyBookingStatusChange,
+  sendWelcomeMessage, getCompanies, refreshAll, isInitialized,
   getSailorApplications,
   type Sailor, type Client, type Boat, type Trip, type Booking, type Message,
 } from '../../lib/localStore';
+import { uploadDoc } from '../../lib/storage';
 
 // Layout
 import { AdminDashboardNavbar }   from './AdminDashboardNavbar';
@@ -39,11 +42,13 @@ import { MensagensTab }     from './tabs/MensagensTab';
 import { FinanceiroTab }    from './tabs/FinanceiroTab';
 import { EmpresasTab }      from './tabs/EmpresasTab';
 import { EventosAdminTab }  from './tabs/EventosAdminTab';
-import { KpiCard, DevResetBanner, type Auth, type TabKey, type TabDef } from './AdminDashboardShared';
+import { KpiCard, DevResetBanner, type Auth, type TabKey, type TabDef, type ClientesSubTab } from './AdminDashboardShared';
 
 // Modais globais
-import { DossierSailor }    from '../shared/DossierSailor';
-import { DossierClient }    from '../shared/DossierClient';
+import { DossierSailor }       from '../shared/DossierSailor';
+import { DossierClient }       from '../shared/DossierClient';
+import { CompanyProfileView }  from '../pages/CompanyProfileView';
+import { SailorProfileView, SailorProfileContent, VIEW_TABS, type ViewTab } from '../pages/SailorProfileView';
 import { CancelModal }      from '../modals/CancelModal';
 import { DeleteConfirmModal, type DeleteTarget } from '../modals/DeleteConfirmModal';
 import { BoatRegistrationModal } from '../modals/BoatRegistrationModal';
@@ -62,11 +67,17 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
   const [clients,       setClients]       = useState<Client[]>([]);
   const [boats,         setBoats]         = useState<Boat[]>([]);
   const [pendingBoats,  setPendingBoats]  = useState<Boat[]>([]);
-  const [solInitialSub, setSolInitialSub] = useState<'profissionais'|'usuarios'|'embarcacoes'|'empresas'|'tripulacao'>('profissionais');
+  const [solInitialSub, setSolInitialSub] = useState<'profissionais'|'usuarios'|'embarcacoes'|'empresas'|'tripulacao'|'documentos'>('profissionais');
   const [trips,         setTrips]         = useState<Trip[]>([]);
   const [bookings,      setBookings]      = useState<Booking[]>([]);
   const [sailorMsgs,    setSailorMsgs]    = useState<Message[]>([]);
   const [sailorPhoto,   setSailorPhoto]   = useState<string>('');
+
+  // Sub-tab do perfil público do tripulante
+  const [profileSubTab, setProfileSubTab] = useState<ViewTab>('perfil');
+
+  // Sub-tab dentro de "Clientes" (admin)
+  const [clientesSubTab, setClientesSubTab] = useState<ClientesSubTab>('usuarios');
 
   // Modais de criação
   const [showBoatModal, setShowBoatModal] = useState(false);
@@ -77,6 +88,8 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
   // Modais shared
   const [dossierSailor,  setDossierSailor]  = useState<Sailor | null>(null);
   const [dossierClient,  setDossierClient]  = useState<Client | null>(null);
+  const [viewingCompany, setViewingCompany] = useState<Company | null>(null);
+  const [viewingSailorProfile, setViewingSailorProfile] = useState<Sailor | null>(null);
   const [cancelConfirm,  setCancelConfirm]  = useState<string | null>(null);
   const [deleteConfirm,  setDeleteConfirm]  = useState<DeleteTarget | null>(null);
   const [verifyModal,    setVerifyModal]    = useState<Client | null>(null);
@@ -88,8 +101,17 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
   const sailorData            = isSailor && auth.sailorId ? sailors.find(s => s.id === auth.sailorId) ?? null : null;
   const pending               = sailors.filter(s => s.status === 'pending');
   const verified              = sailors.filter(s => s.status === 'approved' && s.verified);
-  const convertedClientIds    = new Set(getSailorApplications('approved').map(a => a.client_id));
-  const isConverted           = (c: { id: string; role?: string }) => (c as any).role === 'converted_to_sailor' || convertedClientIds.has(c.id);
+  // Detecção de client convertido a tripulante — três verificações em cascata:
+  // 1. role === 'converted_to_sailor' (código actual — definido no approveSailorApplication)
+  // 2. mesmo UUID que um sailor (approveSailorApplication actual preserva o id do client)
+  // 3. mesmo email que um sailor (cobre promoções antigas onde o UUID era diferente)
+  // Usar as três garante que cadastros promovidos antes das correcções também são detectados.
+  const sailorIdSet           = new Set(sailors.map(s => s.id));
+  const sailorEmailSet        = new Set(sailors.map(s => s.email.toLowerCase()));
+  const isConverted           = (c: Client) =>
+    c.role === 'converted_to_sailor' ||
+    sailorIdSet.has(c.id) ||
+    sailorEmailSet.has(c.email.toLowerCase());
   const pendingClients        = clients.filter(c => c.status === 'pending_verification' && !isConverted(c));
   const activeClients         = clients.filter(c => c.status === 'active' && !isConverted(c));
   const pendingCompaniesCount = getCompanies().filter(c => c.status === 'pending').length;
@@ -100,9 +122,8 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
   useEffect(() => { loadData(); }, [auth]); // eslint-disable-line
   useEffect(() => { setSailorPhoto(sailorData?.profile_photo || ''); }, [sailorData?.profile_photo]); // eslint-disable-line
 
-  async function loadData() {
-    await refreshAll();
-    await runDocumentExpiryCheck();
+  /** Lê o cache em memória e sincroniza o estado React (síncrono, 0ms). */
+  function syncFromCache() {
     setSailors(getSailors());
     setClients(getClients());
     setBookings(getBookings(isSailor ? auth?.sailorId : undefined));
@@ -116,6 +137,28 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
       setTrips(getTrips());
     }
     setPendingBoats(getPendingBoats());
+  }
+
+  // Ticket de versão: garante que um refresh antigo (em flight) não sobrescreve
+  // os dados de um refresh mais recente — evita race conditions pós-write.
+  const refreshTicketRef = useRef(0);
+
+  async function loadData() {
+    // Stale-while-revalidate: se o cache já tem dados, renderiza imediatamente
+    // e actualiza em background — sem delay percetível nas visitas seguintes.
+    if (isInitialized()) {
+      syncFromCache();                        // render instantâneo com dados anteriores
+      const ticket = ++refreshTicketRef.current;
+      refreshAll().then(() => {
+        // Só aplica se nenhum refresh mais recente foi iniciado depois
+        if (ticket === refreshTicketRef.current) syncFromCache();
+      });
+      return;
+    }
+    // Primeira carga: aguarda o refresh (cache está vazio, não há nada para mostrar)
+    const ticket = ++refreshTicketRef.current;
+    await refreshAll();
+    if (ticket === refreshTicketRef.current) syncFromCache();
   }
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -132,7 +175,8 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
     setSailors(getSailors());
     setDossierSailor(null);
     setApproveLoading(false);
-    setTab('verificados');
+    setClientesSubTab('verificados');
+    setTab('clientes');
   }
 
   async function handleRejectSailor(s: Sailor, reasons: string[]) {
@@ -162,18 +206,19 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
     loadData();
   }
 
-  function handleSailorPhoto(file: File) {
+  async function handleSailorPhoto(file: File) {
     if (file.size > 4 * 1024 * 1024) { alert('Máximo 4MB'); return; }
-    const reader = new FileReader();
-    reader.onload = async ev => {
-      const url = ev.target?.result as string;
+    if (!auth?.sailorId) return;
+    try {
+      const url = await uploadDoc(file, 'sailors', `profile-${auth.sailorId}`);
+      if (!url) return;
       setSailorPhoto(url);
-      if (auth?.sailorId) {
-        await updateSailor(auth.sailorId, { profile_photo: url } as any);
-        setSailors(getSailors());
-      }
-    };
-    reader.readAsDataURL(file);
+      await updateSailor(auth.sailorId, { profile_photo: url } as any);
+      setSailors(getSailors());
+    } catch (err) {
+      console.error('[NorthWindy] Erro ao guardar foto de perfil:', err);
+      alert('Erro ao guardar foto. Tente novamente.');
+    }
   }
 
   function handleTabChange(key: TabKey) {
@@ -192,24 +237,23 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
     { key: 'reservas',      icon: Users,        label: 'Reservas',      short: 'Reservas' },
     { key: 'sol',           icon: UserCheck,    label: 'Solicitações',  short: 'Solicit.', badge: solBadge > 0 ? solBadge : undefined },
     { key: 'passeios',      icon: Compass,      label: 'Passeios',      short: 'Passeios' },
-    { key: 'frota',         icon: Ship,         label: 'Frota',         short: 'Frota' },
-    { key: 'clientes',      icon: Users,        label: 'Usuários',      short: 'Usuários' },
-    { key: 'verificados',   icon: ShieldCheck,  label: 'Verificados',   short: 'Verif.' },
-    { key: 'empresas',      icon: Building2,    label: 'Empresas',      short: 'Empresas' },
+    { key: 'clientes',      icon: Users,        label: 'Clientes',      short: 'Clientes' },
     { key: 'eventos',       icon: CalendarDays, label: 'Eventos',       short: 'Eventos' },
     { key: 'financeiro',    icon: DollarSign,   label: 'Financeiro',    short: 'Finanças' },
-    { key: 'cancelamentos', icon: XCircle,      label: 'Cancelamentos', short: 'Cancels.' },
-    { key: 'mensagens',     icon: Bell,         label: 'Mensagens',     short: 'Msgs' },
+    { key: 'cancelamentos', icon: XCircle,  label: 'Cancelamentos', short: 'Cancels.' },
+    { key: 'mensagens',     icon: Bell,     label: 'Mensagens',     short: 'Msgs' },
+    { key: 'marketplace',   icon: Store,    label: 'Marketplace',   short: 'Market' },
   ];
 
   const SAILOR_TABS: TabDef[] = [
-    { key: 'reservas',      icon: Users,        label: 'Reservas',      short: 'Reservas' },
-    { key: 'frota',         icon: Ship,         label: 'Minha Frota',   short: 'Frota' },
-    { key: 'passeios',      icon: Compass,      label: 'Meus Passeios', short: 'Passeios' },
-    { key: 'eventos',       icon: CalendarDays, label: 'Eventos',       short: 'Eventos' },
-    { key: 'empresa',       icon: Building2,    label: 'Empresa',       short: 'Empresa', badge: empresaUnread > 0 ? empresaUnread : undefined },
-    { key: 'cancelamentos', icon: XCircle,      label: 'Cancelamentos', short: 'Cancels.' },
-    { key: 'mensagens',     icon: Bell,         label: 'Mensagens',     short: 'Msgs', badge: unreadMsgs > 0 ? unreadMsgs : undefined },
+    { key: 'perfil',        icon: User,           label: 'Perfil Público',      short: 'Perfil'   },
+    { key: 'reservas',      icon: Users,          label: 'Reservas',            short: 'Reservas' },
+    { key: 'frota',         icon: Ship,           label: 'Minha Frota',         short: 'Frota' },
+    { key: 'eventos',       icon: CalendarDays,   label: 'Eventos',             short: 'Eventos' },
+    { key: 'empresa',       icon: Building2,      label: 'Empresa',             short: 'Empresa', badge: empresaUnread > 0 ? empresaUnread : undefined },
+    { key: 'cancelamentos', icon: XCircle,  label: 'Cancelamentos', short: 'Cancels.' },
+    { key: 'mensagens',     icon: Bell,     label: 'Mensagens',     short: 'Msgs', badge: unreadMsgs > 0 ? unreadMsgs : undefined },
+    { key: 'marketplace',   icon: Store,    label: 'Marketplace',   short: 'Market' },
   ];
 
   const ALL_TABS    = isAdmin ? ADMIN_TABS : SAILOR_TABS;
@@ -229,6 +273,9 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
         onSettings={() => setShowSettings(true)}
         onGoToMessages={() => handleTabChange('mensagens')}
         onGoToSol={() => handleTabChange('sol')}
+        onOpenSailorDossier={s => setViewingSailorProfile(s)}
+        onOpenClientDossier={c => setDossierClient(c)}
+        onOpenCompanyDossier={(c: Company) => setViewingCompany(c)}
       />
 
       <div className="flex flex-1 max-w-7xl mx-auto w-full">
@@ -239,6 +286,10 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
           tabs={ALL_TABS} activeTab={tab}
           onTabChange={handleTabChange}
           onPhotoChange={handleSailorPhoto}
+          profileSubTab={profileSubTab}
+          onProfileSubTabChange={setProfileSubTab}
+          clientesSubTab={clientesSubTab}
+          onClientesSubTabChange={setClientesSubTab}
         />
 
         {/* ── MAIN CONTENT ── */}
@@ -247,7 +298,7 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
           {/* KPIs admin */}
           {isAdmin && (
             <div className="mb-6 space-y-4">
-              <h1 className="text-2xl font-black text-blue-900 uppercase italic">Controlo NorthWindy</h1>
+              <h1 className="font-['Playfair_Display'] font-bold italic text-2xl text-[#1a2b4a]">Controlo NorthWindy</h1>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {[
                   { emoji:'👤', label:'Usuários',      value: activeClients.length },
@@ -263,6 +314,32 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
           )}
 
           {/* Conteúdo das tabs */}
+          {tab === 'perfil' && isSailor && sailorData && (
+            <div>
+              {/* Sub-tabs mobile */}
+              <div className="md:hidden flex gap-1 mb-5 bg-gray-100 p-1">
+                {VIEW_TABS.map(t => {
+                  const Icon = t.icon;
+                  const active = profileSubTab === t.key;
+                  return (
+                    <button key={t.key} onClick={() => setProfileSubTab(t.key)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[10px] font-semibold uppercase tracking-wide transition-all ${
+                        active ? 'bg-[#0a1628] text-white shadow' : 'text-gray-500 hover:text-[#1a2b4a]'
+                      }`}>
+                      <Icon className="w-3.5 h-3.5" />
+                      {t.short}
+                    </button>
+                  );
+                })}
+              </div>
+              <SailorProfileContent
+                sailor={sailorData}
+                subTab={profileSubTab}
+                isOwner={true}
+                onDocAdded={loadData}
+              />
+            </div>
+          )}
           {tab === 'reservas' && (
             <ReservasTab bookings={bookings} boats={boats} trips={trips}
               role={auth?.role ?? null} filterBoatId={filterBoatId}
@@ -299,15 +376,49 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
               onRejectBoat={b => { rejectBoat(b.id); setSolInitialSub('profissionais'); loadData(); }}
               onDataChange={loadData} />
           )}
-          {tab === 'verificados' && isAdmin && (
-            <VerificadosTab verified={verified} onOpenDossier={setDossierSailor} />
-          )}
           {tab === 'clientes' && isAdmin && (
-            <ClientesTab activeClients={activeClients} pendingClients={pendingClients}
-              onGoToSolicitacoes={() => setTab('sol')} onOpenDossier={setDossierClient} />
-          )}
-          {tab === 'empresas' && isAdmin && (
-            <EmpresasTab onGoToSolicitacoes={() => { setSolInitialSub('empresas'); setTab('sol'); }} />
+            <div>
+              {/* Sub-tabs mobile */}
+              <div className="md:hidden flex flex-wrap gap-1 mb-5 bg-gray-100 p-1">
+                {([
+                  { key: 'usuarios'    as ClientesSubTab, label: 'Usuários',    icon: Users },
+                  { key: 'verificados' as ClientesSubTab, label: 'Verificados', icon: ShieldCheck },
+                  { key: 'empresas'    as ClientesSubTab, label: 'Empresas',    icon: Building2 },
+                  { key: 'frota'       as ClientesSubTab, label: 'Frota',       icon: Ship },
+                ] as const).map(t => {
+                  const Icon = t.icon;
+                  const active = clientesSubTab === t.key;
+                  return (
+                    <button key={t.key} onClick={() => setClientesSubTab(t.key)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[10px] font-semibold uppercase tracking-wide transition-all ${
+                        active ? 'bg-[#0a1628] text-white shadow' : 'text-gray-500 hover:text-[#1a2b4a]'
+                      }`}>
+                      <Icon className="w-3.5 h-3.5" />
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {clientesSubTab === 'usuarios' && (
+                <ClientesTab activeClients={activeClients} pendingClients={pendingClients}
+                  onGoToSolicitacoes={() => setTab('sol')} onOpenDossier={setDossierClient} />
+              )}
+              {clientesSubTab === 'verificados' && (
+                <VerificadosTab verified={verified} onOpenDossier={setDossierSailor} onViewProfile={setViewingSailorProfile} />
+              )}
+              {clientesSubTab === 'empresas' && (
+                <EmpresasTab onGoToSolicitacoes={() => { setSolInitialSub('empresas'); setTab('sol'); }} />
+              )}
+              {clientesSubTab === 'frota' && (
+                <FrotaTab boats={boats} trips={trips} bookings={bookings} sailors={sailors}
+                  role={auth?.role ?? null}
+                  onAddBoat={() => setShowBoatModal(true)}
+                  onCreateTrip={boat => { setTripBoat(boat); setShowTripModal(true); }}
+                  onFilterByBoat={id => { setFilterBoatId(id); setTab('reservas'); }}
+                  onBoatsChange={setBoats}
+                  onSendToVerification={() => { loadData(); setSolInitialSub('embarcacoes'); setTab('sol'); }} />
+              )}
+            </div>
           )}
           {tab === 'financeiro' && isAdmin && (
             <FinanceiroTab bookings={bookings} sailors={sailors} trips={trips} boats={boats} role={auth?.role ?? null} />
@@ -320,6 +431,12 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
               sailorId={auth.sailorId}
               sailorName={auth.userName ?? sailorData?.name ?? 'Funcionário'}
               onUnreadChange={setEmpresaUnread}
+            />
+          )}
+          {tab === 'marketplace' && (
+            <MarketplaceTab
+              role={isAdmin ? 'admin' : 'sailor'}
+              sailorId={auth?.sailorId}
             />
           )}
         </main>
@@ -381,6 +498,26 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
       )}
       {showSettings && auth?.sailorId && (
         <SailorSettingsModal sailorId={auth.sailorId} onClose={() => setShowSettings(false)} />
+      )}
+
+      {/* ── Perfil público da empresa (overlay full-screen) ── */}
+      {viewingCompany && (
+        <div className="fixed inset-0 z-[200] overflow-y-auto bg-gray-50">
+          <CompanyProfileView
+            company={viewingCompany}
+            onBack={() => setViewingCompany(null)}
+          />
+        </div>
+      )}
+
+      {/* ── Perfil público do tripulante (overlay full-screen) ── */}
+      {viewingSailorProfile && (
+        <div className="fixed inset-0 z-[200] overflow-y-auto bg-gray-50">
+          <SailorProfileView
+            sailor={viewingSailorProfile}
+            onBack={() => setViewingSailorProfile(null)}
+          />
+        </div>
       )}
     </div>
   );

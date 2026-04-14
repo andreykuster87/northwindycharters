@@ -39,7 +39,7 @@ const MSG_COLORS: Record<string, string> = {
   booking_pending:    'border-l-amber-400',
   booking_cancelled:  'border-l-red-400',
   booking_completed:  'border-l-blue-500',
-  welcome:            'border-l-blue-900',
+  welcome:            'border-l-[#0a1628]',
   info:               'border-l-gray-400',
   doc_expired:        'border-l-red-600',
   doc_expiring_soon:  'border-l-orange-400',
@@ -111,19 +111,19 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
       {role === 'sailor' && (
         <div className="space-y-4">
           <div>
-            <h2 className="text-3xl font-black text-blue-900 uppercase italic">Mensagens</h2>
+            <h2 className="font-['Playfair_Display'] font-bold text-3xl text-[#1a2b4a]">Mensagens</h2>
             <p className="text-gray-400 font-bold text-sm uppercase mt-1">Avisos e notificações do sistema</p>
           </div>
 
           {sailorMsgs.length === 0 ? (
-            <div className="bg-white rounded-[40px] border-2 border-dashed border-gray-200 p-16 text-center flex flex-col items-center gap-4">
-              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center">
+            <div className="bg-white border-2 border-dashed border-gray-200 p-16 text-center flex flex-col items-center gap-4">
+              <div className="w-16 h-16 bg-gray-50 flex items-center justify-center">
                 <Inbox className="w-7 h-7 text-gray-300" />
               </div>
-              <p className="font-black text-gray-300 uppercase italic">Nenhuma mensagem ainda</p>
+              <p className="font-semibold text-gray-300 uppercase">Nenhuma mensagem ainda</p>
             </div>
           ) : (
-            <div className="bg-white rounded-[40px] border-2 border-blue-50 shadow-sm overflow-hidden">
+            <div className="bg-white border-2 border-[#0a1628]/5 shadow-sm overflow-hidden">
               <div className="divide-y divide-gray-50">
                 {sailorMsgs.map(msg => {
                   const date = new Date(msg.created_at).toLocaleDateString('pt-BR', {
@@ -132,15 +132,15 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
                   return (
                     <div
                       key={msg.id}
-                      className={`border-l-4 px-6 py-5 transition-all ${MSG_COLORS[msg.type] || 'border-l-gray-300'} ${!msg.read ? 'bg-blue-50/30' : 'bg-white'}`}
+                      className={`border-l-4 px-6 py-5 transition-all ${MSG_COLORS[msg.type] || 'border-l-gray-300'} ${!msg.read ? 'bg-[#0a1628]/5' : 'bg-white'}`}
                     >
                       <div className="flex items-start justify-between gap-3 mb-1">
                         <div className="flex items-center gap-2">
                           <span className="text-lg leading-none">{MSG_ICONS[msg.type] || 'ℹ️'}</span>
-                          <p className={`text-sm leading-tight ${!msg.read ? 'font-black text-blue-900' : 'font-bold text-gray-600'}`}>
+                          <p className={`text-sm leading-tight ${!msg.read ? 'font-bold text-[#1a2b4a]' : 'font-bold text-gray-600'}`}>
                             {msg.title}
                           </p>
-                          {!msg.read && <div className="w-2 h-2 bg-blue-900 rounded-full flex-shrink-0" />}
+                          {!msg.read && <div className="w-2 h-2 bg-[#0a1628] flex-shrink-0" />}
                         </div>
                         <span className="text-[10px] text-gray-300 font-bold flex-shrink-0">{date}</span>
                       </div>
@@ -149,16 +149,16 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
                       </p>
                       {msg.meta?.booking_date && (
                         <div className="ml-7 mt-2 flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5">
                             📅 {new Date(msg.meta.booking_date + 'T12:00').toLocaleDateString('pt-BR')}
                           </span>
                           {msg.meta.time_slot && (
-                            <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5">
                               🕐 {msg.meta.time_slot}
                             </span>
                           )}
                           {msg.meta.passengers && (
-                            <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5">
                               👥 {msg.meta.passengers} pax
                             </span>
                           )}
@@ -177,17 +177,17 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
       {role === 'admin' && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-3xl font-black text-blue-900 uppercase italic">Mensagens</h2>
+            <h2 className="font-['Playfair_Display'] font-bold text-3xl text-[#1a2b4a]">Mensagens</h2>
             <p className="text-gray-400 font-bold text-sm uppercase mt-1">Envie avisos a clientes e comandantes</p>
           </div>
 
           {/* Formulário */}
-          <div className="bg-white rounded-[40px] border-2 border-blue-50 p-8 shadow-sm space-y-5">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">📨 Nova Mensagem</p>
+          <div className="bg-white border-2 border-[#0a1628]/5 p-8 shadow-sm space-y-5">
+            <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">📨 Nova Mensagem</p>
 
             {/* Destinatário */}
             <div>
-              <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider mb-3 block">
+              <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em] mb-3 block">
                 Destinatário
               </label>
 
@@ -203,10 +203,10 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
                     key={key}
                     type="button"
                     onClick={() => setMsgTarget(key === 'specific' ? '__specific__' : key)}
-                    className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-2 font-black text-xs transition-all whitespace-nowrap
+                    className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 border-2 font-semibold text-xs transition-all whitespace-nowrap
                       ${(key === 'specific' ? !['all_clients','all_sailors','all'].includes(msgTarget) : msgTarget === key)
-                        ? 'border-blue-900 bg-blue-900 text-white shadow-md'
-                        : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-blue-400 hover:text-blue-900'
+                        ? 'border-[#0a1628] bg-[#0a1628] text-white shadow-md'
+                        : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-[#c9a96e]/30 hover:text-[#1a2b4a]'
                       }`}
                   >
                     <span>{emoji}</span>
@@ -221,7 +221,7 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
                   <input
                     type="text"
                     placeholder="🔍  Buscar por nome..."
-                    className="w-full bg-gray-50 border-2 border-blue-200 focus:border-blue-900 rounded-[16px] py-3 px-5 font-bold text-blue-900 outline-none transition-all text-sm"
+                    className="w-full bg-gray-50 border-2 border-gray-200 focus:border-[#c9a96e] py-3 px-5 font-bold text-[#1a2b4a] outline-none transition-all text-sm"
                     onChange={e => {
                       const q = e.target.value.toLowerCase();
                       if (!q) { setMsgTarget('__specific__'); return; }
@@ -234,7 +234,7 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
                     }}
                   />
                   {/* Lista de sugestões */}
-                  <div className="mt-1 max-h-44 overflow-y-auto rounded-[16px] border-2 border-gray-100 bg-white shadow-lg divide-y divide-gray-50">
+                  <div className="mt-1 max-h-44 overflow-y-auto border-2 border-gray-100 bg-white shadow-lg divide-y divide-gray-50">
                     {[
                       ...clients.map(c => ({ id: c.id, name: c.name, badge: '👤 Usuário' })),
                       ...sailors.filter(s => s.status === 'approved').map(s => ({ id: s.id, name: s.name, badge: '⚓ Comandante' })),
@@ -243,11 +243,11 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
                         key={p.id}
                         type="button"
                         onClick={() => setMsgTarget(p.id)}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-blue-50 transition-colors
-                          ${msgTarget === p.id ? 'bg-blue-50' : ''}`}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-gray-50 transition-colors
+                          ${msgTarget === p.id ? 'bg-gray-50' : ''}`}
                       >
-                        <span className={`text-sm font-black ${msgTarget === p.id ? 'text-blue-900' : 'text-gray-700'}`}>{p.name}</span>
-                        <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{p.badge}</span>
+                        <span className={`text-sm font-bold ${msgTarget === p.id ? 'text-[#1a2b4a]' : 'text-gray-700'}`}>{p.name}</span>
+                        <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5">{p.badge}</span>
                       </button>
                     ))}
                   </div>
@@ -257,20 +257,20 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
 
             {/* Título */}
             <div>
-              <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider mb-2 block">
+              <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em] mb-2 block">
                 Título *
               </label>
               <input
                 value={msgTitle}
                 onChange={e => { setMsgTitle(e.target.value); setMsgSent(false); }}
                 placeholder="Ex: Aviso importante sobre a plataforma"
-                className="w-full bg-gray-50 border-2 border-gray-100 focus:border-blue-900 rounded-[18px] py-4 px-5 font-bold text-blue-900 outline-none transition-all text-sm"
+                className="w-full bg-gray-50 border-2 border-gray-100 focus:border-[#c9a96e] py-4 px-5 font-bold text-[#1a2b4a] outline-none transition-all text-sm"
               />
             </div>
 
             {/* Corpo */}
             <div>
-              <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider mb-2 block">
+              <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.15em] mb-2 block">
                 Mensagem *
               </label>
               <textarea
@@ -278,15 +278,15 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
                 onChange={e => { setMsgBody(e.target.value); setMsgSent(false); }}
                 rows={4}
                 placeholder="Escreva a mensagem aqui..."
-                className="w-full bg-gray-50 border-2 border-gray-100 focus:border-blue-900 rounded-[18px] py-4 px-5 font-bold text-blue-900 outline-none transition-all text-sm resize-none"
+                className="w-full bg-gray-50 border-2 border-gray-100 focus:border-[#c9a96e] py-4 px-5 font-bold text-[#1a2b4a] outline-none transition-all text-sm resize-none"
               />
             </div>
 
             {/* Feedback */}
             {msgSent && (
-              <div className="bg-green-50 border-2 border-green-200 rounded-[16px] px-5 py-3 flex items-center gap-3">
+              <div className="bg-green-50 border-2 border-green-200 px-5 py-3 flex items-center gap-3">
                 <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-                <p className="text-green-700 font-black text-sm">Mensagem enviada com sucesso!</p>
+                <p className="text-green-700 font-semibold text-sm">Mensagem enviada com sucesso!</p>
               </div>
             )}
 
@@ -294,7 +294,7 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
             <button
               disabled={!msgTitle.trim() || !msgBody.trim() || msgSending}
               onClick={handleSend}
-              className="w-full bg-blue-900 hover:bg-blue-800 text-white py-5 rounded-[30px] font-black uppercase tracking-widest text-sm transition-all shadow-lg disabled:opacity-40 flex items-center justify-center gap-3"
+              className="w-full bg-[#0a1628] hover:bg-[#0a1628]/90 text-white py-5 font-semibold uppercase tracking-widest text-sm transition-all shadow-lg disabled:opacity-40 flex items-center justify-center gap-3"
             >
               <Send className="w-4 h-4" />
               {msgSending
@@ -310,10 +310,10 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
           </div>
 
           {/* Histórico recente */}
-          <div className="bg-white rounded-[40px] border-2 border-blue-50 p-8 shadow-sm">
+          <div className="bg-white border-2 border-[#0a1628]/5 p-8 shadow-sm">
             <div className="flex items-center justify-between mb-5">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">📋 Mensagens Recentes</p>
-              <span className="text-[10px] font-black text-blue-400 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
+              <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">📋 Mensagens Recentes</p>
+              <span className="text-[10px] font-semibold text-[#c9a96e] bg-[#c9a96e]/15 px-3 py-1">
                 últimas entregues
               </span>
             </div>
@@ -321,17 +321,17 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
               const recent = getRecentMessages();
               if (recent.length === 0) return (
                 <div className="text-center py-8">
-                  <p className="text-gray-300 font-black uppercase italic text-xs">Nenhuma mensagem enviada ainda</p>
+                  <p className="text-gray-300 font-semibold uppercase text-xs">Nenhuma mensagem enviada ainda</p>
                 </div>
               );
               return (
                 <div className="space-y-2">
                   {recent.map((m: any) => (
-                    <div key={m.id} className="flex items-start gap-3 bg-gray-50 rounded-[16px] px-4 py-3">
+                    <div key={m.id} className="flex items-start gap-3 bg-gray-50 px-4 py-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-black text-blue-900 text-xs truncate">{m.title}</p>
-                          <span className="text-[9px] font-black text-gray-400 bg-white border border-gray-200 px-2 py-0.5 rounded-full flex-shrink-0">
+                          <p className="font-bold text-[#1a2b4a] text-xs truncate">{m.title}</p>
+                          <span className="text-[9px] font-semibold text-gray-400 bg-white border border-gray-200 px-2 py-0.5 flex-shrink-0">
                             → {m.ownerName}
                           </span>
                         </div>
@@ -341,7 +341,7 @@ export function MensagensTab({ role, sailorMsgs, sailors, clients }: MensagensTa
                         <p className="text-[9px] text-gray-300 font-bold">
                           {new Date(m.created_at).toLocaleDateString('pt-BR')}
                         </p>
-                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${m.read ? 'bg-gray-100 text-gray-400' : 'bg-blue-100 text-blue-600'}`}>
+                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 ${m.read ? 'bg-gray-100 text-gray-400' : 'bg-[#c9a96e]/15 text-[#c9a96e]'}`}>
                           {m.read ? 'lida' : 'não lida'}
                         </span>
                       </div>

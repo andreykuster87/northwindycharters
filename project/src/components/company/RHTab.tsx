@@ -71,21 +71,21 @@ export function RHTab({ companyId, onToast }: { companyId: string; onToast: (msg
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <h2 className="text-lg font-black text-blue-900 uppercase italic flex items-center gap-2">
+        <h2 className="text-lg font-['Playfair_Display'] font-bold text-[#1a2b4a] uppercase italic flex items-center gap-2">
           <Briefcase className="w-5 h-5" /> RH
         </h2>
-        <p className="text-xs text-gray-400 font-bold">Recursos Humanos — Equipa, Férias, Comunicados e Recibos</p>
+        <p className="text-xs text-gray-400 font-semibold">Recursos Humanos — Equipa, Férias, Comunicados e Recibos</p>
       </div>
 
       {/* Sub-tab nav */}
-      <div className="flex gap-1 bg-gray-100 rounded-[14px] p-1 flex-wrap">
+      <div className="flex gap-1 bg-gray-100 p-1 flex-wrap">
         {RH_TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex-1 flex flex-col items-center py-2 rounded-[10px] transition-all relative min-w-[60px] ${tab === t.key ? 'bg-white text-blue-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
+            className={`flex-1 flex flex-col items-center py-2 transition-all relative min-w-[60px] ${tab === t.key ? 'bg-white text-[#1a2b4a] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
             {t.icon}
-            <span className="text-[9px] font-black uppercase mt-0.5 leading-tight text-center">{t.label}</span>
+            <span className="text-[9px] font-semibold uppercase mt-0.5 leading-tight text-center">{t.label}</span>
             {(t as any).hasPendente && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#c9a96e]" />
             )}
           </button>
         ))}
@@ -94,8 +94,8 @@ export function RHTab({ companyId, onToast }: { companyId: string; onToast: (msg
       {/* Content */}
       {loading ? (
         <div className="py-16 text-center">
-          <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-900 rounded-full animate-spin mx-auto" />
-          <p className="text-xs font-bold text-gray-400 mt-3">A carregar dados…</p>
+          <div className="w-8 h-8 border-2 border-[#c9a96e]/30 border-t-[#0a1628] animate-spin mx-auto" />
+          <p className="text-xs font-semibold text-gray-400 mt-3">A carregar dados…</p>
         </div>
       ) : (
         <>
@@ -104,34 +104,34 @@ export function RHTab({ companyId, onToast }: { companyId: string; onToast: (msg
           {tab === 'ausencias'   && (
             <div className="space-y-3">
               <div>
-                <p className="text-xs font-black text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] flex items-center gap-1.5">
                   <Bell className="w-3.5 h-3.5" /> Em Férias / Atestado
                 </p>
-                <p className="text-[10px] text-gray-400 font-bold">Funcionários actualmente ausentes</p>
+                <p className="text-[10px] text-gray-400 font-semibold">Funcionários actualmente ausentes</p>
               </div>
               {emAusencia.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-gray-200 rounded-[24px] py-12 text-center">
+                <div className="bg-white border-2 border-dashed border-gray-200 py-12 text-center">
                   <CalendarDays className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                  <p className="font-black text-gray-300 uppercase italic text-sm">Nenhum funcionário em ausência</p>
-                  <p className="text-xs text-gray-400 font-bold mt-1">Todos os funcionários estão disponíveis.</p>
+                  <p className="font-semibold text-gray-300 uppercase italic text-sm">Nenhum funcionário em ausência</p>
+                  <p className="text-xs text-gray-400 font-semibold mt-1">Todos os funcionários estão disponíveis.</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {emAusencia.map(f => {
                     const isAtestado = f.motivo?.toLowerCase().includes('atestado') || f.motivo?.toLowerCase().includes('médico');
                     return (
-                      <div key={f.id} className={`border-2 rounded-[16px] px-4 py-3 flex items-center gap-3 ${isAtestado ? 'bg-red-50 border-red-100' : 'bg-purple-50 border-purple-100'}`}>
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 font-black text-white text-sm ${isAtestado ? 'bg-red-500' : 'bg-purple-600'}`}>
+                      <div key={f.id} className={`border px-4 py-3 flex items-center gap-3 ${isAtestado ? 'bg-red-50 border-red-100' : 'bg-purple-50 border-purple-100'}`}>
+                        <div className={`w-9 h-9 flex items-center justify-center flex-shrink-0 font-bold text-white text-sm ${isAtestado ? 'bg-red-500' : 'bg-purple-600'}`}>
                           {f.staffNome.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-black text-blue-900 text-sm truncate">{f.staffNome}</p>
-                          <p className="text-[10px] font-bold text-gray-500">
+                          <p className="font-bold text-[#1a2b4a] text-sm truncate">{f.staffNome}</p>
+                          <p className="text-[10px] font-semibold text-gray-500">
                             {f.dataInicio} → {f.dataFim}
                             {f.motivo && ` · ${f.motivo}`}
                           </p>
                         </div>
-                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${isAtestado ? 'bg-red-100 text-red-700' : 'bg-purple-100 text-purple-700'}`}>
+                        <span className={`text-[9px] font-semibold uppercase px-2 py-0.5 flex-shrink-0 ${isAtestado ? 'bg-red-100 text-red-700' : 'bg-purple-100 text-purple-700'}`}>
                           {isAtestado ? '🏥 Atestado' : '🏖️ Férias'}
                         </span>
                       </div>

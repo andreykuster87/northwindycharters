@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, MapPin, Users,
+  ArrowRight, MapPin, Users, Anchor,
   X, CalendarDays, ChevronDown, Search, ChevronLeft, ChevronRight,
   Sparkles, Sun, Briefcase,
 } from 'lucide-react';
@@ -47,6 +47,8 @@ export const Hero = ({
   const [dropOpen,     setDropOpen]     = useState(false);
   const [peopleOpen,   setPeopleOpen]   = useState(false);
   const [selectedBoat, setSelectedBoat] = useState<CatalogBoat | null>(null);
+  const [activeActivity, setActiveActivity] = useState<string | null>(null);
+  const [activityOpen,   setActivityOpen]   = useState(false);
   const [cadastroOpen, setCadastroOpen] = useState(false);
   const [scrolled,     setScrolled]     = useState(false);
   const [menuOpen,     setMenuOpen]     = useState(false);
@@ -92,15 +94,17 @@ export const Hero = ({
   const carLastT         = useRef(0);
   const carMoved         = useRef(false);
 
-  const dropRef     = useRef<HTMLDivElement>(null);
-  const cadastroRef = useRef<HTMLDivElement>(null);
-  const peopleRef   = useRef<HTMLDivElement>(null);
+  const dropRef       = useRef<HTMLDivElement>(null);
+  const activityRef   = useRef<HTMLDivElement>(null);
+  const cadastroRef   = useRef<HTMLDivElement>(null);
+  const peopleRef     = useRef<HTMLDivElement>(null);
   const heroRef     = useRef<HTMLDivElement>(null);
   const [navWhite,  setNavWhite]  = useState(false);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropRef.current && !dropRef.current.contains(e.target as Node)) { setDropOpen(false); setSearchQuery(''); }
+      if (activityRef.current && !activityRef.current.contains(e.target as Node)) setActivityOpen(false);
       if (cadastroRef.current && !cadastroRef.current.contains(e.target as Node)) setCadastroOpen(false);
       if (peopleRef.current && !peopleRef.current.contains(e.target as Node)) setPeopleOpen(false);
     };
@@ -189,7 +193,7 @@ export const Hero = ({
     return map;
   }, [boats, allBookings]);
 
-  const hasActiveFilter = !!(activeCity || activePeople || activeDate);
+  const hasActiveFilter = !!(activeCity || activePeople || activeDate || activeActivity);
 
   const filteredBoats = useMemo(() => {
     return boats.filter(b => {
@@ -204,6 +208,10 @@ export const Hero = ({
       if (activePeople && b.capacity < activePeople) return false;
       if (activeDate) {
         if (!sched.some(s => s.date === activeDate)) return false;
+      }
+      if (activeActivity) {
+        const search = [b.name, b.descricao, b.boat_type, b.marina_location].filter(Boolean).join(' ').toLowerCase();
+        if (!search.includes(activeActivity.toLowerCase())) return false;
       }
       return true;
     });
@@ -380,12 +388,8 @@ export const Hero = ({
               {isPassageiros && <Sparkles className="w-3 h-3 animate-pulse" />}
             </button>
             <button
-              onClick={() => setHeroTab('comunidade')}
-              className={`relative flex items-center gap-2 px-5 md:px-7 py-2 md:py-2.5 rounded-full font-black text-xs md:text-sm uppercase tracking-wide transition-all duration-300 ${
-                !isPassageiros
-                  ? 'bg-gradient-to-r from-blue-900 to-blue-700 text-white shadow-lg shadow-blue-900/40 scale-105'
-                  : 'text-white/60 hover:text-white/90'
-              }`}>
+              onClick={() => navigate('/comunidade')}
+              className="relative flex items-center gap-2 px-5 md:px-7 py-2 md:py-2.5 rounded-full font-black text-xs md:text-sm uppercase tracking-wide transition-all duration-300 text-white/60 hover:text-white/90">
               <Briefcase className="w-3.5 h-3.5 md:w-4 md:h-4" />
               Comunidade
             </button>
@@ -410,34 +414,34 @@ export const Hero = ({
               />
             ))}
           </div>
-          <div className="w-full max-w-2xl bg-white/15 backdrop-blur-md border border-white/30 rounded-[24px] p-3 md:p-5 space-y-2 md:space-y-3 shadow-xl shadow-orange-500/10">
-            <div className="grid grid-cols-3 gap-2">
+          <div className="w-full max-w-2xl bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-3 md:p-4 space-y-2 md:space-y-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
 
               {/* Localização */}
               <div className="relative" ref={dropRef} style={{ zIndex: 9999 }}>
                 <button type="button" onClick={() => setDropOpen(v => !v)}
-                  className={`w-full flex items-center gap-1.5 md:gap-2.5 px-2.5 md:px-4 py-2.5 md:py-3 rounded-[14px] border-2 font-bold text-xs md:text-sm transition-all text-left
-                    ${activeCity ? 'bg-white text-blue-900 border-white' : 'bg-white/15 text-white border-white/30 hover:border-white/60'}`}>
-                  <MapPin className={`w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 ${activeCity ? 'text-blue-900' : 'text-white/70'}`} />
+                  className={`w-full flex items-center gap-2 px-3 md:px-4 py-2.5 md:py-3 rounded-lg border font-medium text-xs md:text-sm transition-all text-left
+                    ${activeCity ? 'bg-white text-[#1a2b4a] border-white' : 'bg-white/10 text-white/90 border-white/20 hover:border-white/40'}`}>
+                  <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${activeCity ? 'text-[#1a2b4a]/60' : 'text-white/50'}`} />
                   <span className="flex-1 truncate">{activeCity || 'Localização'}</span>
                   {activeCity
                     ? <span onClick={e => { e.stopPropagation(); setActiveCity(null); }}
-                        className="w-4 h-4 rounded-full bg-blue-900/10 hover:bg-blue-900/20 flex items-center justify-center flex-shrink-0 cursor-pointer">
-                        <X className="w-2.5 h-2.5 text-blue-900" />
+                        className="w-4 h-4 rounded-full bg-[#1a2b4a]/10 hover:bg-[#1a2b4a]/20 flex items-center justify-center flex-shrink-0 cursor-pointer">
+                        <X className="w-2.5 h-2.5 text-[#1a2b4a]" />
                       </span>
-                    : <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 text-white/50 transition-transform ${dropOpen ? 'rotate-180' : ''}`} />
+                    : <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 text-white/40 transition-transform ${dropOpen ? 'rotate-180' : ''}`} />
                   }
                 </button>
 
                 {dropOpen && (
-                  <div className="absolute left-0 bottom-full mb-2 bg-white rounded-[18px] shadow-2xl border border-gray-100 w-full min-w-[260px] overflow-hidden"
+                  <div className="absolute left-0 bottom-full mb-2 bg-white rounded-xl shadow-2xl border border-gray-100 w-full min-w-[260px] overflow-hidden"
                     style={{ zIndex: 9999 }}>
                     <div className="p-3 border-b border-gray-100">
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                         <input autoFocus type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                           placeholder="País, estado ou cidade..."
-                          className="w-full pl-9 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-[12px] text-sm font-bold text-blue-900 outline-none focus:border-blue-900 placeholder:text-gray-300 transition-all" />
+                          className="w-full pl-9 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-[#1a2b4a] outline-none focus:border-[#1a2b4a] placeholder:text-gray-300 transition-all" />
                         {searchQuery && (
                           <button type="button" onClick={() => setSearchQuery('')}
                             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
@@ -450,31 +454,30 @@ export const Hero = ({
                       {!q && (
                         <>
                           <button onClick={() => { setActiveCity(null); setDropOpen(false); setSearchQuery(''); }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold transition-colors hover:bg-blue-50 text-left ${!activeCity ? 'text-blue-900 font-black bg-blue-50' : 'text-gray-600'}`}>
-                            <span className="text-base">🌍</span>
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-gray-50 text-left ${!activeCity ? 'text-[#1a2b4a] font-semibold bg-gray-50' : 'text-gray-600'}`}>
                             <span className="flex-1">Todos os destinos</span>
-                            <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{boats.length}</span>
+                            <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{boats.length}</span>
                           </button>
                           <div className="h-px bg-gray-100 mx-3" />
                         </>
                       )}
                       {filteredTree.length === 0
-                        ? <p className="text-center py-8 text-xs text-gray-300 font-black uppercase italic">Nenhum destino encontrado</p>
+                        ? <p className="text-center py-8 text-xs text-gray-300">Nenhum destino encontrado</p>
                         : filteredTree.map(cn => (
                           <div key={cn.country}>
                             <div className="flex items-center gap-2 px-4 pt-3 pb-1">
-                              <span className="text-base leading-none">{cn.flag}</span>
-                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{cn.country}</p>
+                              <span className="text-sm leading-none">{cn.flag}</span>
+                              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{cn.country}</p>
                             </div>
                             {Object.entries(cn.states).map(([state, data]) => (
                               <div key={state}>
-                                {state && <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-7 py-1">{state}</p>}
+                                {state && <p className="text-[9px] font-medium text-gray-400 uppercase tracking-widest px-7 py-1">{state}</p>}
                                 {data.cities.map(({ city, count }) => (
                                   <button key={city} onClick={() => { setActiveCity(city); setDropOpen(false); setSearchQuery(''); }}
-                                    className={`w-full flex items-center gap-3 px-7 py-2.5 text-sm transition-colors hover:bg-blue-50 text-left ${activeCity === city ? 'text-blue-900 font-black bg-blue-50' : 'text-gray-700 font-bold'}`}>
+                                    className={`w-full flex items-center gap-3 px-7 py-2.5 text-sm transition-colors hover:bg-gray-50 text-left ${activeCity === city ? 'text-[#1a2b4a] font-semibold bg-gray-50' : 'text-gray-600'}`}>
                                     <MapPin className="w-3 h-3 text-gray-300 flex-shrink-0" />
                                     <span className="flex-1">{city}</span>
-                                    <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{count}</span>
+                                    <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{count}</span>
                                   </button>
                                 ))}
                               </div>
@@ -491,7 +494,7 @@ export const Hero = ({
 
               {/* Data */}
               <div className="relative">
-                <CalendarDays className={`absolute left-2.5 md:left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 pointer-events-none z-10 ${activeDate ? 'text-blue-900' : 'text-white/70'}`} />
+                <CalendarDays className={`absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none z-10 ${activeDate ? 'text-[#1a2b4a]/60' : 'text-white/50'}`} />
                 <input
                   type="text"
                   inputMode="numeric"
@@ -511,20 +514,20 @@ export const Hero = ({
                       else setActiveDate('');
                     } else { setActiveDate(''); }
                   }}
-                  className={`w-full pl-8 md:pl-10 pr-8 md:pr-10 py-2.5 md:py-3 rounded-[14px] border-2 font-bold text-xs md:text-sm transition-all outline-none
-                    ${activeDate ? 'bg-white text-blue-900 border-white' : 'bg-white/15 text-white border-white/30 hover:border-white/60 placeholder:text-white/40'}`}
+                  className={`w-full pl-9 pr-9 py-2.5 md:py-3 rounded-lg border font-medium text-xs md:text-sm transition-all outline-none
+                    ${activeDate ? 'bg-white text-[#1a2b4a] border-white' : 'bg-white/10 text-white/90 border-white/20 hover:border-white/40 placeholder:text-white/40'}`}
                 />
                 {(activeDate || dateDisplay) && (
                   <button type="button" onClick={() => { setActiveDate(''); setDateDisplay(''); }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-5 h-5 rounded-full bg-blue-900/10 hover:bg-blue-900/20 flex items-center justify-center cursor-pointer">
-                    <X className="w-3 h-3 text-blue-900" />
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-4 h-4 rounded-full bg-[#1a2b4a]/10 hover:bg-[#1a2b4a]/20 flex items-center justify-center cursor-pointer">
+                    <X className="w-2.5 h-2.5 text-[#1a2b4a]" />
                   </button>
                 )}
               </div>
 
               {/* Pessoas */}
               <div className="relative">
-                <Users className={`absolute left-2.5 md:left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 pointer-events-none z-10 ${activePeople ? 'text-blue-900' : 'text-white/70'}`} />
+                <Users className={`absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none z-10 ${activePeople ? 'text-[#1a2b4a]/60' : 'text-white/50'}`} />
                 <input
                   type="text"
                   inputMode="numeric"
@@ -535,28 +538,90 @@ export const Hero = ({
                     const val = raw ? parseInt(raw, 10) : null;
                     setActivePeople(val && val > 0 ? val : null);
                   }}
-                  className={`w-full pl-8 md:pl-10 pr-8 md:pr-10 py-2.5 md:py-3 rounded-[14px] border-2 font-bold text-xs md:text-sm transition-all outline-none
-                    ${activePeople ? 'bg-white text-blue-900 border-white' : 'bg-white/15 text-white border-white/30 hover:border-white/60 placeholder:text-white/40'}
+                  className={`w-full pl-9 pr-9 py-2.5 md:py-3 rounded-lg border font-medium text-xs md:text-sm transition-all outline-none
+                    ${activePeople ? 'bg-white text-[#1a2b4a] border-white' : 'bg-white/10 text-white/90 border-white/20 hover:border-white/40 placeholder:text-white/40'}
                     [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
                 />
                 {activePeople && (
                   <button type="button" onClick={() => setActivePeople(null)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-5 h-5 rounded-full bg-blue-900/10 hover:bg-blue-900/20 flex items-center justify-center cursor-pointer">
-                    <X className="w-3 h-3 text-blue-900" />
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-4 h-4 rounded-full bg-[#1a2b4a]/10 hover:bg-[#1a2b4a]/20 flex items-center justify-center cursor-pointer">
+                    <X className="w-2.5 h-2.5 text-[#1a2b4a]" />
                   </button>
+                )}
+              </div>
+
+              {/* Atividade */}
+              <div className="relative" ref={activityRef} style={{ zIndex: 9998 }}>
+                <button type="button" onClick={() => setActivityOpen(v => !v)}
+                  className={`w-full flex items-center gap-2 px-3 md:px-4 py-2.5 md:py-3 rounded-lg border font-medium text-xs md:text-sm transition-all text-left
+                    ${activeActivity ? 'bg-white text-[#1a2b4a] border-white' : 'bg-white/10 text-white/90 border-white/20 hover:border-white/40'}`}>
+                  <Anchor className={`w-3.5 h-3.5 flex-shrink-0 ${activeActivity ? 'text-[#1a2b4a]/60' : 'text-white/50'}`} />
+                  <span className="flex-1 truncate">
+                    {activeActivity
+                      ? [
+                          { key: 'orla', label: 'Passeio pela Orla' },
+                          { key: 'sunset', label: 'Sunset' },
+                          { key: 'pesca', label: 'Pescaria' },
+                          { key: 'mergulho', label: 'Mergulho & Snorkel' },
+                          { key: 'day use', label: 'Day Use com Almoço' },
+                          { key: 'wakesurf', label: 'Wakesurf' },
+                          { key: 'festa', label: 'Festa a Bordo' },
+                          { key: 'veleiro', label: 'Passeio de Veleiro' },
+                          { key: 'ilha', label: 'Tour pelas Ilhas' },
+                        ].find(a => a.key === activeActivity)?.label || activeActivity
+                      : 'Atividade'}
+                  </span>
+                  {activeActivity
+                    ? <span onClick={e => { e.stopPropagation(); setActiveActivity(null); }}
+                        className="w-4 h-4 rounded-full bg-[#1a2b4a]/10 hover:bg-[#1a2b4a]/20 flex items-center justify-center flex-shrink-0 cursor-pointer">
+                        <X className="w-2.5 h-2.5 text-[#1a2b4a]" />
+                      </span>
+                    : <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 text-white/40 transition-transform ${activityOpen ? 'rotate-180' : ''}`} />
+                  }
+                </button>
+
+                {activityOpen && (
+                  <div className="absolute left-0 bottom-full mb-2 bg-white rounded-xl shadow-2xl border border-gray-100 w-full min-w-[220px] overflow-hidden"
+                    style={{ zIndex: 9998 }}>
+                    <div className="overflow-y-auto" style={{ maxHeight: '280px' }}>
+                      <button onClick={() => { setActiveActivity(null); setActivityOpen(false); }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-gray-50 text-left ${!activeActivity ? 'text-[#1a2b4a] font-semibold bg-gray-50' : 'text-gray-600'}`}>
+                        <span className="flex-1">Todas as atividades</span>
+                      </button>
+                      <div className="h-px bg-gray-100 mx-3" />
+                      {[
+                        { key: 'orla', label: 'Passeio pela Orla', icon: '🚤' },
+                        { key: 'sunset', label: 'Sunset', icon: '🌅' },
+                        { key: 'pesca', label: 'Pescaria', icon: '🎣' },
+                        { key: 'mergulho', label: 'Mergulho & Snorkel', icon: '🤿' },
+                        { key: 'day use', label: 'Day Use com Almoço', icon: '🍽️' },
+                        { key: 'wakesurf', label: 'Wakesurf', icon: '🏄' },
+                        { key: 'festa', label: 'Festa a Bordo', icon: '🎉' },
+                        { key: 'veleiro', label: 'Passeio de Veleiro', icon: '⛵' },
+                        { key: 'ilha', label: 'Tour pelas Ilhas', icon: '🏝️' },
+                      ].map(act => (
+                        <button key={act.key} onClick={() => { setActiveActivity(act.key); setActivityOpen(false); }}
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 text-left ${activeActivity === act.key ? 'text-[#1a2b4a] font-semibold bg-gray-50' : 'text-gray-600'}`}>
+                          <span>{act.icon}</span>
+                          <span className="flex-1">{act.label}</span>
+                        </button>
+                      ))}
+                      <div className="h-2" />
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
 
             {/* Row 2 */}
             <div className="flex items-center justify-between">
-              <p className="text-white/50 text-[11px] md:text-xs font-bold">
+              <p className="text-white/40 text-[11px] md:text-xs font-medium">
                 {filteredBoats.length} passeio{filteredBoats.length !== 1 ? 's' : ''}
                 {activeCity ? ` em ${activeCity}` : ' disponíveis'}
               </p>
               <button onClick={() => navigate('/passeios')}
-                className="flex items-center gap-1 md:gap-1.5 bg-gradient-to-r from-orange-500 to-yellow-400 text-white px-3 md:px-4 py-1.5 md:py-2 rounded-[12px] font-black text-[11px] md:text-xs uppercase hover:from-orange-600 hover:to-yellow-500 transition-all shadow-md shadow-orange-500/25 flex-shrink-0">
-                Ver todos <ArrowRight className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                className="flex items-center gap-1.5 bg-white text-[#1a2b4a] px-4 py-2 rounded-lg font-semibold text-xs hover:bg-white/90 transition-all flex-shrink-0">
+                Ver todos <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>

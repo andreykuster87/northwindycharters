@@ -46,15 +46,15 @@ export function DeleteConfirmModal({ target, onClose, onDeleted }: DeleteConfirm
 
   return (
     <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-red-900/60 backdrop-blur-md">
-      <div className="bg-white w-full max-w-sm rounded-[40px] shadow-2xl border-4 border-red-500 animate-in zoom-in-95 duration-300 overflow-hidden">
+      <div className="bg-white w-full max-w-sm shadow-2xl border-4 border-red-500 animate-in zoom-in-95 duration-300 overflow-hidden">
 
-        {/* Cabeçalho */}
+        {/* Cabeçalho — keeps red as semantic danger color */}
         <div className="bg-red-500 px-8 py-6 text-center">
           <div className="text-4xl mb-2">⚠️</div>
-          <h3 className="text-xl font-black text-white uppercase italic">
+          <h3 className="text-xl font-semibold text-white uppercase">
             {step === 1 ? 'Excluir Cadastro?' : 'Tem a certeza absoluta?'}
           </h3>
-          <p className="text-red-200 text-xs font-bold mt-1 uppercase tracking-widest">
+          <p className="text-red-200 text-xs font-bold mt-1 uppercase tracking-[0.15em]">
             {target.name}
           </p>
         </div>
@@ -64,8 +64,8 @@ export function DeleteConfirmModal({ target, onClose, onDeleted }: DeleteConfirm
           {/* ── Step 1: aviso ── */}
           {step === 1 && (
             <>
-              <div className="bg-red-50 border-2 border-red-100 rounded-[20px] p-4 space-y-2">
-                <p className="font-black text-red-800 text-sm text-center">
+              <div className="bg-red-50 border border-red-100 p-4 space-y-2">
+                <p className="font-semibold text-red-800 text-sm text-center">
                   Esta acção irá remover permanentemente:
                 </p>
                 <ul className="space-y-1.5">
@@ -78,7 +78,7 @@ export function DeleteConfirmModal({ target, onClose, onDeleted }: DeleteConfirm
                       : '🎟️ Histórico de reservas associado',
                   ].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-xs font-bold text-red-700">
-                      <span className="w-1.5 h-1.5 bg-red-400 rounded-full flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 bg-red-400 flex-shrink-0" />
                       {item}
                     </li>
                   ))}
@@ -92,13 +92,13 @@ export function DeleteConfirmModal({ target, onClose, onDeleted }: DeleteConfirm
               <div className="flex gap-3">
                 <button
                   onClick={onClose}
-                  className="flex-1 border-2 border-gray-100 text-gray-500 hover:border-gray-300 py-4 rounded-[25px] font-black text-sm uppercase transition-all"
+                  className="flex-1 border border-gray-200 text-gray-500 hover:border-gray-300 py-4 font-semibold text-sm uppercase transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={() => setStep(2)}
-                  className="flex-1 bg-red-500 hover:bg-red-400 text-white py-4 rounded-[25px] font-black text-sm uppercase transition-all shadow-lg"
+                  className="flex-1 bg-red-500 hover:bg-red-400 text-white py-4 font-semibold text-sm uppercase transition-all shadow-lg"
                 >
                   Continuar →
                 </button>
@@ -109,14 +109,14 @@ export function DeleteConfirmModal({ target, onClose, onDeleted }: DeleteConfirm
           {/* ── Step 2: confirmação final ── */}
           {step === 2 && (
             <>
-              <div className="bg-red-900 rounded-[20px] p-5 text-center space-y-2">
-                <p className="text-red-300 text-[10px] font-black uppercase tracking-widest">
+              <div className="bg-red-900 p-5 text-center space-y-2">
+                <p className="text-red-300 text-[10px] font-semibold uppercase tracking-[0.15em]">
                   Confirmação final
                 </p>
-                <p className="text-white font-black text-base">
+                <p className="text-white font-semibold text-base">
                   Excluir definitivamente o cadastro de
                 </p>
-                <p className="text-red-200 font-black text-xl uppercase italic">
+                <p className="text-red-200 font-semibold text-xl uppercase">
                   {target.name}
                 </p>
                 <p className="text-red-400 text-xs font-bold">
@@ -132,13 +132,13 @@ export function DeleteConfirmModal({ target, onClose, onDeleted }: DeleteConfirm
               <div className="flex gap-3">
                 <button
                   onClick={onClose}
-                  className="flex-1 border-2 border-gray-100 text-gray-500 hover:border-gray-300 py-4 rounded-[25px] font-black text-sm uppercase transition-all"
+                  className="flex-1 border border-gray-200 text-gray-500 hover:border-gray-300 py-4 font-semibold text-sm uppercase transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="flex-1 bg-red-600 hover:bg-red-500 text-white py-4 rounded-[25px] font-black text-sm uppercase transition-all shadow-lg flex items-center justify-center gap-2"
+                  className="flex-1 bg-red-600 hover:bg-red-500 text-white py-4 font-semibold text-sm uppercase transition-all shadow-lg flex items-center justify-center gap-2"
                 >
                   🗑️ Excluir Definitivamente
                 </button>

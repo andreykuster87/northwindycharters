@@ -44,7 +44,7 @@ function DossierModal({
   }
 
   function Sec({ title }: { title: string }) {
-    return <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 mt-1">{title}</p>;
+    return <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3 mt-1">{title}</p>;
   }
 
   const frontUrl  = resolveDocUrl(app.caderneta_doc_url);
@@ -67,33 +67,33 @@ function DossierModal({
   const antUrl    = resolveDocUrl((app as any).antecedentes_criminais_url);
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-blue-900/60 backdrop-blur-md"
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#0a1628]/60 backdrop-blur-md"
       onClick={onClose}>
-      <div className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-[40px] shadow-2xl border-4 border-blue-900"
+      <div className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border-4 border-[#0a1628]"
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div className="bg-blue-900 px-8 py-6 flex items-center gap-4 rounded-t-[36px]">
-          <div className="w-14 h-14 bg-white/20 text-white rounded-full flex items-center justify-center font-black text-xl flex-shrink-0">
+        <div className="bg-[#0a1628] px-8 py-6 flex items-center gap-4">
+          <div className="w-14 h-14 bg-white/20 text-white flex items-center justify-center font-bold text-xl flex-shrink-0">
             {app.name.substring(0, 2).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-blue-300 text-[10px] font-black uppercase tracking-widest">Dossiê · Candidatura</p>
-            <h3 className="text-2xl font-black text-white uppercase italic truncate">{app.name}</h3>
+            <p className="text-[#c9a96e] text-[10px] font-semibold uppercase tracking-[0.15em]">Dossiê · Candidatura</p>
+            <h3 className="font-['Playfair_Display'] font-bold text-2xl text-white uppercase truncate">{app.name}</h3>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
+              <span className={`text-[10px] font-semibold uppercase px-2.5 py-0.5 ${
                 app.status === 'pending'  ? 'bg-yellow-400 text-yellow-900' :
                 app.status === 'approved' ? 'bg-green-400 text-green-900' :
                 'bg-red-500 text-white'
               }`}>
                 {app.status === 'pending' ? '⏳ Pendente' : app.status === 'approved' ? '✅ Aprovado' : '❌ Recusado'}
               </span>
-              <span className="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">
+              <span className="bg-white/20 text-white text-[10px] font-semibold px-2.5 py-0.5">
                 {fmtDate(app.created_at)}
               </span>
             </div>
           </div>
-          <button onClick={onClose} className="bg-blue-800 hover:bg-blue-700 text-white p-2.5 rounded-full flex-shrink-0">
+          <button onClick={onClose} className="bg-[#1a2b4a] hover:bg-[#c9a96e]/20 text-white p-2.5 flex-shrink-0">
             <XCircle className="w-5 h-5" />
           </button>
         </div>
@@ -118,24 +118,24 @@ function DossierModal({
           {/* Candidatura / Função */}
           <div>
             <Sec title="⚓ Função & Caderneta" />
-            <div className="bg-blue-900 text-white rounded-[16px] px-5 py-3 font-black text-sm mb-3">
+            <div className="bg-[#0a1628] text-white px-5 py-3 font-bold text-sm mb-3">
               {app.funcoes?.join(', ') || '—'}
             </div>
-            <div className="bg-gray-50 rounded-[18px] p-4 space-y-3">
+            <div className="bg-gray-50 p-4 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <DossierField label="Caderneta Nº"  value={app.caderneta_maritima_numero || '—'} />
                 <DossierField label="Validade"       value={app.caderneta_maritima_validade || '—'} />
               </div>
               {frontUrl && <DocImage url={frontUrl} label="Frente — Caderneta" allImages={docUrls} allLabels={docLabels} />}
               {backUrl  && <DocImage url={backUrl}  label="Verso — Caderneta"  allImages={docUrls} allLabels={docLabels} />}
-              {!frontUrl && <p className="text-[10px] text-gray-400 font-bold bg-white rounded-[12px] px-4 py-3">Nenhum ficheiro anexado</p>}
+              {!frontUrl && <p className="text-[10px] text-gray-400 font-bold bg-white px-4 py-3">Nenhum ficheiro anexado</p>}
             </div>
           </div>
 
           {/* Documento de Identificação */}
           <div>
             <Sec title="🪪 Documento de Identificação" />
-            <div className="bg-gray-50 rounded-[18px] p-4 space-y-3">
+            <div className="bg-gray-50 p-4 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <DossierField label="Tipo"    value={(app.doc_id_tipo || '—').toUpperCase()} />
                 <DossierField label="Número"  value={app.doc_id_numero || '—'} />
@@ -143,7 +143,7 @@ function DossierModal({
               </div>
               {idFront && <DocImage url={idFront} label="Frente — Doc. ID" allImages={idUrls} allLabels={idLabels} />}
               {idBack  && <DocImage url={idBack}  label="Verso — Doc. ID"  allImages={idUrls} allLabels={idLabels} />}
-              {!idFront && <p className="text-[10px] text-gray-400 font-bold bg-white rounded-[12px] px-4 py-3">Passaporte já registado — sem upload necessário</p>}
+              {!idFront && <p className="text-[10px] text-gray-400 font-bold bg-white px-4 py-3">Passaporte já registado — sem upload necessário</p>}
             </div>
           </div>
 
@@ -151,10 +151,10 @@ function DossierModal({
           {app.stcw && Object.values(app.stcw).some(Boolean) && (
             <div>
               <Sec title="📋 Certificados STCW" />
-              <div className="bg-gray-50 rounded-[18px] p-4 space-y-2">
+              <div className="bg-gray-50 p-4 space-y-2">
                 {Object.entries(app.stcw).filter(([, v]) => v).map(([k]) => (
-                  <div key={k} className="flex justify-between items-center bg-white rounded-[12px] px-4 py-2.5">
-                    <span className="text-xs font-black text-blue-900 uppercase">{k}</span>
+                  <div key={k} className="flex justify-between items-center bg-white px-4 py-2.5">
+                    <span className="text-xs font-bold text-[#1a2b4a] uppercase">{k}</span>
                     <span className="text-xs font-bold text-gray-500">{app.stcw_validades?.[k] || '✓'}</span>
                   </div>
                 ))}
@@ -166,14 +166,14 @@ function DossierModal({
           {app.medico_validade && (
             <div>
               <Sec title="🩺 Certificado Médico Marítimo" />
-              <div className="bg-gray-50 rounded-[18px] p-4 space-y-3">
+              <div className="bg-gray-50 p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   {(app as any).medico_numero && <DossierField label="Nº Certificado" value={(app as any).medico_numero} />}
                   <DossierField label="Validade" value={app.medico_validade} />
                 </div>
                 {medicoUrl
                   ? <DocImage url={medicoUrl} label="Certificado Médico" />
-                  : <p className="text-[10px] text-gray-400 font-bold bg-white rounded-[12px] px-4 py-3">Nenhum ficheiro anexado</p>
+                  : <p className="text-[10px] text-gray-400 font-bold bg-white px-4 py-3">Nenhum ficheiro anexado</p>
                 }
               </div>
             </div>
@@ -183,7 +183,7 @@ function DossierModal({
           {app.carta_habilitacao_numero && (
             <div>
               <Sec title="⚓ Carta de Habilitação Náutica" />
-              <div className="bg-gray-50 rounded-[18px] p-4 space-y-3">
+              <div className="bg-gray-50 p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <DossierField label="Número"  value={app.carta_habilitacao_numero} />
                   <DossierField label="Validade" value={app.carta_habilitacao_validade || '—'} />
@@ -198,7 +198,7 @@ function DossierModal({
           {app.chef_experiencia_catering && (
             <div>
               <Sec title="🍳 Cozinheiro / Chef" />
-              <div className="bg-amber-50 rounded-[18px] p-4 space-y-3">
+              <div className="bg-[#c9a96e]/5 p-4 space-y-3">
                 {app.chef_certificacoes && <DossierField label="Certificações" value={app.chef_certificacoes} />}
                 {chefUrl && <DocImage url={chefUrl} label="Certificado de Cozinheiro" />}
               </div>
@@ -208,10 +208,10 @@ function DossierModal({
           {/* Antecedentes */}
           <div>
             <Sec title="⚖️ Antecedentes Criminais" />
-            <div className="bg-gray-50 rounded-[18px] p-4">
+            <div className="bg-gray-50 p-4">
               {antUrl
                 ? <DocImage url={antUrl} label="Certidão de Antecedentes" />
-                : <p className="text-[10px] text-gray-400 font-bold bg-white rounded-[12px] px-4 py-3">Nenhuma certidão enviada</p>
+                : <p className="text-[10px] text-gray-400 font-bold bg-white px-4 py-3">Nenhuma certidão enviada</p>
               }
             </div>
           </div>
@@ -222,8 +222,8 @@ function DossierModal({
               <Sec title="💼 Experiência a Bordo" />
               <div className="space-y-2">
                 {app.experiencias.map((e, i) => (
-                  <div key={i} className="bg-gray-50 rounded-[14px] p-4">
-                    <p className="text-xs font-black text-blue-900">{e.empresa}</p>
+                  <div key={i} className="bg-gray-50 p-4">
+                    <p className="text-xs font-bold text-[#1a2b4a]">{e.empresa}</p>
                     <p className="text-[10px] font-bold text-gray-500 mt-1">{e.funcao} · {e.periodo_inicio} → {e.periodo_fim}</p>
                   </div>
                 ))}
@@ -237,7 +237,7 @@ function DossierModal({
               <Sec title="🌐 Idiomas" />
               <div className="flex flex-wrap gap-2">
                 {app.idiomas.map(lang => (
-                  <span key={lang} className="bg-blue-50 text-blue-900 text-xs font-black px-3 py-1.5 rounded-full">{lang}</span>
+                  <span key={lang} className="bg-[#0a1628]/5 text-[#1a2b4a] text-xs font-bold px-3 py-1.5">{lang}</span>
                 ))}
               </div>
             </div>
@@ -246,7 +246,7 @@ function DossierModal({
           {/* Declarações */}
           <div>
             <Sec title="🛡️ Declaração e Termos" />
-            <div className="bg-green-50 border-2 border-green-100 rounded-[18px] p-4 space-y-2">
+            <div className="bg-green-50 border-2 border-green-100 p-4 space-y-2">
               {app.declara_verdade && (
                 <div className="flex items-center gap-2">
                   <span className="text-green-600 text-sm">✓</span>
@@ -262,9 +262,9 @@ function DossierModal({
                 </div>
               )}
               {(app as any).declaracao_data && (
-                <div className="bg-white rounded-[10px] px-3 py-2 mt-2">
-                  <p className="text-[9px] font-black text-gray-400 uppercase">Data e Hora da Declaração</p>
-                  <p className="font-black text-blue-900 text-sm mt-0.5">
+                <div className="bg-white px-3 py-2 mt-2">
+                  <p className="text-[9px] font-semibold text-gray-400 uppercase">Data e Hora da Declaração</p>
+                  <p className="font-bold text-[#1a2b4a] text-sm mt-0.5">
                     {(() => {
                       const d = new Date((app as any).declaracao_data);
                       if (isNaN(d.getTime())) return (app as any).declaracao_data;
@@ -276,9 +276,9 @@ function DossierModal({
                   </p>
                 </div>
               )}
-              <div className="bg-white rounded-[10px] px-3 py-2 mt-2">
-                <p className="text-[9px] font-black text-gray-400 uppercase">Data da Candidatura</p>
-                <p className="font-black text-blue-900 text-sm mt-0.5">
+              <div className="bg-white px-3 py-2 mt-2">
+                <p className="text-[9px] font-semibold text-gray-400 uppercase">Data da Candidatura</p>
+                <p className="font-bold text-[#1a2b4a] text-sm mt-0.5">
                   {(() => {
                     const d = new Date(app.created_at);
                     if (isNaN(d.getTime())) return app.created_at;
@@ -294,11 +294,11 @@ function DossierModal({
 
           {/* Motivos de rejeição */}
           {rejectMode && (
-            <div className="bg-red-50 border-2 border-red-200 rounded-[18px] p-4 space-y-3">
-              <p className="text-xs font-black text-red-700 uppercase">Selecione os motivos de rejeição:</p>
+            <div className="bg-red-50 border-2 border-red-200 p-4 space-y-3">
+              <p className="text-xs font-semibold text-red-700 uppercase">Selecione os motivos de rejeição:</p>
               {APP_REJECT_REASONS.map(([key, emoji, label]) => (
                 <label key={key} className="flex items-center gap-3 cursor-pointer">
-                  <div className={`w-5 h-5 rounded-[6px] border-2 flex items-center justify-center transition-all ${
+                  <div className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${
                     reasons.includes(key) ? 'bg-red-600 border-red-600' : 'border-gray-200 bg-white'
                   }`} onClick={() => setReasons(r => r.includes(key) ? r.filter(x => x !== key) : [...r, key])}>
                     {reasons.includes(key) && <span className="text-white text-[10px]">✓</span>}
@@ -317,23 +317,23 @@ function DossierModal({
             {rejectMode ? (
               <div className="flex gap-3">
                 <button onClick={() => setRejectMode(false)} disabled={loading}
-                  className="flex-1 border-2 border-gray-200 rounded-[15px] py-3.5 font-black text-xs text-gray-500 uppercase hover:border-blue-300 transition-all">
+                  className="flex-1 border-2 border-gray-200 py-3.5 font-semibold text-xs text-gray-500 uppercase hover:border-[#c9a96e] transition-all">
                   Cancelar
                 </button>
                 <button onClick={handleReject} disabled={loading || !reasons.length}
-                  className="flex-1 bg-red-600 hover:bg-red-500 disabled:bg-gray-200 text-white rounded-[15px] py-3.5 font-black text-xs uppercase transition-all flex items-center justify-center gap-2">
-                  {loading ? <span className="animate-spin w-3 h-3 border-2 border-white/30 border-t-white rounded-full" /> : <><XCircle className="w-3.5 h-3.5" /> Confirmar Rejeição</>}
+                  className="flex-1 bg-red-600 hover:bg-red-500 disabled:bg-gray-200 text-white py-3.5 font-semibold text-xs uppercase transition-all flex items-center justify-center gap-2">
+                  {loading ? <span className="animate-spin w-3 h-3 border-2 border-white/30 border-t-white" /> : <><XCircle className="w-3.5 h-3.5" /> Confirmar Rejeição</>}
                 </button>
               </div>
             ) : (
               <div className="flex gap-3">
                 <button onClick={() => setRejectMode(true)}
-                  className="flex-1 border-2 border-red-200 text-red-600 rounded-[15px] py-3.5 font-black text-xs uppercase hover:bg-red-50 transition-all flex items-center justify-center gap-1.5">
+                  className="flex-1 border-2 border-red-200 text-red-600 py-3.5 font-semibold text-xs uppercase hover:bg-red-50 transition-all flex items-center justify-center gap-1.5">
                   <XCircle className="w-3.5 h-3.5" /> Recusar
                 </button>
                 <button onClick={handleApprove} disabled={loading}
-                  className="flex-1 bg-blue-900 hover:bg-blue-800 disabled:bg-gray-200 text-white rounded-[15px] py-3.5 font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5">
-                  {loading ? <span className="animate-spin w-3 h-3 border-2 border-white/30 border-t-white rounded-full" /> : <><CheckCircle2 className="w-3.5 h-3.5" /> Aprovar</>}
+                  className="flex-1 bg-[#0a1628] hover:bg-[#1a2b4a] disabled:bg-gray-200 text-white py-3.5 font-semibold text-xs uppercase transition-all flex items-center justify-center gap-1.5">
+                  {loading ? <span className="animate-spin w-3 h-3 border-2 border-white/30 border-t-white" /> : <><CheckCircle2 className="w-3.5 h-3.5" /> Aprovar</>}
                 </button>
               </div>
             )}
@@ -360,43 +360,43 @@ function ApplicationCard({
   const st = statusMap[app.status] || statusMap.pending;
 
   return (
-    <div className="bg-white border-2 border-blue-100 rounded-[24px] overflow-hidden">
-      <div className="bg-gradient-to-r from-blue-900 to-blue-700 px-5 py-4 flex items-center gap-3">
-        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-black text-white text-sm flex-shrink-0">
+    <div className="bg-white border-2 border-[#c9a96e]/20 overflow-hidden">
+      <div className="bg-[#0a1628] px-5 py-4 flex items-center gap-3">
+        <div className="w-10 h-10 bg-white/20 flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
           {app.name.substring(0, 2).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-black text-white uppercase italic truncate text-sm">{app.name}</p>
-          <p className="text-blue-200 text-[10px] font-bold truncate">{app.email}</p>
+          <p className="font-bold text-white uppercase truncate text-sm">{app.name}</p>
+          <p className="text-[#c9a96e] text-[10px] font-bold truncate">{app.email}</p>
         </div>
-        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${st.cls}`}>{st.label}</span>
+        <span className={`text-[9px] font-semibold uppercase px-2 py-0.5 flex-shrink-0 ${st.cls}`}>{st.label}</span>
       </div>
       <div className="p-4 space-y-2">
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-gray-50 rounded-[12px] p-2.5">
-            <p className="text-[9px] font-black text-gray-400 uppercase">Funções</p>
-            <p className="font-bold text-blue-900 text-[10px] mt-0.5 truncate">{app.funcoes?.join(', ') || '—'}</p>
+          <div className="bg-gray-50 p-2.5">
+            <p className="text-[9px] font-semibold text-gray-400 uppercase">Funções</p>
+            <p className="font-bold text-[#1a2b4a] text-[10px] mt-0.5 truncate">{app.funcoes?.join(', ') || '—'}</p>
           </div>
-          <div className="bg-gray-50 rounded-[12px] p-2.5">
-            <p className="text-[9px] font-black text-gray-400 uppercase">Caderneta</p>
-            <p className="font-bold text-blue-900 text-[10px] mt-0.5">{app.caderneta_maritima_numero || '—'}</p>
+          <div className="bg-gray-50 p-2.5">
+            <p className="text-[9px] font-semibold text-gray-400 uppercase">Caderneta</p>
+            <p className="font-bold text-[#1a2b4a] text-[10px] mt-0.5">{app.caderneta_maritima_numero || '—'}</p>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2">
-          <div className={`rounded-[10px] p-2 text-center text-[9px] font-black uppercase ${app.caderneta_doc_url ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-400'}`}>
+          <div className={`p-2 text-center text-[9px] font-semibold uppercase ${app.caderneta_doc_url ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-400'}`}>
             Caderneta {app.caderneta_doc_url ? '✓' : '—'}
           </div>
-          <div className={`rounded-[10px] p-2 text-center text-[9px] font-black uppercase ${app.doc_id_url ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-400'}`}>
+          <div className={`p-2 text-center text-[9px] font-semibold uppercase ${app.doc_id_url ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-400'}`}>
             Doc ID {app.doc_id_url ? '✓' : '—'}
           </div>
-          <div className={`rounded-[10px] p-2 text-center text-[9px] font-black uppercase ${app.medico_validade ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-400'}`}>
+          <div className={`p-2 text-center text-[9px] font-semibold uppercase ${app.medico_validade ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-400'}`}>
             Médico {app.medico_validade ? '✓' : '—'}
           </div>
         </div>
         <div className="flex items-center justify-between pt-1">
           <p className="text-[9px] text-gray-400 font-bold">{fmtDate(app.created_at)}</p>
           <button onClick={onView}
-            className="flex items-center gap-1.5 bg-blue-900 hover:bg-blue-800 text-white px-3 py-1.5 rounded-[10px] font-black text-[10px] uppercase transition-all">
+            className="flex items-center gap-1.5 bg-[#0a1628] hover:bg-[#1a2b4a] text-white px-3 py-1.5 font-semibold text-[10px] uppercase transition-all">
             <Eye className="w-3 h-3" /> Ver Dossiê
           </button>
         </div>
@@ -430,7 +430,7 @@ export function CandidatosTab({ onDataChange }: { onDataChange?: () => void }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-black text-blue-900 uppercase italic">Candidatos a Tripulação</h2>
+        <h2 className="font-['Playfair_Display'] font-bold text-lg text-[#1a2b4a] uppercase">Candidatos a Tripulação</h2>
         <p className="text-xs text-gray-400 font-bold mt-0.5">Passageiros que solicitaram ingresso como tripulante</p>
       </div>
 
@@ -443,8 +443,8 @@ export function CandidatosTab({ onDataChange }: { onDataChange?: () => void }) {
           ['all',      '📋 Todos'],
         ] as const).map(([key, label]) => (
           <button key={key} onClick={() => setFilter(key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-black uppercase transition-all border-2 ${
-              filter === key ? 'bg-blue-900 text-white border-blue-900' : 'bg-white text-blue-900 border-gray-100 hover:border-blue-300'
+            className={`px-3 py-1.5 text-xs font-semibold uppercase transition-all border-2 ${
+              filter === key ? 'bg-[#0a1628] text-white border-[#0a1628]' : 'bg-white text-[#1a2b4a] border-gray-100 hover:border-[#c9a96e]/30'
             }`}>
             {label}
           </button>
@@ -452,11 +452,11 @@ export function CandidatosTab({ onDataChange }: { onDataChange?: () => void }) {
       </div>
 
       {apps.length === 0 ? (
-        <div className="bg-gray-50 border-2 border-gray-100 rounded-[24px] p-10 flex flex-col items-center gap-4">
-          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+        <div className="bg-gray-50 border-2 border-gray-100 p-10 flex flex-col items-center gap-4">
+          <div className="w-12 h-12 bg-gray-100 flex items-center justify-center">
             <Anchor className="w-6 h-6 text-gray-300" />
           </div>
-          <p className="text-xs font-black text-gray-400 uppercase">Nenhuma candidatura {filter === 'pending' ? 'pendente' : filter === 'approved' ? 'aprovada' : filter === 'rejected' ? 'recusada' : ''}</p>
+          <p className="text-xs font-semibold text-gray-400 uppercase">Nenhuma candidatura {filter === 'pending' ? 'pendente' : filter === 'approved' ? 'aprovada' : filter === 'rejected' ? 'recusada' : ''}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -479,26 +479,26 @@ export function CandidatosTab({ onDataChange }: { onDataChange?: () => void }) {
       {/* Modal de credenciais pós-aprovação */}
       {approveResult && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-[28px] shadow-2xl border-2 border-green-100 w-full max-w-sm p-8 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="bg-white shadow-2xl border-2 border-green-100 w-full max-w-sm p-8 text-center">
+            <div className="w-16 h-16 bg-green-100 flex items-center justify-center mx-auto mb-4">
               <CheckCircle2 className="w-8 h-8 text-green-500" />
             </div>
-            <h3 className="text-xl font-black text-blue-900 uppercase italic mb-2">Aprovado!</h3>
+            <h3 className="font-['Playfair_Display'] font-bold text-xl text-[#1a2b4a] uppercase mb-2">Aprovado!</h3>
             <p className="text-sm font-bold text-gray-500 mb-5">{approveResult.name} agora é tripulante da plataforma.</p>
-            <div className="bg-blue-900 rounded-[18px] p-4 space-y-3 text-left mb-5">
-              <p className="text-blue-300 text-[10px] font-black uppercase tracking-widest">🔑 Credenciais Geradas</p>
-              <div className="flex justify-between items-center bg-blue-800 rounded-[12px] px-4 py-2.5">
-                <span className="text-blue-300 text-xs font-bold uppercase">Login</span>
-                <span className="text-white font-black text-sm">{approveResult.login}</span>
+            <div className="bg-[#0a1628] p-4 space-y-3 text-left mb-5">
+              <p className="text-[#c9a96e] text-[10px] font-semibold uppercase tracking-[0.15em]">🔑 Credenciais Geradas</p>
+              <div className="flex justify-between items-center bg-[#1a2b4a] px-4 py-2.5">
+                <span className="text-[#c9a96e] text-xs font-bold uppercase">Login</span>
+                <span className="text-white font-bold text-sm">{approveResult.login}</span>
               </div>
-              <div className="flex justify-between items-center bg-blue-800 rounded-[12px] px-4 py-2.5">
-                <span className="text-blue-300 text-xs font-bold uppercase">Senha</span>
-                <span className="text-white font-black text-sm">{approveResult.password}</span>
+              <div className="flex justify-between items-center bg-[#1a2b4a] px-4 py-2.5">
+                <span className="text-[#c9a96e] text-xs font-bold uppercase">Senha</span>
+                <span className="text-white font-bold text-sm">{approveResult.password}</span>
               </div>
             </div>
             <p className="text-[10px] text-gray-400 font-bold mb-5">As credenciais foram enviadas por mensagem ao tripulante.</p>
             <button onClick={() => setApproveResult(null)}
-              className="w-full bg-blue-900 hover:bg-blue-800 text-white rounded-[15px] py-3.5 font-black text-sm uppercase transition-all">
+              className="w-full bg-[#0a1628] hover:bg-[#1a2b4a] text-white py-3.5 font-semibold text-sm uppercase transition-all">
               Fechar
             </button>
           </div>

@@ -15,10 +15,10 @@ interface Props {
 export function BoatStep5Fotos({ photoCover, setPhotoCover, photoExterior, setPhotoExterior, photoInterior, setPhotoInterior, photosExtra, setPhotosExtra, onPersist, onConclude }: Props) {
   return (
     <div className="space-y-5">
-      <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-4 flex items-center gap-3">
+      <div className="bg-green-50 border border-green-200 p-4 flex items-center gap-3">
         <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
         <div>
-          <p className="font-black text-green-800 text-sm uppercase">Embarcação registada!</p>
+          <p className="font-bold text-green-800 text-sm uppercase">Embarcação registada!</p>
           <p className="text-green-600 text-xs font-bold mt-0.5">A aguardar aprovação. Adicione as fotos.</p>
         </div>
       </div>
@@ -50,7 +50,7 @@ export function BoatStep5Fotos({ photoCover, setPhotoCover, photoExterior, setPh
       />
 
       <button onClick={onConclude}
-        className="w-full bg-blue-900 text-white py-4 rounded-2xl font-black uppercase text-sm hover:bg-blue-800 transition-all flex items-center justify-center gap-2">
+        className="w-full bg-[#0a1628] text-white py-4 font-semibold uppercase text-sm hover:bg-[#0a1628]/90 transition-all flex items-center justify-center gap-2">
         <CheckCircle2 className="w-4 h-4 text-green-400" /> Concluir
       </button>
       <button onClick={onConclude} className="w-full text-center text-gray-400 font-bold text-xs hover:text-gray-600 transition-colors">

@@ -18,7 +18,7 @@ interface Props {
   stcw:            Record<string, boolean>;
   // Médico
   possuiMedico:    boolean;
-  form4:           { medicoEmissao: string; medicoValidade: string };
+  form4:           { medicoNumero: string; medicoEmissao: string; medicoValidade: string };
   medicoFile:      File | null;
   medicoPreview:   string | null;
   // Disponibilidade
@@ -33,7 +33,7 @@ interface Props {
   aceitouTermos:   boolean;
   loading:         boolean;
   onPossuiMedicoChange:   (v: boolean) => void;
-  onForm4Change:          (patch: Partial<{ medicoEmissao: string; medicoValidade: string }>) => void;
+  onForm4Change:          (patch: Partial<{ medicoNumero: string; medicoEmissao: string; medicoValidade: string }>) => void;
   onMedicoSelect:         (f: File, p: string | null) => void;
   onMedicoClear:          () => void;
   onDispImediatoChange:      (v: boolean) => void;
@@ -48,11 +48,11 @@ interface Props {
   onSubmit: (e: React.FormEvent) => void;
 }
 
-const LABEL = 'text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1';
-const INPUT = 'w-full bg-white border-2 border-gray-100 rounded-[15px] py-3 px-4 font-bold text-blue-900 outline-none text-sm focus:border-blue-900 transition-all';
+const LABEL = 'text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.12em] ml-1 mb-1.5 flex items-center gap-1';
+const INPUT = 'w-full bg-white border border-gray-200 py-3 px-4 font-medium text-[#1a2b4a] outline-none text-sm focus:border-[#c9a96e] transition-all';
 const YN = (active: boolean) =>
-  `flex-1 flex items-center justify-center gap-2 p-3 rounded-[14px] border-2 cursor-pointer font-black text-sm transition-all ${
-    active ? 'bg-blue-900 border-blue-900 text-white' : 'bg-white border-gray-100 text-blue-900 hover:border-blue-200'
+  `flex-1 flex items-center justify-center gap-2 p-3 border cursor-pointer font-semibold text-sm transition-all ${
+    active ? 'bg-[#0a1628] border-[#0a1628] text-white' : 'bg-white border-gray-100 text-[#1a2b4a] hover:border-[#c9a96e]/30'
   }`;
 
 export function Step4Medico({
@@ -83,20 +83,19 @@ export function Step4Medico({
     <form onSubmit={onSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
 
       {/* ── Certificado Médico ── */}
-      <div className="bg-gray-50 border-2 border-gray-100 rounded-[22px] p-5 space-y-4">
-        <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-3">
+      <div className="bg-gray-50 border border-gray-100 p-5 space-y-4">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-3">
           🩺 Certificado Médico Marítimo
         </p>
 
-        <div className="bg-amber-50 border border-amber-100 rounded-[14px] px-4 py-3 flex items-start gap-2">
+        <div className="bg-[#c9a96e]/5 border border-[#c9a96e]/20 px-4 py-3 flex items-start gap-2">
           <span className="text-sm flex-shrink-0">⚠️</span>
-          <div className="text-[10px] font-bold text-amber-700 space-y-0.5">
+          <div className="text-[10px] font-medium text-[#1a2b4a] space-y-0.5">
             <p>Se o certificado vencer, não pode embarcar legalmente.</p>
             <p>A atualização é obrigatória para manter a certificação ativa (padrões internacionais).</p>
           </div>
         </div>
 
-        {/* Toggle Sim / Não — default Sim */}
         <div>
           <p className={LABEL}>Possui certificado médico válido?</p>
           <div className="flex gap-3">
@@ -111,11 +110,17 @@ export function Step4Medico({
           </div>
         </div>
 
-        {/* Datas e upload — visíveis apenas se possuiMedico=true */}
         {possuiMedico && (
           <>
             <div>
-              <label className={LABEL}><Calendar className="w-3 h-3" /> Validade *</label>
+              <label className={LABEL}>🔢 Nº do Certificado</label>
+              <input type="text" value={form4.medicoNumero}
+                onChange={e => onForm4Change({ medicoNumero: e.target.value })}
+                placeholder="Número do certificado médico"
+                className={INPUT} />
+            </div>
+            <div>
+              <label className={LABEL}><Calendar className="w-3 h-3 text-[#c9a96e]" /> Validade *</label>
               <input type="text" inputMode="numeric" value={form4.medicoValidade}
                 onChange={e => onForm4Change({ medicoValidade: applyDateMask(e.target.value) })}
                 placeholder="dd/mm/aaaa" maxLength={10}
@@ -130,8 +135,8 @@ export function Step4Medico({
       </div>
 
       {/* ── Disponibilidade ── */}
-      <div className="bg-gray-50 border-2 border-gray-100 rounded-[22px] p-5 space-y-4">
-        <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-3">
+      <div className="bg-gray-50 border border-gray-100 p-5 space-y-4">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-3">
           📅 Disponibilidade
         </p>
 
@@ -161,8 +166,8 @@ export function Step4Medico({
       </div>
 
       {/* ── Informações Adicionais ── */}
-      <div className="bg-gray-50 border-2 border-gray-100 rounded-[22px] p-5 space-y-4">
-        <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-3">
+      <div className="bg-gray-50 border border-gray-100 p-5 space-y-4">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-3">
           📝 Informações Adicionais
         </p>
         <div>
@@ -171,7 +176,7 @@ export function Step4Medico({
             onChange={e => onRestricaoChange(e.target.value)}
             placeholder="Descreva se houver (ex: alergia, limitação física...)"
             rows={2}
-            className="w-full bg-white border-2 border-gray-100 rounded-[15px] py-3 px-4 font-bold text-blue-900 outline-none text-sm focus:border-blue-900 transition-all resize-none" />
+            className="w-full bg-white border border-gray-200 py-3 px-4 font-medium text-[#1a2b4a] outline-none text-sm focus:border-[#c9a96e] transition-all resize-none" />
         </div>
         <div>
           <label className={LABEL}>Outras informações relevantes</label>
@@ -179,13 +184,13 @@ export function Step4Medico({
             onChange={e => onOutrasInfoChange(e.target.value)}
             placeholder="Qualquer informação adicional que considere importante..."
             rows={2}
-            className="w-full bg-white border-2 border-gray-100 rounded-[15px] py-3 px-4 font-bold text-blue-900 outline-none text-sm focus:border-blue-900 transition-all resize-none" />
+            className="w-full bg-white border border-gray-200 py-3 px-4 font-medium text-[#1a2b4a] outline-none text-sm focus:border-[#c9a96e] transition-all resize-none" />
         </div>
       </div>
 
       {/* ── Resumo ── */}
-      <div className="bg-blue-50 border-2 border-blue-100 rounded-[22px] p-5">
-        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">📋 Resumo da Candidatura</p>
+      <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 p-5">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-4">📋 Resumo da Candidatura</p>
         <div className="space-y-2.5">
           {([
             ['👤 Nome',      form1.nomeCompleto || '—'],
@@ -198,26 +203,25 @@ export function Step4Medico({
             ['🌐 Internac.', disponivelInternacional === true ? 'Sim' : disponivelInternacional === false ? 'Não' : '—'],
           ] as [string, string][]).map(([l, v]) => (
             <div key={l} className="flex items-start justify-between gap-3">
-              <span className="text-[10px] font-black text-blue-400 uppercase flex-shrink-0">{l}</span>
-              <span className="text-[10px] font-black text-blue-900 text-right break-words max-w-[55%]">{v}</span>
+              <span className="text-[10px] font-semibold text-[#c9a96e]/70 uppercase flex-shrink-0">{l}</span>
+              <span className="text-[10px] font-semibold text-[#1a2b4a] text-right break-words max-w-[55%]">{v}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* ── Declaração e Termos ── */}
-      <div className="bg-white border-2 border-blue-100 rounded-[22px] p-5 space-y-4">
-        <div className="flex items-center gap-2 border-b-2 border-gray-100 pb-3">
-          <Shield className="w-4 h-4 text-blue-900" />
-          <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest">Declaração e Termos</p>
+      <div className="bg-white border border-gray-100 p-5 space-y-4">
+        <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
+          <Shield className="w-4 h-4 text-[#c9a96e]" />
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Declaração e Termos</p>
         </div>
 
-        {/* Data automática — somente leitura */}
         <div>
-          <p className={LABEL}><Calendar className="w-3 h-3" /> Data e Hora da Declaração</p>
-          <div className="flex items-center gap-3 bg-blue-50 border-2 border-blue-100 rounded-[15px] py-3 px-4">
-            <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
-            <span className="font-black text-blue-900 text-sm tracking-wide">
+          <p className={LABEL}><Calendar className="w-3 h-3 text-[#c9a96e]" /> Data e Hora da Declaração</p>
+          <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 py-3 px-4">
+            <Calendar className="w-4 h-4 text-[#c9a96e] flex-shrink-0" />
+            <span className="font-semibold text-[#1a2b4a] text-sm tracking-wide">
               {declaracaoData
                 ? new Date(declaracaoData).toLocaleString('pt-PT', {
                     day: '2-digit', month: '2-digit', year: 'numeric',
@@ -225,26 +229,23 @@ export function Step4Medico({
                   })
                 : '—'}
             </span>
-            <span className="ml-auto text-[10px] font-bold text-blue-400">Automático</span>
+            <span className="ml-auto text-[10px] font-medium text-gray-400">Automático</span>
           </div>
         </div>
 
-        {/* Declaração de veracidade — sempre visível, não interativa */}
-        <div className="flex items-start gap-3 p-4 rounded-[16px] border-2 border-blue-100 bg-blue-50">
-          <CheckCircle2 className="w-5 h-5 text-blue-900 flex-shrink-0 mt-0.5" />
-          <p className="text-xs font-bold text-blue-800 leading-relaxed">
+        <div className="flex items-start gap-3 p-4 border border-[#c9a96e]/20 bg-[#0a1628]/5">
+          <CheckCircle2 className="w-5 h-5 text-[#c9a96e] flex-shrink-0 mt-0.5" />
+          <p className="text-xs font-medium text-[#1a2b4a] leading-relaxed">
             Declaro que as informações acima são verdadeiras e estou ciente das normas de segurança, exigências legais e responsabilidades envolvidas no trabalho embarcado.
           </p>
         </div>
 
-        {/* Termos e Condições — checkbox com UX corrigido */}
         <div
-          className={`flex items-start gap-3 p-4 rounded-[16px] border-2 cursor-pointer transition-all select-none
-            ${aceitouTermos ? 'border-blue-900 bg-blue-50' : 'border-red-200 bg-red-50 hover:border-blue-300 hover:bg-blue-50'}`}
+          className={`flex items-start gap-3 p-4 border-2 cursor-pointer transition-all select-none
+            ${aceitouTermos ? 'border-[#0a1628] bg-[#0a1628]/5' : 'border-red-200 bg-red-50 hover:border-[#c9a96e]/30 hover:bg-gray-50'}`}
           onClick={() => onAceitouTermosChange(!aceitouTermos)}>
-          {/* Checkbox visual */}
-          <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all
-            ${aceitouTermos ? 'bg-blue-900 border-blue-900' : 'border-red-300 bg-white'}`}>
+          <div className={`w-6 h-6 border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all
+            ${aceitouTermos ? 'bg-[#0a1628] border-[#0a1628]' : 'border-red-300 bg-white'}`}>
             {aceitouTermos && (
               <svg viewBox="0 0 12 10" className="w-3.5 h-3.5 fill-none stroke-white stroke-[2.5] stroke-round">
                 <polyline points="1,5 4.5,8.5 11,1" />
@@ -252,49 +253,48 @@ export function Step4Medico({
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-gray-800 leading-relaxed">
+            <p className="text-xs font-medium text-gray-800 leading-relaxed">
               Li e aceito os{' '}
               <span
                 role="button"
                 onClick={e => { e.stopPropagation(); onOpenTermos(); }}
-                className="text-blue-700 hover:text-blue-900 font-black underline underline-offset-2 transition-colors inline-flex items-center gap-0.5 cursor-pointer">
+                className="text-[#c9a96e] hover:text-[#1a2b4a] font-semibold underline underline-offset-2 transition-colors inline-flex items-center gap-0.5 cursor-pointer">
                 Termos e Condições de Uso
                 <ExternalLink className="w-3 h-3 inline" />
               </span>
               {' '}da plataforma NorthWindy Charters, incluindo a Política de Privacidade e as normas de conduta marítima aplicáveis.
-              <span className="text-red-500 font-black"> *</span>
+              <span className="text-red-500 font-semibold"> *</span>
             </p>
           </div>
         </div>
 
-        {/* Mensagem de erro quando não aceite */}
         {!aceitouTermos && (
-          <div className="flex items-center gap-2.5 bg-red-50 border-2 border-red-200 rounded-[14px] px-4 py-3">
+          <div className="flex items-center gap-2.5 bg-red-50 border border-red-200 px-4 py-3">
             <span className="text-red-500 text-base flex-shrink-0">⛔</span>
-            <p className="text-xs font-black text-red-600 leading-snug">
+            <p className="text-xs font-semibold text-red-600 leading-snug">
               Para finalizar o cadastro, é obrigatório ler e aceitar os Termos e Condições. Clique na caixa acima para confirmar.
             </p>
           </div>
         )}
       </div>
 
-      <div className="bg-amber-50 border-2 border-amber-100 rounded-[18px] px-5 py-4 flex items-start gap-3">
+      <div className="bg-[#c9a96e]/5 border border-[#c9a96e]/20 px-5 py-4 flex items-start gap-3">
         <span className="text-lg flex-shrink-0">⏳</span>
-        <p className="text-xs font-black text-amber-700">
+        <p className="text-xs font-medium text-[#1a2b4a]">
           Após o envio, a sua candidatura ficará em análise. Será notificado via WhatsApp em até 48h úteis.
         </p>
       </div>
 
       <div className="flex gap-3">
         <button type="button" onClick={onBack}
-          className="px-6 py-5 border-2 border-gray-100 text-gray-400 rounded-[30px] font-black text-sm uppercase hover:border-blue-900 hover:text-blue-900 transition-all">
+          className="px-6 py-4 border border-gray-200 text-gray-400 font-semibold text-sm uppercase hover:border-[#c9a96e] hover:text-[#1a2b4a] transition-all">
           ← Voltar
         </button>
         <button type="submit" disabled={loading || !aceitouTermos || !declaracaoData}
-          className="flex-1 bg-blue-900 text-white py-5 rounded-[30px] font-black uppercase tracking-widest text-sm hover:bg-blue-800 shadow-xl transition-all disabled:opacity-40 flex items-center justify-center gap-2">
+          className="flex-1 bg-[#0a1628] text-white py-4 font-semibold uppercase tracking-widest text-sm hover:bg-[#1a2b4a] transition-all disabled:opacity-40 flex items-center justify-center gap-2">
           {loading
             ? <span className="animate-pulse">Enviando...</span>
-            : <><CheckCircle2 className="w-5 h-5 text-green-400" /> Finalizar Cadastro</>
+            : <><CheckCircle2 className="w-5 h-5 text-[#c9a96e]" /> Finalizar Cadastro</>
           }
         </button>
       </div>

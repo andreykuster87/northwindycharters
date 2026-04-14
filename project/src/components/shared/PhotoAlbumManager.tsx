@@ -100,35 +100,35 @@ export function PhotoAlbumManager({
         onClick={() => !uploading && fileRef.current?.click()}
         onDragOver={e => e.preventDefault()}
         onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
-        className={`border-2 border-dashed rounded-[25px] ${pad} flex flex-col items-center justify-center gap-3 cursor-pointer transition-all
+        className={`border-2 border-dashed ${pad} flex flex-col items-center justify-center gap-3 cursor-pointer transition-all
           ${uploading
-            ? 'border-blue-300 bg-blue-50/50 cursor-wait'
-            : 'border-gray-200 hover:border-blue-900 hover:bg-blue-50/30'}`}
+            ? 'border-[#c9a96e]/30 bg-[#0a1628]/5 cursor-wait'
+            : 'border-gray-200 hover:border-[#0a1628] hover:bg-[#0a1628]/5'}`}
       >
         <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
           onChange={e => handleFiles(e.target.files)}/>
         {uploading ? (
           <>
-            <div className="w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full animate-spin"/>
-            <p className="font-black text-blue-900 text-sm uppercase">Processando fotos...</p>
+            <div className="w-8 h-8 border-4 border-[#0a1628] border-t-transparent rounded-full animate-spin"/>
+            <p className="font-bold text-[#1a2b4a] text-sm uppercase">Processando fotos...</p>
           </>
         ) : (
           <>
             <ImagePlus className="w-8 h-8 text-gray-300"/>
-            <p className="font-black text-gray-400 text-sm uppercase">Arraste fotos ou clique para selecionar</p>
+            <p className="font-bold text-gray-400 text-sm uppercase">Arraste fotos ou clique para selecionar</p>
             <p className="text-[10px] text-gray-300 font-bold">JPG, PNG · máx 8MB por foto</p>
           </>
         )}
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-[15px] px-4 py-2.5 text-red-700 font-bold text-xs flex items-center gap-2">
+        <div className="bg-red-50 border border-red-200 px-4 py-2.5 text-red-700 font-bold text-xs flex items-center gap-2">
           ⚠️ {error}
         </div>
       )}
 
       {saved && (
-        <div className="bg-green-50 border border-green-200 rounded-[15px] px-4 py-2.5 text-green-700 font-bold text-xs flex items-center gap-2 animate-in fade-in duration-200">
+        <div className="bg-green-50 border border-green-200 px-4 py-2.5 text-green-700 font-bold text-xs flex items-center gap-2 animate-in fade-in duration-200">
           <CheckCircle2 className="w-4 h-4"/> Fotos guardadas!
         </div>
       )}
@@ -136,7 +136,7 @@ export function PhotoAlbumManager({
       {/* Gallery grid */}
       {photos.length > 0 && (
         <div className="space-y-3">
-          <p className="text-[10px] font-black text-gray-400 uppercase flex items-center gap-2">
+          <p className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-2">
             <Camera className="w-3.5 h-3.5"/>
             {photos.length} foto{photos.length !== 1 ? 's' : ''} · clique em ⭐ para definir como capa
           </p>
@@ -145,20 +145,20 @@ export function PhotoAlbumManager({
               const isCover = url === cover;
               return (
                 <div key={i}
-                  className={`relative group rounded-[18px] overflow-hidden transition-all ${isCover ? 'ring-4 ring-blue-900 ring-offset-2' : ''}`}
+                  className={`relative group overflow-hidden transition-all ${isCover ? 'ring-4 ring-[#0a1628] ring-offset-2' : ''}`}
                   style={{ aspectRatio: '4/3' }}>
                   <img src={url} alt="" className="w-full h-full object-cover"/>
 
                   {isCover && (
-                    <div className="absolute top-2 left-2 bg-blue-900 text-white text-[9px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 shadow">
-                      <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400"/> CAPA
+                    <div className="absolute top-2 left-2 bg-[#0a1628] text-white text-[9px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow">
+                      <Star className="w-2.5 h-2.5 fill-[#c9a96e] text-[#c9a96e]"/> CAPA
                     </div>
                   )}
 
-                  <div className="absolute inset-0 bg-blue-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  <div className="absolute inset-0 bg-[#0a1628]/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                     {!isCover && (
                       <button type="button" onClick={() => handleSetCover(url)} title="Definir como capa"
-                        className="bg-white text-blue-900 p-2.5 rounded-full hover:bg-yellow-400 transition-all shadow-lg">
+                        className="bg-white text-[#1a2b4a] p-2.5 rounded-full hover:bg-[#c9a96e] transition-all shadow-lg">
                         <Star className="w-4 h-4"/>
                       </button>
                     )}
@@ -173,9 +173,9 @@ export function PhotoAlbumManager({
 
             {/* Add more */}
             <div onClick={() => fileRef.current?.click()}
-              className="rounded-[18px] border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all group"
+              className="border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#c9a96e] hover:bg-[#0a1628]/5 transition-all group"
               style={{ aspectRatio: '4/3' }}>
-              <Upload className="w-5 h-5 text-gray-300 group-hover:text-blue-900 transition-colors"/>
+              <Upload className="w-5 h-5 text-gray-300 group-hover:text-[#1a2b4a] transition-colors"/>
             </div>
           </div>
         </div>

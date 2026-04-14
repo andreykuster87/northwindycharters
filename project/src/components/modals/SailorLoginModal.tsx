@@ -35,22 +35,21 @@ export function SailorLoginModal({ onLogin, onClose }: Props) {
 
   return (
     <LoginModalShell
-      icon={<Anchor className="w-5 h-5 text-white" />}
-      iconBgClass="bg-blue-900"
+      icon={<Anchor className="w-5 h-5 text-[#c9a96e]" />}
+      iconBgClass="bg-[#0a1628]"
       title="Área do Comandante"
       subtitle="Frota e agendamentos"
+      brandTitle="Bem-vindo, Comandante!"
+      brandTagline="Acesse a gestão da sua embarcação, agenda e reservas em tempo real."
       hint={
-        <div className="bg-blue-50 border-2 border-blue-100 rounded-[20px] px-5 py-3">
-          <p className="text-xs font-bold text-blue-600">
-            Login: <strong>nome#número</strong> (ex: jose#2) · Senha enviada via <strong>WhatsApp</strong>
+        <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 px-4 py-3">
+          <p className="text-xs font-medium text-[#1a2b4a]">
+            Login: <strong className="text-[#c9a96e]">nome#número</strong> (ex: jose#2) · Senha enviada via <strong>WhatsApp</strong>
           </p>
         </div>
       }
-      cardBorderClass="border-blue-900"
       loginPlaceholder="Ex: jose#2"
       passwdPlaceholder="Senha recebida via WhatsApp"
-      inputFocusClass="focus:border-blue-900"
-      submitClass="bg-blue-900 hover:bg-blue-800 text-white"
       onSubmit={handleSubmit}
       onClose={onClose}
     />

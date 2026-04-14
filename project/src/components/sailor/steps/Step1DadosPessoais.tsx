@@ -13,6 +13,7 @@ interface Props {
     nomeCompleto:    string;
     email:           string;
     idioma:          string;
+    username:        string;
     cpfNif:          string;
     endereco:        string;
     funcao:          string | string[];
@@ -44,8 +45,8 @@ interface Props {
   onNext: () => void;
 }
 
-const INPUT = 'w-full bg-gray-50 border-2 border-gray-100 rounded-[18px] py-3.5 px-5 font-bold text-blue-900 focus:border-blue-900 outline-none transition-all text-sm';
-const LABEL = 'text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1.5';
+const INPUT = 'w-full bg-gray-50 border border-gray-200 py-3.5 px-4 font-medium text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all text-sm';
+const LABEL = 'text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.12em] ml-1 mb-1.5 flex items-center gap-1.5';
 
 export function Step1DadosPessoais({
   country, phoneCountry, phoneRaw, form1,
@@ -64,17 +65,34 @@ export function Step1DadosPessoais({
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
 
       {/* ── Identificação ── */}
-      <div className="bg-gray-50 border-2 border-gray-100 rounded-[22px] p-5 space-y-4">
-        <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-3">
+      <div className="bg-gray-50 border border-gray-100 p-5 space-y-4">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-3">
           👤 Identificação
         </p>
 
         <div>
-          <label className={LABEL}><User className="w-3 h-3" /> Nome Completo *</label>
+          <label className={LABEL}><User className="w-3 h-3 text-[#c9a96e]" /> Nome Completo *</label>
           <input value={form1.nomeCompleto}
             onChange={e => onForm1Change({ nomeCompleto: e.target.value })}
             placeholder="Como aparece no documento"
             className={INPUT + ' uppercase italic'} />
+        </div>
+
+        <div>
+          <label className={LABEL}>
+            <Hash className="w-3 h-3 text-[#c9a96e]" /> @ na plataforma * <span className="text-gray-400 normal-case font-medium ml-1">como será chamado(a)</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#c9a96e] font-medium text-sm select-none">@</span>
+            <input value={form1.username}
+              onChange={e => onForm1Change({ username: e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 20) })}
+              placeholder="seu_usuario"
+              className={INPUT + ' pl-8'} />
+          </div>
+          {form1.username && (
+            <p className="text-[10px] font-medium text-[#c9a96e] ml-1 mt-1">@{form1.username}</p>
+          )}
+          <p className="text-[10px] font-medium text-gray-400 ml-1 mt-0.5">3–20 caracteres · apenas letras, números, _ e .</p>
         </div>
 
         <BirthDatePicker
@@ -88,12 +106,12 @@ export function Step1DadosPessoais({
       </div>
 
       {/* ── Documento Fiscal ── */}
-      <div className="bg-gray-50 border-2 border-gray-100 rounded-[22px] p-5 space-y-4">
-        <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-3">
+      <div className="bg-gray-50 border border-gray-100 p-5 space-y-4">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-3">
           🪪 Documento Fiscal
         </p>
         <div>
-          <label className={LABEL}><Hash className="w-3 h-3" /> CPF / Nº Fiscal / NIF</label>
+          <label className={LABEL}><Hash className="w-3 h-3 text-[#c9a96e]" /> CPF / Nº Fiscal / NIF</label>
           <input value={form1.cpfNif}
             onChange={e => onForm1Change({ cpfNif: e.target.value })}
             placeholder="Ex: 000.000.000-00 ou PT123456789"
@@ -102,19 +120,19 @@ export function Step1DadosPessoais({
       </div>
 
       {/* ── Caderneta Marítima ── */}
-      <div className="bg-gray-50 border-2 border-gray-100 rounded-[22px] p-5 space-y-4">
-        <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-3">
+      <div className="bg-gray-50 border border-gray-100 p-5 space-y-4">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-3">
           ⚓ Caderneta Marítima (CIR / Seafarer's Book)
         </p>
         <div>
-          <label className={LABEL}><Hash className="w-3 h-3" /> Nº da Caderneta</label>
+          <label className={LABEL}><Hash className="w-3 h-3 text-[#c9a96e]" /> Nº da Caderneta</label>
           <input value={form1.cadernetaNumero}
             onChange={e => onForm1Change({ cadernetaNumero: e.target.value.toUpperCase() })}
             placeholder="Ex: BR-12345-6"
             className={INPUT + ' uppercase tracking-widest'} />
         </div>
         <div>
-          <label className={LABEL}><Calendar className="w-3 h-3" /> Validade da Caderneta *</label>
+          <label className={LABEL}><Calendar className="w-3 h-3 text-[#c9a96e]" /> Validade da Caderneta *</label>
           <input type="text" inputMode="numeric" value={cadernetaValidade}
             onChange={e => onCadernetaValidadeChange(applyDateMask(e.target.value))}
             placeholder="dd/mm/aaaa" maxLength={10}
@@ -132,14 +150,14 @@ export function Step1DadosPessoais({
       </div>
 
       {/* ── Contacto ── */}
-      <div className="bg-gray-50 border-2 border-gray-100 rounded-[22px] p-5 space-y-4">
-        <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-3">
+      <div className="bg-gray-50 border border-gray-100 p-5 space-y-4">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-3">
           📞 Contacto
         </p>
 
         <div>
           <label className={LABEL}>WhatsApp *</label>
-          <div className="flex items-center gap-3 bg-white border-2 border-gray-100 rounded-[18px] py-3.5 px-5 focus-within:border-blue-900 transition-all">
+          <div className="flex items-center gap-3 bg-white border border-gray-200 py-3.5 px-4 focus-within:border-[#c9a96e] transition-all">
             <PhonePrefixDropdown value={phoneCountry.code}
               onChange={c => { onPhoneCountryChange(c); onPhoneRawChange(''); }} />
             <div className="w-px h-5 bg-gray-200 flex-shrink-0" />
@@ -147,28 +165,28 @@ export function Step1DadosPessoais({
             <input value={phoneDisplay}
               onChange={e => onPhoneRawChange(e.target.value.replace(/\D/g, ''))}
               placeholder={phoneCountry.mask.replace(/#/g, '0')}
-              className="w-full font-bold outline-none bg-transparent text-sm text-blue-900" />
+              className="w-full font-medium outline-none bg-transparent text-sm text-[#1a2b4a]" />
           </div>
         </div>
 
         <div>
-          <label className={LABEL}><Mail className="w-3 h-3" /> E-mail *</label>
-          <div className="flex items-center gap-3 bg-white border-2 border-gray-100 rounded-[18px] py-3.5 px-5 focus-within:border-blue-900 transition-all">
-            <Mail className="w-4 h-4 text-blue-400 flex-shrink-0" />
+          <label className={LABEL}><Mail className="w-3 h-3 text-[#c9a96e]" /> E-mail *</label>
+          <div className="flex items-center gap-3 bg-white border border-gray-200 py-3.5 px-4 focus-within:border-[#c9a96e] transition-all">
+            <Mail className="w-4 h-4 text-[#c9a96e] flex-shrink-0" />
             <input type="email" value={form1.email}
               onChange={e => onForm1Change({ email: e.target.value })}
               placeholder="email@profissional.com"
-              className="w-full font-bold outline-none bg-transparent text-sm text-blue-900" />
+              className="w-full font-medium outline-none bg-transparent text-sm text-[#1a2b4a]" />
           </div>
         </div>
 
         <div>
-          <label className={LABEL}><MapPin className="w-3 h-3" /> Endereço completo conforme comprovante</label>
+          <label className={LABEL}><MapPin className="w-3 h-3 text-[#c9a96e]" /> Endereço completo conforme comprovante</label>
           <input value={form1.endereco}
             onChange={e => onForm1Change({ endereco: e.target.value })}
             placeholder="Rua, nº, cidade, país"
             className={INPUT} />
-          <p className="text-[10px] text-gray-400 font-bold mt-1.5 ml-1">
+          <p className="text-[10px] text-gray-400 font-medium mt-1.5 ml-1">
             Aceites: conta de água, luz, telefone, extrato bancário ou atestado de morada
           </p>
         </div>
@@ -184,10 +202,10 @@ export function Step1DadosPessoais({
       </div>
 
       {/* ── Função Pretendida ── */}
-      <div className="bg-gray-50 border-2 border-gray-100 rounded-[22px] p-5 space-y-3">
-        <div className="border-b-2 border-gray-100 pb-3">
-          <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest">⚓ Função Pretendida *</p>
-          <p className="text-[10px] font-bold text-gray-400 mt-0.5">Pode selecionar mais de uma função</p>
+      <div className="bg-gray-50 border border-gray-100 p-5 space-y-3">
+        <div className="border-b border-gray-100 pb-3">
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">⚓ Função Pretendida *</p>
+          <p className="text-[10px] font-medium text-gray-400 mt-0.5">Pode selecionar mais de uma função</p>
         </div>
         <div className="space-y-2">
           {(FUNCOES_MARITIMAS as readonly string[]).map(f => {
@@ -195,13 +213,13 @@ export function Step1DadosPessoais({
             const checked  = selected.includes(f);
             return (
               <label key={f}
-                className={`flex items-center gap-3 p-3.5 rounded-[16px] border-2 cursor-pointer transition-all
-                  ${checked ? 'bg-blue-900 border-blue-900' : 'bg-white border-gray-100 hover:border-blue-200'}`}>
-                <div className={`w-5 h-5 rounded-[6px] border-2 flex items-center justify-center flex-shrink-0 transition-all
+                className={`flex items-center gap-3 p-3.5 border cursor-pointer transition-all
+                  ${checked ? 'bg-[#0a1628] border-[#0a1628]' : 'bg-white border-gray-100 hover:border-[#c9a96e]/30'}`}>
+                <div className={`w-5 h-5 border-2 flex items-center justify-center flex-shrink-0 transition-all
                   ${checked ? 'border-white bg-white/20' : 'border-gray-200'}`}>
-                  {checked && <span className="text-white font-black text-[11px] leading-none">✓</span>}
+                  {checked && <span className="text-white font-semibold text-[11px] leading-none">✓</span>}
                 </div>
-                <span className={`font-bold text-sm ${checked ? 'text-white' : 'text-blue-900'}`}>{f}</span>
+                <span className={`font-medium text-sm ${checked ? 'text-white' : 'text-[#1a2b4a]'}`}>{f}</span>
                 <input type="checkbox" value={f} checked={checked} className="hidden"
                   onChange={() => {
                     const prev = Array.isArray(form1.funcao) ? form1.funcao : (form1.funcao ? [form1.funcao] : []);
@@ -221,23 +239,23 @@ export function Step1DadosPessoais({
       </div>
 
       {/* ── Preferências ── */}
-      <div className="bg-gray-50 border-2 border-gray-100 rounded-[22px] p-5 space-y-4">
-        <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-3">
+      <div className="bg-gray-50 border border-gray-100 p-5 space-y-4">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-3">
           🌐 Preferências
         </p>
         <div>
-          <label className={LABEL}><Clock className="w-3 h-3" /> Fuso Horário (automático)</label>
-          <div className="flex items-center gap-3 bg-white border-2 border-gray-100 rounded-[18px] py-3.5 px-5">
-            <Clock className="w-4 h-4 text-blue-300 flex-shrink-0" />
-            <span className="font-bold text-blue-900 text-sm">{country.tz}</span>
+          <label className={LABEL}><Clock className="w-3 h-3 text-[#c9a96e]" /> Fuso Horário (automático)</label>
+          <div className="flex items-center gap-3 bg-white border border-gray-200 py-3.5 px-4">
+            <Clock className="w-4 h-4 text-[#c9a96e]/50 flex-shrink-0" />
+            <span className="font-medium text-[#1a2b4a] text-sm">{country.tz}</span>
           </div>
         </div>
         <div>
-          <label className={LABEL}><Languages className="w-3 h-3" /> Idioma Preferido</label>
+          <label className={LABEL}><Languages className="w-3 h-3 text-[#c9a96e]" /> Idioma Preferido</label>
           <div className="relative">
             <select value={form1.idioma}
               onChange={e => onForm1Change({ idioma: e.target.value })}
-              className="w-full bg-white border-2 border-gray-100 rounded-[18px] py-3.5 px-5 font-bold text-blue-900 outline-none appearance-none focus:border-blue-900 transition-all text-sm cursor-pointer">
+              className="w-full bg-white border border-gray-200 py-3.5 px-4 font-medium text-[#1a2b4a] outline-none appearance-none focus:border-[#c9a96e] transition-all text-sm cursor-pointer">
               {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -246,7 +264,7 @@ export function Step1DadosPessoais({
       </div>
 
       <button type="button" onClick={onNext}
-        className="w-full bg-blue-900 text-white py-5 rounded-[30px] font-black uppercase tracking-widest text-sm hover:bg-blue-800 shadow-xl transition-all">
+        className="w-full bg-[#0a1628] text-white py-4 font-semibold uppercase tracking-widest text-sm hover:bg-[#1a2b4a] transition-all">
         Próximo → Documentos
       </button>
     </div>

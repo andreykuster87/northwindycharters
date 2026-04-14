@@ -41,32 +41,36 @@ export function PerfilTab({ client, profilePhoto, onPhotoChange, onGoToComunidad
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-black text-blue-900 uppercase italic">Meu Perfil</h2>
-        <p className="text-xs text-gray-400 font-bold mt-0.5">Informações pessoais e documento</p>
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-1">Conta</p>
+        <h2 className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xl">Meu Perfil</h2>
+        <div className="w-8 h-px bg-[#c9a96e] mt-2" />
       </div>
 
       {/* Hero perfil */}
-      <div className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-[24px] p-5 text-white">
-        <div className="flex items-center gap-4">
+      <div className="bg-[#0a1628] p-5 text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 0,transparent 60px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 0,transparent 60px)' }} />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/60 to-transparent" />
+        <div className="relative flex items-center gap-4">
           {/* Avatar clicável */}
           <div className="relative flex-shrink-0">
             <div
-              className="w-20 h-20 rounded-[20px] overflow-hidden border-3 border-white/30 cursor-pointer group"
+              className="w-20 h-20 overflow-hidden border border-[#c9a96e]/40 cursor-pointer group"
               onClick={() => fileRef.current?.click()}
             >
               {profilePhoto
                 ? <img src={profilePhoto} alt="Foto" className="w-full h-full object-cover" />
-                : <div className="w-full h-full bg-white/20 flex items-center justify-center font-black text-2xl">
+                : <div className="w-full h-full bg-white/10 flex items-center justify-center font-bold text-2xl text-[#c9a96e]">
                     {(client.name || 'U').substring(0, 2).toUpperCase()}
                   </div>
               }
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-[20px]">
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <Camera className="w-5 h-5 text-white" />
               </div>
             </div>
             <button
               onClick={() => fileRef.current?.click()}
-              className="absolute -bottom-1.5 -right-1.5 w-7 h-7 bg-amber-400 hover:bg-amber-300 text-blue-900 rounded-full flex items-center justify-center shadow-lg transition-all"
+              className="absolute -bottom-1.5 -right-1.5 w-7 h-7 bg-[#c9a96e] hover:bg-[#b8934a] text-[#0a1628] flex items-center justify-center shadow-lg transition-all"
               title="Alterar foto"
             >
               <Camera className="w-3.5 h-3.5" />
@@ -76,18 +80,18 @@ export function PerfilTab({ client, profilePhoto, onPhotoChange, onGoToComunidad
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-widest text-blue-300">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#c9a96e] mb-1">
               {client.profile_number}
             </p>
-            <h3 className="text-lg font-black uppercase italic leading-tight truncate">{client.name}</h3>
-            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+            <h3 className="font-['Playfair_Display'] font-bold text-lg leading-tight truncate">{client.name}</h3>
+            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
               {client.blocked
-                ? <span className="bg-red-400/20 border border-red-400/40 text-red-200 text-[10px] font-black px-2.5 py-0.5 rounded-full">🚫 Bloqueada</span>
-                : <span className="bg-green-400/20 border border-green-400/40 text-green-200 text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                ? <span className="bg-red-400/20 border border-red-400/40 text-red-200 text-[10px] font-semibold px-2.5 py-0.5">🚫 Bloqueada</span>
+                : <span className="bg-[#c9a96e]/15 border border-[#c9a96e]/30 text-[#c9a96e] text-[10px] font-semibold px-2.5 py-0.5 flex items-center gap-1">
                     <CheckCircle2 className="w-2.5 h-2.5" /> Verificado
                   </span>
               }
-              <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+              <span className="bg-white/10 text-white/70 text-[10px] font-medium px-2.5 py-0.5">
                 {client.country_name || 'Portugal'}
               </span>
             </div>
@@ -95,45 +99,47 @@ export function PerfilTab({ client, profilePhoto, onPhotoChange, onGoToComunidad
         </div>
         {profilePhoto && (
           <button onClick={() => { onPhotoChange(null); }}
-            className="mt-3 text-[10px] font-black text-red-300 hover:text-red-200 underline transition-colors">
+            className="mt-3 text-[10px] font-medium text-red-300 hover:text-red-200 underline transition-colors relative">
             Remover foto
           </button>
         )}
       </div>
 
       {/* Contacto */}
-      <div className="bg-white border-2 border-gray-100 rounded-[20px] p-4 space-y-3">
-        <p className="text-xs font-black text-blue-900 uppercase tracking-wider">Contacto</p>
+      <div className="bg-white border border-gray-100 p-4 space-y-3 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/30 to-transparent" />
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Contacto</p>
         {[
           { icon: Mail,  value: client.email },
           { icon: Phone, value: client.phone,
             href: client.phone ? `https://wa.me/${client.phone.replace(/\D/g,'')}` : undefined },
         ].filter(r => r.value).map((r, i) => (
           <div key={i} className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
-              <r.icon className="w-4 h-4 text-blue-500" />
+            <div className="w-9 h-9 bg-[#0a1628] flex items-center justify-center flex-shrink-0">
+              <r.icon className="w-4 h-4 text-[#c9a96e]" />
             </div>
             {r.href
               ? <a href={r.href} target="_blank" rel="noreferrer"
-                  className="text-sm font-bold text-green-600 hover:underline truncate">{r.value}</a>
-              : <p className="text-sm font-bold text-gray-700 truncate">{r.value}</p>
+                  className="text-sm font-medium text-green-600 hover:underline truncate">{r.value}</a>
+              : <p className="text-sm font-medium text-gray-700 truncate">{r.value}</p>
             }
           </div>
         ))}
       </div>
 
       {/* Documento */}
-      <div className="bg-white border-2 border-gray-100 rounded-[20px] p-4">
-        <p className="text-xs font-black text-blue-900 uppercase tracking-wider mb-3">Documento de Identidade</p>
+      <div className="bg-white border border-gray-100 p-4 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/30 to-transparent" />
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">Documento de Identidade</p>
         <div className="grid grid-cols-2 gap-2">
           {[
             ['Tipo',      client.doc_type || '—'],
             ['Número',    client.passport_number || '—'],
             ['Validade',  client.passport_expires ? new Date(client.passport_expires).toLocaleDateString('pt-PT') : '—'],
           ].map(([l, v]) => (
-            <div key={l} className="bg-gray-50 rounded-[12px] px-3 py-2.5">
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">{l}</p>
-              <p className="text-sm font-black text-blue-900 mt-0.5">{v}</p>
+            <div key={l} className="bg-gray-50 border border-gray-100 px-3 py-2.5">
+              <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">{l}</p>
+              <p className="text-sm font-['Playfair_Display'] font-bold text-[#1a2b4a] mt-0.5">{v}</p>
             </div>
           ))}
         </div>
@@ -141,27 +147,31 @@ export function PerfilTab({ client, profilePhoto, onPhotoChange, onGoToComunidad
 
       {/* Data de nascimento */}
       {client.birth_date && (
-        <div className="bg-white border-2 border-gray-100 rounded-[20px] p-4">
-          <p className="text-xs font-black text-blue-900 uppercase tracking-wider mb-2">Data de Nascimento</p>
-          <p className="text-sm font-black text-blue-900">
+        <div className="bg-white border border-gray-100 p-4 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/30 to-transparent" />
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-2">Data de Nascimento</p>
+          <p className="text-sm font-['Playfair_Display'] font-bold text-[#1a2b4a]">
             {new Date(client.birth_date).toLocaleDateString('pt-PT', { day:'2-digit', month:'long', year:'numeric' })}
           </p>
         </div>
       )}
 
       {/* Aviso comunidade */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-[20px] p-4 flex items-start gap-3">
-        <div className="w-9 h-9 bg-blue-900 rounded-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
-          <Anchor className="w-4 h-4 text-white" />
+      <div className="bg-[#0a1628] p-4 flex items-start gap-3 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 0,transparent 60px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 0,transparent 60px)' }} />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/60 to-transparent" />
+        <div className="w-9 h-9 bg-[#c9a96e]/15 border border-[#c9a96e]/30 flex items-center justify-center flex-shrink-0 mt-0.5 relative">
+          <Anchor className="w-4 h-4 text-[#c9a96e]" />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-black text-blue-900 uppercase tracking-wide">Faça parte da comunidade</p>
-          <p className="text-xs font-bold text-blue-700 mt-1 leading-relaxed">
+        <div className="flex-1 min-w-0 relative">
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Faça parte da comunidade</p>
+          <p className="text-xs font-medium text-white/60 mt-1 leading-relaxed">
             Para fazer parte da comunidade, insira os documentos necessários e fique visível para empresas náuticas.
           </p>
           <button
             onClick={onOpenApplication}
-            className="mt-3 bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-[10px] font-black text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5">
+            className="mt-3 border border-[#c9a96e] text-[#c9a96e] hover:bg-[#c9a96e] hover:text-[#0a1628] px-4 py-2 font-semibold text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5">
             <CheckCircle2 className="w-3 h-3" /> Inserir Documentos
           </button>
         </div>

@@ -21,21 +21,21 @@ function EventRow({ ev, onOpen }: { ev: NauticEvent; onOpen: () => void }) {
   const statusInfo = STATUS_MAP[ev.status];
   return (
     <button onClick={onOpen}
-      className="w-full text-left bg-white border-2 border-gray-100 rounded-[18px] px-4 py-4 flex items-center gap-3 hover:border-blue-200 transition-all group">
-      <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0 text-lg">
+      className="w-full text-left bg-white border-2 border-gray-100 px-4 py-4 flex items-center gap-3 hover:border-[#c9a96e]/30 transition-all group">
+      <div className="w-10 h-10 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0 text-lg">
         {ev.cover_emoji || '📌'}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-black text-blue-900 text-sm truncate">{ev.title}</p>
+        <p className="font-bold text-[#1a2b4a] text-sm truncate">{ev.title}</p>
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${statusInfo.cls}`}>
+          <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 ${statusInfo.cls}`}>
             {statusInfo.label}
           </span>
           <span className="text-xs font-bold text-gray-400 truncate">{ev.company_name}</span>
           <span className="text-xs font-bold text-gray-400">· {fmtDate(ev.date)}</span>
         </div>
       </div>
-      <div className="flex-shrink-0 text-gray-300 group-hover:text-blue-600 transition-colors">
+      <div className="flex-shrink-0 text-gray-300 group-hover:text-[#c9a96e] transition-colors">
         <ChevronDown className="w-4 h-4" />
       </div>
     </button>
@@ -80,12 +80,12 @@ export function EventosAdminTab({ role }: Props) {
           { key: 'criar' as const,  label: 'Criar Evento',    icon: '➕' },
         ].map(t => (
           <button key={t.key} onClick={() => setSubTab(t.key)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-[14px] font-black text-xs uppercase transition-all ${
-              subTab === t.key ? 'bg-blue-900 text-white shadow-md' : 'bg-white border-2 border-gray-100 text-gray-500 hover:border-blue-200'
+            className={`flex items-center gap-2 px-4 py-2.5 font-semibold text-xs uppercase transition-all ${
+              subTab === t.key ? 'bg-[#0a1628] text-white shadow-md' : 'bg-white border-2 border-gray-100 text-gray-500 hover:border-[#c9a96e]/30'
             }`}>
             {t.icon} {t.label}
             {t.badge && t.badge > 0 && (
-              <span className={`text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center ${subTab === t.key ? 'bg-white text-blue-900' : 'bg-red-500 text-white'}`}>
+              <span className={`text-[9px] font-semibold w-4 h-4 flex items-center justify-center ${subTab === t.key ? 'bg-white text-[#0a1628]' : 'bg-red-500 text-white'}`}>
                 {t.badge}
               </span>
             )}
@@ -114,7 +114,7 @@ export function EventosAdminTab({ role }: Props) {
       {subTab === 'gestao' && (
         <div className="space-y-4">
           <div>
-            <h2 className="text-lg font-black text-blue-900 uppercase italic">Gestão de Eventos</h2>
+            <h2 className="font-['Playfair_Display'] font-bold text-lg text-[#1a2b4a] uppercase">Gestão de Eventos</h2>
             <p className="text-xs text-gray-400 font-bold mt-0.5">Solicitações das empresas — aprovação e moderação</p>
           </div>
 
@@ -123,13 +123,13 @@ export function EventosAdminTab({ role }: Props) {
             {[
               { s: '' as const,           label: 'Total',      value: allEvents.length,                                      cls: 'border-gray-100' },
               { s: 'pending' as const,    label: 'Pendentes',  value: allEvents.filter(e=>e.status==='pending').length,      cls: 'border-amber-100' },
-              { s: 'analysis' as const,   label: 'Em Análise', value: allEvents.filter(e=>e.status==='analysis').length,     cls: 'border-blue-100' },
+              { s: 'analysis' as const,   label: 'Em Análise', value: allEvents.filter(e=>e.status==='analysis').length,     cls: 'border-[#c9a96e]/20' },
               { s: 'approved' as const,   label: 'Aprovados',  value: allEvents.filter(e=>e.status==='approved').length,     cls: 'border-green-100' },
             ].map(k => (
               <button key={k.label} onClick={() => setFilterStatus(k.s === filterStatus ? '' : k.s)}
-                className={`bg-white border-2 rounded-[16px] px-4 py-3 text-left transition-all hover:border-blue-300 ${k.cls} ${filterStatus === k.s && k.s !== '' ? 'ring-2 ring-blue-400' : ''}`}>
-                <p className="text-xl font-black text-blue-900">{k.value}</p>
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">{k.label}</p>
+                className={`bg-white border-2 px-4 py-3 text-left transition-all hover:border-[#c9a96e]/30 ${k.cls} ${filterStatus === k.s && k.s !== '' ? 'ring-2 ring-[#c9a96e]/40' : ''}`}>
+                <p className="text-xl font-bold text-[#1a2b4a]">{k.value}</p>
+                <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-[0.15em]">{k.label}</p>
               </button>
             ))}
           </div>
@@ -144,8 +144,8 @@ export function EventosAdminTab({ role }: Props) {
               { v: 'rejected' as const,  l: '❌ Reprovados' },
             ].map(({ v, l }) => (
               <button key={l} onClick={() => setFilterStatus(v)}
-                className={`px-3 py-2 rounded-[12px] text-xs font-black border-2 transition-all ${
-                  filterStatus === v ? 'bg-blue-900 text-white border-blue-900' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-blue-300'
+                className={`px-3 py-2 text-xs font-semibold border-2 transition-all ${
+                  filterStatus === v ? 'bg-[#0a1628] text-white border-[#0a1628]' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-[#c9a96e]/30'
                 }`}>
                 {l}
               </button>
@@ -154,9 +154,9 @@ export function EventosAdminTab({ role }: Props) {
 
           {/* Lista */}
           {filtered.length === 0 ? (
-            <div className="bg-white border-2 border-dashed border-gray-200 rounded-[24px] py-12 text-center">
+            <div className="bg-white border-2 border-dashed border-gray-200 py-12 text-center">
               <div className="text-4xl mb-3">📋</div>
-              <p className="font-black text-gray-300 uppercase italic text-sm">Nenhum evento encontrado</p>
+              <p className="font-semibold text-gray-300 uppercase text-sm">Nenhum evento encontrado</p>
             </div>
           ) : (
             <div className="space-y-2">

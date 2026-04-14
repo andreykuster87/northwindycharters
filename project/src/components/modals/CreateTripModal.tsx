@@ -277,25 +277,26 @@ export function CreateTripModal({ boat, sailorId, sailorName, onClose, onSuccess
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-blue-900/60 backdrop-blur-md">
-      <div className="bg-white w-full max-w-lg max-h-[90vh] flex flex-col rounded-[40px] shadow-2xl border-4 border-blue-900 animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 z-[140] flex items-center justify-center p-4" style={{ background: 'rgba(4,10,24,0.88)', backdropFilter: 'blur(8px)' }}>
+      <div className="bg-white w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl border border-[#c9a96e]/30 animate-in zoom-in-95 duration-300">
 
         {/* Header fixo */}
-        <div className="flex-shrink-0 bg-blue-900 px-8 pt-6 pb-5 rounded-t-[36px]">
+        <div className="flex-shrink-0 bg-[#0a1628] px-8 pt-6 pb-5 border-b border-[#c9a96e]"
+          style={{ backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(201,169,110,0.04) 24px,rgba(201,169,110,0.04) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(201,169,110,0.04) 24px,rgba(201,169,110,0.04) 25px)' }}>
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h2 className="text-2xl font-black text-white uppercase italic">Criar Passeio</h2>
-              <p className="text-blue-300 text-xs font-bold uppercase tracking-widest mt-0.5 flex items-center gap-2">
+              <h2 className="text-2xl font-['Playfair_Display'] font-bold text-white">Criar Passeio</h2>
+              <p className="text-[#c9a96e] text-xs font-semibold uppercase tracking-[0.15em] mt-0.5 flex items-center gap-2">
                 <Anchor className="w-3 h-3" /> {boat.name} · {boat.capacity} pessoas
               </p>
             </div>
-            <button onClick={onClose} className="bg-blue-800 hover:bg-blue-700 text-white p-3 rounded-full transition-all flex-shrink-0">
+            <button onClick={onClose} className="bg-white/10 hover:bg-white/20 text-white p-3 transition-all flex-shrink-0">
               <X className="w-5 h-5" />
             </button>
           </div>
           {!showPhotos && <Stepper current={tab} done={doneTabs} />}
           {!showPhotos && (
-            <p className="text-white/70 font-black text-xs uppercase italic tracking-wide mt-1">
+            <p className="text-white/70 font-semibold text-xs uppercase tracking-wide mt-1">
               {TABS[tab - 1].label} · Passo {tab} de {TABS.length}
             </p>
           )}
@@ -307,10 +308,10 @@ export function CreateTripModal({ boat, sailorId, sailorName, onClose, onSuccess
           {/* Fotos — após publicar */}
           {showPhotos && savedTripId && (
             <div className="p-8 space-y-6 animate-in fade-in duration-300">
-              <div className="bg-green-50 border-2 border-green-200 rounded-[25px] p-5 flex items-center gap-4">
+              <div className="bg-green-50 border border-green-200 p-5 flex items-center gap-4">
                 <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
                 <div>
-                  <p className="font-black text-green-800 uppercase">Passeio publicado!</p>
+                  <p className="font-bold text-green-800 uppercase">Passeio publicado!</p>
                   <p className="text-green-600 text-xs font-bold mt-0.5">Adicione fotos para atrair mais clientes.</p>
                 </div>
               </div>
@@ -323,7 +324,7 @@ export function CreateTripModal({ boat, sailorId, sailorName, onClose, onSuccess
                 }}
               />
               <button onClick={() => onSuccess(buildResult())}
-                className="w-full bg-blue-900 text-white py-5 rounded-[30px] font-black uppercase tracking-widest text-base hover:bg-blue-800 shadow-xl transition-all flex items-center justify-center gap-3">
+                className="w-full bg-[#0a1628] text-white py-5 font-semibold uppercase tracking-widest text-base hover:bg-[#0a1628]/90 shadow-xl transition-all flex items-center justify-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-400" /> Concluir
               </button>
               <button onClick={() => onSuccess(buildResult())}
@@ -337,22 +338,22 @@ export function CreateTripModal({ boat, sailorId, sailorName, onClose, onSuccess
             <div className="p-8 space-y-6">
               {/* Erro */}
               {formError && (
-                <div className="bg-red-50 border-2 border-red-200 rounded-[18px] px-5 py-3 flex items-center gap-3 animate-in fade-in duration-200">
+                <div className="bg-red-50 border border-red-200 px-5 py-3 flex items-center gap-3 animate-in fade-in duration-200">
                   <span>⚠️</span><p className="text-red-700 font-bold text-sm">{formError}</p>
                 </div>
               )}
 
               {/* Embarcação — sempre visível */}
-              <div className="bg-blue-50 border-2 border-blue-100 rounded-[25px] p-5 grid grid-cols-2 gap-3">
+              <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 p-5 grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-[10px] font-black text-blue-400 uppercase">Embarcação</p>
-                  <p className="font-black text-blue-900 uppercase italic">{boat.name}</p>
+                  <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Embarcação</p>
+                  <p className="font-bold text-[#1a2b4a] uppercase">{boat.name}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-blue-400 uppercase flex items-center gap-1">
+                  <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] flex items-center gap-1">
                     <Users className="w-3 h-3" /> Capacidade
                   </p>
-                  <p className="font-black text-blue-900">{boat.capacity} pessoas</p>
+                  <p className="font-bold text-[#1a2b4a]">{boat.capacity} pessoas</p>
                 </div>
               </div>
 
@@ -415,10 +416,10 @@ export function CreateTripModal({ boat, sailorId, sailorName, onClose, onSuccess
 
         {/* Pills de progresso — rodapé */}
         {!showPhotos && (
-          <div className="flex-shrink-0 bg-blue-900/5 border-t-2 border-gray-100 py-3 flex items-center justify-center gap-2">
+          <div className="flex-shrink-0 bg-[#0a1628]/5 border-t border-gray-100 py-3 flex items-center justify-center gap-2">
             {TABS.map(t => (
-              <div key={t.n} className={`h-1.5 rounded-full transition-all duration-300
-                ${t.n === tab ? 'w-8 bg-blue-900' : doneTabs.has(t.n) ? 'w-4 bg-blue-300' : 'w-4 bg-gray-200'}`} />
+              <div key={t.n} className={`h-1 transition-all duration-300
+                ${t.n === tab ? 'w-8 bg-[#0a1628]' : doneTabs.has(t.n) ? 'w-4 bg-[#c9a96e]/50' : 'w-4 bg-gray-200'}`} />
             ))}
           </div>
         )}

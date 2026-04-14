@@ -70,6 +70,7 @@ export interface Form {
   numero_registro: string; numero_fiscal: string; pais_fiscal: string; pais_fiscal_nome: string;
   ddi: string; telefone: string; email: string; website: string;
   instagram: string; linkedin: string; facebook: string; outras_redes: string;
+  username: string;
   resp_nome: string; resp_cargo: string; resp_email: string; resp_ddi: string; resp_telefone: string;
   declarou_veracidade: boolean; aceitou_termos: boolean;
 }
@@ -80,6 +81,7 @@ export const EMPTY: Form = {
   numero_registro: '', numero_fiscal: '', pais_fiscal: 'PT', pais_fiscal_nome: 'Portugal',
   ddi: '+351', telefone: '', email: '', website: '',
   instagram: '', linkedin: '', facebook: '', outras_redes: '',
+  username: '',
   resp_nome: '', resp_cargo: '', resp_email: '', resp_ddi: '+351', resp_telefone: '',
   declarou_veracidade: false, aceitou_termos: false,
 };
@@ -142,7 +144,7 @@ export function CountrySelect({ value, onChange }: { value: string; onChange: (c
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full bg-gray-50 border-2 border-gray-100 rounded-[18px] py-4 px-5 font-bold text-blue-900 focus:border-blue-900 outline-none transition-all text-sm flex items-center justify-between hover:border-blue-300"
+        className="w-full bg-gray-50 border border-gray-200 py-4 px-5 font-medium text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all text-sm flex items-center justify-between hover:border-[#c9a96e]/50"
       >
         <span className="flex items-center gap-2">
           {selected ? <><span>{selected.flag}</span>{selected.name}</> : 'Selecione o país'}
@@ -150,14 +152,14 @@ export function CountrySelect({ value, onChange }: { value: string; onChange: (c
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border-2 border-gray-100 rounded-[18px] shadow-xl overflow-hidden">
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-gray-100 shadow-xl overflow-hidden">
           <div className="p-2 border-b border-gray-100">
             <input
               autoFocus
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar país…"
-              className="w-full bg-gray-50 rounded-[12px] px-3 py-2 text-sm font-bold text-blue-900 outline-none border-2 border-transparent focus:border-blue-200"
+              className="w-full bg-gray-50 px-3 py-2 text-sm font-medium text-[#1a2b4a] outline-none border border-transparent focus:border-[#c9a96e]/50"
             />
           </div>
           <div className="max-h-48 overflow-y-auto">
@@ -166,10 +168,10 @@ export function CountrySelect({ value, onChange }: { value: string; onChange: (c
                 key={p.code}
                 type="button"
                 onClick={() => { onChange(p.code, p.name); setOpen(false); setSearch(''); }}
-                className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors hover:bg-blue-50 text-left ${value === p.code ? 'bg-blue-50 text-blue-900' : 'text-gray-700'}`}
+                className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-gray-50 text-left ${value === p.code ? 'bg-gray-50 text-[#1a2b4a]' : 'text-gray-700'}`}
               >
                 <span>{p.flag}</span>{p.name}
-                {value === p.code && <span className="ml-auto text-blue-600 font-black text-xs">✓</span>}
+                {value === p.code && <span className="ml-auto text-[#c9a96e] font-semibold text-xs">✓</span>}
               </button>
             ))}
           </div>
@@ -182,7 +184,7 @@ export function CountrySelect({ value, onChange }: { value: string; onChange: (c
 // ── Sub-componentes de UI ─────────────────────────────────────────────────────
 
 export const Label = ({ children }: { children: React.ReactNode }) => (
-  <label className="text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 block">
+  <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-wider ml-1 mb-1.5 block">
     {children}
   </label>
 );
@@ -190,7 +192,7 @@ export const Label = ({ children }: { children: React.ReactNode }) => (
 export const Input = ({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
     {...props}
-    className={`w-full bg-gray-50 border-2 border-gray-100 rounded-[18px] py-4 px-5 font-bold text-blue-900 focus:border-blue-900 outline-none transition-all text-sm placeholder:text-gray-300 ${props.className || ''}`}
+    className={`w-full bg-gray-50 border border-gray-200 py-4 px-5 font-medium text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all text-sm placeholder:text-gray-300 ${props.className || ''}`}
   />
 );
 
@@ -198,6 +200,6 @@ export const Textarea = ({ ...props }: React.TextareaHTMLAttributes<HTMLTextArea
   <textarea
     {...props}
     rows={3}
-    className="w-full bg-gray-50 border-2 border-gray-100 rounded-[18px] py-4 px-5 font-bold text-blue-900 focus:border-blue-900 outline-none transition-all text-sm placeholder:text-gray-300 resize-none"
+    className="w-full bg-gray-50 border border-gray-200 py-4 px-5 font-medium text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all text-sm placeholder:text-gray-300 resize-none"
   />
 );

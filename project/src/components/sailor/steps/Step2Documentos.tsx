@@ -41,7 +41,7 @@ interface Props {
   onNext:  () => void;
 }
 
-const LABEL = 'text-[10px] font-black text-blue-900 uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-1';
+const LABEL = 'text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.12em] ml-1 mb-1.5 flex items-center gap-1';
 
 export function Step2Documentos({
   country, phoneCountry, phoneRaw, nomeCompleto,
@@ -61,23 +61,23 @@ export function Step2Documentos({
     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
 
       {/* Preview do nome */}
-      <div className="bg-blue-50 border-2 border-blue-100 rounded-[20px] p-4 flex items-center gap-3">
-        <div className="w-10 h-10 bg-blue-900 text-white rounded-full flex items-center justify-center font-black text-sm flex-shrink-0">
+      <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 p-4 flex items-center gap-3">
+        <div className="w-10 h-10 bg-[#0a1628] text-[#c9a96e] flex items-center justify-center font-semibold text-sm flex-shrink-0">
           {nomeCompleto.substring(0, 2).toUpperCase() || 'NA'}
         </div>
         <div className="min-w-0">
-          <p className="font-black text-blue-900 uppercase italic text-sm truncate">{nomeCompleto}</p>
-          <p className="text-[10px] text-blue-400 font-bold">{phoneCountry.ddi} {phoneDisplay}</p>
+          <p className="font-semibold text-[#1a2b4a] uppercase italic text-sm truncate">{nomeCompleto}</p>
+          <p className="text-[10px] text-[#c9a96e]/70 font-medium">{phoneCountry.ddi} {phoneDisplay}</p>
         </div>
       </div>
 
       <CountryDropdown value={country.code} onChange={onCountryChange} label="Nacionalidade" />
 
       {/* ── Documento de Identificação ── */}
-      <div className="bg-gray-50 border-2 border-gray-100 rounded-[22px] p-5 space-y-4">
-        <div className="border-b-2 border-gray-100 pb-3">
-          <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest">🪪 Documento de Identificação</p>
-          <p className="text-[10px] text-gray-400 font-bold mt-0.5">Passaporte, RG, BI ou outro</p>
+      <div className="bg-gray-50 border border-gray-100 p-5 space-y-4">
+        <div className="border-b border-gray-100 pb-3">
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">🪪 Documento de Identificação</p>
+          <p className="text-[10px] text-gray-400 font-medium mt-0.5">Passaporte, RG, BI ou outro</p>
         </div>
 
         <DocTypeDropdown value={docIdType} label="Tipo de Documento"
@@ -88,19 +88,19 @@ export function Step2Documentos({
           }} />
 
         <div>
-          <label className={LABEL}><Hash className="w-3 h-3" /> Número</label>
+          <label className={LABEL}><Hash className="w-3 h-3 text-[#c9a96e]" /> Número</label>
           <input value={form2.docNumero}
             onChange={e => onForm2Change({ docNumero: e.target.value.toUpperCase() })}
             placeholder="Número do documento"
-            className="w-full bg-white border-2 border-gray-100 rounded-[15px] py-3 px-4 font-black text-blue-900 uppercase outline-none text-sm tracking-widest focus:border-blue-900 transition-all" />
+            className="w-full bg-white border border-gray-200 py-3 px-4 font-semibold text-[#1a2b4a] uppercase outline-none text-sm tracking-widest focus:border-[#c9a96e] transition-all" />
         </div>
 
         <div>
-          <label className={LABEL}><Calendar className="w-3 h-3" /> Validade</label>
+          <label className={LABEL}><Calendar className="w-3 h-3 text-[#c9a96e]" /> Validade</label>
           <input type="text" inputMode="numeric" value={form2.docValidade}
             onChange={e => onForm2Change({ docValidade: applyDateMask(e.target.value) })}
             placeholder="dd/mm/aaaa" maxLength={10}
-            className="w-full bg-white border-2 border-gray-100 rounded-[15px] py-3 px-4 font-bold text-blue-900 outline-none text-sm focus:border-blue-900 transition-all" />
+            className="w-full bg-white border border-gray-200 py-3 px-4 font-medium text-[#1a2b4a] outline-none text-sm focus:border-[#c9a96e] transition-all" />
         </div>
 
         <div className="space-y-3">
@@ -116,32 +116,32 @@ export function Step2Documentos({
       </div>
 
       {/* ── Carta de Habilitação Náutica ── */}
-      <div className="bg-gray-50 border-2 border-gray-100 rounded-[22px] p-5 space-y-4">
-        <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest border-b-2 border-gray-100 pb-3">
+      <div className="bg-gray-50 border border-gray-100 p-5 space-y-4">
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] border-b border-gray-100 pb-3">
           ⚓ Carta de Habilitação Náutica
         </p>
 
         <div>
-          <label className={LABEL}><CreditCard className="w-3 h-3" /> Tipo de Habilitação</label>
-          <div className="w-full bg-gray-50 border-2 border-blue-900 rounded-[15px] py-3 px-4 font-black text-blue-900 text-sm flex items-center gap-2">
+          <label className={LABEL}><CreditCard className="w-3 h-3 text-[#c9a96e]" /> Tipo de Habilitação</label>
+          <div className="w-full bg-gray-50 border border-[#c9a96e]/40 py-3 px-4 font-semibold text-[#1a2b4a] text-sm flex items-center gap-2">
             <span>⚓</span> Habilitação Náutica
           </div>
         </div>
 
         <div>
-          <label className={LABEL}><Hash className="w-3 h-3" /> Nº da Habilitação</label>
+          <label className={LABEL}><Hash className="w-3 h-3 text-[#c9a96e]" /> Nº da Habilitação</label>
           <input value={form2.cartaNumero}
             onChange={e => onForm2Change({ cartaNumero: e.target.value.toUpperCase() })}
             placeholder="Número da carta de habilitação"
-            className="w-full bg-white border-2 border-gray-100 rounded-[15px] py-3 px-4 font-black text-blue-900 uppercase outline-none text-sm focus:border-blue-900 transition-all" />
+            className="w-full bg-white border border-gray-200 py-3 px-4 font-semibold text-[#1a2b4a] uppercase outline-none text-sm focus:border-[#c9a96e] transition-all" />
         </div>
 
         <div>
-          <label className={LABEL}><Calendar className="w-3 h-3" /> Validade</label>
+          <label className={LABEL}><Calendar className="w-3 h-3 text-[#c9a96e]" /> Validade</label>
           <input type="text" inputMode="numeric" value={form2.cartaValidade}
             onChange={e => onForm2Change({ cartaValidade: applyDateMask(e.target.value) })}
             placeholder="dd/mm/aaaa" maxLength={10}
-            className="w-full bg-white border-2 border-gray-100 rounded-[15px] py-3 px-4 font-bold text-blue-900 outline-none text-sm focus:border-blue-900 transition-all" />
+            className="w-full bg-white border border-gray-200 py-3 px-4 font-medium text-[#1a2b4a] outline-none text-sm focus:border-[#c9a96e] transition-all" />
         </div>
 
         <div className="space-y-3">
@@ -158,11 +158,11 @@ export function Step2Documentos({
 
       <div className="flex gap-3 pt-2">
         <button type="button" onClick={onBack}
-          className="px-6 py-5 border-2 border-gray-100 text-gray-400 rounded-[30px] font-black text-sm uppercase hover:border-blue-900 hover:text-blue-900 transition-all">
+          className="px-6 py-4 border border-gray-200 text-gray-400 font-semibold text-sm uppercase hover:border-[#c9a96e] hover:text-[#1a2b4a] transition-all">
           ← Voltar
         </button>
         <button type="button" onClick={onNext}
-          className="flex-1 bg-blue-900 text-white py-5 rounded-[30px] font-black uppercase tracking-widest text-sm hover:bg-blue-800 shadow-xl transition-all">
+          className="flex-1 bg-[#0a1628] text-white py-4 font-semibold uppercase tracking-widest text-sm hover:bg-[#1a2b4a] transition-all">
           Próximo → Certificados STCW
         </button>
       </div>

@@ -28,6 +28,7 @@ export interface Company {
   resp_cargo:          string;
   resp_email:          string;
   resp_telefone:       string;
+  username?:           string;
   company_login?:      string;
   company_password?:   string;
   blocked?:            boolean;
