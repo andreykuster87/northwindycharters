@@ -35,11 +35,11 @@ export function CompanyLoginModal({ onLogin, onClose, onRegister }: Props) {
       hint={
         <div className="bg-[#0a1628]/5 border border-[#c9a96e]/20 px-4 py-3">
           <p className="text-xs font-medium text-[#1a2b4a]">
-            Login: <strong className="text-[#c9a96e]">empresa#número</strong> · Senha recebida via WhatsApp na aprovação
+            Login: <strong className="text-[#c9a96e]">empresa#número</strong> ou <strong className="text-[#c9a96e]">e-mail</strong> · Senha recebida via WhatsApp na aprovação
           </p>
         </div>
       }
-      loginPlaceholder="Ex: marinacascais#1"
+      loginPlaceholder="Ex: marinacascais#1 ou email@exemplo.com"
       passwdPlaceholder="Senha recebida via WhatsApp"
       submitLabel="Entrar na Empresa"
       onSubmit={handleSubmit}

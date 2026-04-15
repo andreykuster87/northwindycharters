@@ -191,6 +191,8 @@ function mapSailor(r: any): Sailor {
     created_at: r.created_at, profile_photo: r.profile_photo ?? null,
     username: r.username ?? undefined,
     pending_docs: r.pending_docs ?? null,
+    album: r.album ?? [],
+    disponibilidade: r.disponibilidade ?? [],
   };
 }
 
@@ -436,8 +438,10 @@ export async function deleteCompany(id: string): Promise<void> {
 }
 
 export function companyLogin(loginInput: string, password: string): { ok: true; company: Company } | { ok: false; reason: string } {
+  const input = loginInput.trim().toLowerCase();
   const found = cache.companies.find(c =>
-    (c.company_login ?? '').toLowerCase() === loginInput.trim().toLowerCase()
+    (c.company_login ?? '').toLowerCase() === input ||
+    (c.email ?? '').toLowerCase() === input
   );
   if (!found)                       return { ok: false, reason: 'not_found' };
   if (found.blocked)                return { ok: false, reason: 'blocked' };

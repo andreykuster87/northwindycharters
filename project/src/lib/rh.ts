@@ -363,23 +363,43 @@ export async function markReciboVisto(id: string): Promise<void> {
   if (error) console.error('[rh] markReciboVisto:', error);
 }
 
-// Conta itens não lidos para o badge: recibos 'enviado' + comunicados não vistos (tracked por localStorage)
-export async function loadEmpresaUnread(sailorId: string): Promise<number> {
+// ── Bell items ─────────────────────────────────────────────────────────────────
+
+export interface BellItem {
+  id:        string;
+  titulo:    string;
+  tipo:      'comunicado' | 'recibo';
+  createdAt: string;
+}
+
+/** Retorna contagem + lista de itens não lidos (para o dropdown do sino). */
+export async function loadEmpresaBell(sailorId: string): Promise<{ count: number; items: BellItem[] }> {
   const ref = await findCompanyForSailorDB(sailorId);
-  if (!ref) return 0;
+  if (!ref) return { count: 0, items: [] };
 
   const [comuns, recibos] = await Promise.all([
     loadComunicadosForSailor(ref.companyId, sailorId),
     loadRecibosForSailor(ref.companyId, sailorId),
   ]);
 
-  // Comunicados não vistos: IDs não estão no localStorage seen set
   let seenIds: string[] = [];
   try { seenIds = JSON.parse(localStorage.getItem(`nw_rh_seen_${sailorId}`) || '[]'); } catch { seenIds = []; }
-  const unreadComuns = comuns.filter(c => !seenIds.includes(c.id)).length;
-  const unreadRecibos = recibos.filter(r => r.status === 'enviado').length;
 
-  return unreadComuns + unreadRecibos;
+  const items: BellItem[] = [
+    ...comuns.filter(c => !seenIds.includes(c.id)).map(c => ({
+      id: c.id, titulo: c.titulo, tipo: 'comunicado' as const, createdAt: c.createdAt,
+    })),
+    ...recibos.filter(r => r.status === 'enviado').map(r => ({
+      id: r.id, titulo: `Recibo — ${r.mes}`, tipo: 'recibo' as const, createdAt: r.createdAt,
+    })),
+  ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  return { count: items.length, items };
+}
+
+/** Compat: retorna apenas a contagem. */
+export async function loadEmpresaUnread(sailorId: string): Promise<number> {
+  return (await loadEmpresaBell(sailorId)).count;
 }
 
 export function markComunicadoSeen(sailorId: string, comunicadoId: string): void {

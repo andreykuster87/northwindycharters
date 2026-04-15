@@ -2,16 +2,18 @@
 // Perfil público read-only de um tripulante — design NorthWindy.
 // Dados sensíveis omitidos (email, telefone, NIF, nº de documento).
 // isOwner=true habilita aba de documentos com todos os docs + botão "Incluir".
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   ArrowLeft, Waves, User, FileText, Briefcase,
   MapPin, Globe, Image as ImageIcon, ChevronRight,
   CheckCircle2, AlertTriangle, XCircle, Clock,
   Award, Languages, Anchor, CalendarDays, PlusCircle, Upload, X, Eye, RefreshCw,
+  Building2,
 } from 'lucide-react';
 import { uploadDoc } from '../../lib/storage';
-import { updateSailor, getSailors, type Sailor } from '../../lib/localStore';
-import { STCW_CERTS } from '../../constants/sailorConstants';
+import { updateSailor, getSailors, getCompanies, type Sailor } from '../../lib/localStore';
+import { STCW_CERTS, FUNCOES_MARITIMAS } from '../../constants/sailorConstants';
+import { findCompanyForSailorDB } from '../../lib/rh';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -398,21 +400,154 @@ function IncluirDocModal({ label, docKey, sailorId, onClose, onSuccess }: Inclui
   );
 }
 
+// ── Constantes de disponibilidade ────────────────────────────────────────────
+
+const DISP_OPTIONS = [
+  { id: 'indisponivel',   label: 'Indisponível',           cls: 'bg-red-50    text-red-600    border-red-200'     },
+  { id: 'disponivel',     label: 'Disponível',             cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  { id: 'imediato',       label: 'Embarque Imediato',      cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  { id: 'trajeto_curto',  label: 'Trajeto Curto',          cls: 'bg-blue-50   text-blue-600    border-blue-200'    },
+  { id: 'nacionais',      label: 'Viagens Nacionais',      cls: 'bg-blue-50   text-blue-600    border-blue-200'    },
+  { id: 'internacionais', label: 'Viagens Internacionais', cls: 'bg-indigo-50 text-indigo-600  border-indigo-200'  },
+  { id: 'meio_periodo',   label: 'Meio Período',           cls: 'bg-amber-50  text-amber-600   border-amber-200'   },
+  { id: 'sob_demanda',    label: 'Sob Demanda',            cls: 'bg-gray-50   text-gray-600    border-gray-300'    },
+  { id: 'ferias',         label: 'Férias',                 cls: 'bg-orange-50 text-orange-600  border-orange-200'  },
+] as const;
+
 // ── Tab: Perfil ───────────────────────────────────────────────────────────────
 
-function PerfilTab({ sailor }: { sailor: Sailor }) {
-  const profilePhoto = sailor.profile_photo ?? null;
-  const album: string[] = (sailor as any).album ?? [];
-  const bio = (sailor as any).outras_informacoes as string | undefined;
-  const funcao = (sailor as any).funcao === 'Outro'
-    ? ((sailor as any).funcao_outro || 'Outro')
-    : (sailor as any).funcao;
+function PerfilTab({ sailor, isOwner, onUpdated }: { sailor: Sailor; isOwner?: boolean; onUpdated?: () => void }) {
+  const album: string[] = sailor.album ?? [];
+  const bio = sailor.outras_informacoes;
+
+  // ── Empresa em que o tripulante está no RH ───────────────────────────────
+  const [companyInfo, setCompanyInfo] = useState<{ company: any; cargo: string } | null>(null);
+  useEffect(() => {
+    findCompanyForSailorDB(sailor.id).then(ref => {
+      if (!ref) return;
+      const found = getCompanies().find(c => c.id === ref.companyId);
+      if (found) setCompanyInfo({ company: found, cargo: ref.cargo });
+    });
+  }, [sailor.id]);
+
+  // ── Upload de fotos ──────────────────────────────────────────────────────
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  async function handlePhotoUpload(file: File) {
+    setUploadingPhoto(true);
+    try {
+      const url = await uploadDoc(file, 'sailors', `album-${sailor.id}`);
+      if (!url) return;
+      const current: string[] = sailor.album ?? [];
+      await updateSailor(sailor.id, { album: [...current, url] });
+      onUpdated?.();
+    } catch (err) { console.error('[album upload]', err); }
+    finally { setUploadingPhoto(false); }
+  }
+
+  // ── Funções editáveis ────────────────────────────────────────────────────
+  const rawFuncao = sailor.funcao;
+  const parseFuncoes = (raw?: string): string[] =>
+    raw ? raw.split(',').map(f => f.trim()).filter(Boolean).map(f =>
+      f === 'Outro' ? (sailor.funcao_outro || 'Outro') : f
+    ) : [];
+
+  const [funcoesList,    setFuncoesList]    = useState<string[]>(() => parseFuncoes(rawFuncao));
+  const [showFuncMenu,   setShowFuncMenu]   = useState(false);
+  const [customFuncao,   setCustomFuncao]   = useState('');
+
+  async function saveFuncoes(list: string[], prev: string[]) {
+    try {
+      await updateSailor(sailor.id, { funcao: list.join(', ') });
+      onUpdated?.();
+    } catch (err) {
+      console.error('[funcoes save]', err);
+      setFuncoesList(prev);
+    }
+  }
+
+  function toggleFuncao(f: string) {
+    const prev = funcoesList;
+    const next = funcoesList.includes(f)
+      ? funcoesList.filter(x => x !== f)
+      : [...funcoesList, f];
+    setFuncoesList(next);
+    saveFuncoes(next, prev);
+  }
+
+  function addCustomFuncao() {
+    const trimmed = customFuncao.trim();
+    if (!trimmed || funcoesList.includes(trimmed)) { setCustomFuncao(''); return; }
+    const prev = funcoesList;
+    const next = [...funcoesList, trimmed];
+    setFuncoesList(next);
+    saveFuncoes(next, prev);
+    setCustomFuncao('');
+  }
+
+  // ── Disponibilidade multi-select ─────────────────────────────────────────
+  const initDisp = (): string[] => {
+    if (sailor.disponibilidade?.length) return sailor.disponibilidade;
+    // fallback para campos antigos
+    const d: string[] = [];
+    if (sailor.disponivel_imediato === true)   d.push('imediato');
+    if (sailor.disponivel_internacional === true) d.push('internacionais');
+    return d;
+  };
+
+  const [dispSelecionadas, setDispSelecionadas] = useState<string[]>(initDisp);
+  const [showDispMenu,     setShowDispMenu]     = useState(false);
+
+  async function toggleDisp(id: string) {
+    const prev = dispSelecionadas;
+    const next = dispSelecionadas.includes(id)
+      ? dispSelecionadas.filter(x => x !== id)
+      : [...dispSelecionadas, id];
+    setDispSelecionadas(next);
+    try {
+      await updateSailor(sailor.id, { disponibilidade: next });
+      onUpdated?.();
+    } catch (err) {
+      console.error('[disponibilidade save]', err);
+      setDispSelecionadas(prev); // reverte visual se save falhou
+    }
+  }
 
   return (
     <div className="space-y-6">
 
-      {/* Galeria */}
-      {album.length > 0 && (
+      {/* Empresa — aparece automaticamente se estiver no RH */}
+      {companyInfo && (
+        <div className="bg-white border-2 border-[#0a1628]/5 p-5">
+          <SectionLabel><Building2 className="w-3.5 h-3.5" /> Em Serviço</SectionLabel>
+          <div className="bg-[#0a1628] p-4 flex items-center gap-4">
+            <div className="w-12 h-12 border border-[#c9a96e]/30 overflow-hidden bg-[#1a2b4a] flex items-center justify-center flex-shrink-0">
+              {companyInfo.company.profile_photo
+                ? <img src={companyInfo.company.profile_photo} alt={companyInfo.company.nome_fantasia} className="w-full h-full object-cover" />
+                : <Building2 className="w-6 h-6 text-[#c9a96e]/40" />
+              }
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">
+                {companyInfo.cargo || 'Tripulante'}
+              </p>
+              <p className="font-['Playfair_Display'] font-bold text-white text-sm truncate leading-tight">
+                {companyInfo.company.nome_fantasia}
+              </p>
+              {(companyInfo.company.cidade || companyInfo.company.pais_nome) && (
+                <p className="text-white/50 text-[10px] font-semibold flex items-center gap-1 mt-0.5">
+                  <MapPin className="w-2.5 h-2.5" />
+                  {[companyInfo.company.cidade, companyInfo.company.pais_nome].filter(Boolean).join(', ')}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Galeria de fotos */}
+      {(album.length > 0 || isOwner) && (
         <div className="bg-white border-2 border-[#0a1628]/5 p-5">
           <SectionLabel><ImageIcon className="w-3.5 h-3.5" /> Fotos</SectionLabel>
           <div className="grid grid-cols-3 gap-2">
@@ -421,7 +556,21 @@ function PerfilTab({ sailor }: { sailor: Sailor }) {
                 <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
               </div>
             ))}
+            {isOwner && album.length < 9 && (
+              <button
+                onClick={() => photoInputRef.current?.click()}
+                disabled={uploadingPhoto}
+                className="aspect-square border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1.5 hover:border-[#c9a96e]/50 hover:bg-[#c9a96e]/5 transition-all disabled:opacity-50"
+              >
+                {uploadingPhoto
+                  ? <span className="text-[10px] font-semibold text-gray-400">Enviando…</span>
+                  : <><PlusCircle className="w-5 h-5 text-gray-300" /><span className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Adicionar</span></>
+                }
+              </button>
+            )}
           </div>
+          <input ref={photoInputRef} type="file" accept="image/*" className="hidden"
+            onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); e.target.value = ''; }} />
         </div>
       )}
 
@@ -433,16 +582,16 @@ function PerfilTab({ sailor }: { sailor: Sailor }) {
         </div>
       )}
 
-      {/* Informações básicas */}
+      {/* Informações + Experiência embarcado */}
       <div className="bg-white border-2 border-[#0a1628]/5 p-5">
         <SectionLabel><User className="w-3.5 h-3.5" /> Informações</SectionLabel>
         <div className="space-y-3">
-          {[
-            { icon: Anchor,       label: 'Função',        value: funcao },
-            { icon: Globe,        label: 'Nacionalidade', value: sailor.nacionalidade },
-            { icon: MapPin,       label: 'Localização',   value: (sailor as any).endereco ? undefined : null },
-            { icon: Languages,    label: 'Idioma',        value: sailor.language },
-          ].filter(r => r.value).map(r => (
+          {([
+            { icon: Globe,     label: 'Nacionalidade', value: sailor.nacionalidade },
+            { icon: MapPin,    label: 'Localização',   value: (sailor as any).endereco || null },
+            { icon: Languages, label: 'Idioma',        value: sailor.language },
+          ] as { icon: React.ElementType; label: string; value: string | null | undefined }[])
+            .filter(r => r.value).map(r => (
             <div key={r.label} className="flex items-center gap-3">
               <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
                 <r.icon className="w-3.5 h-3.5 text-[#c9a96e]" />
@@ -453,7 +602,21 @@ function PerfilTab({ sailor }: { sailor: Sailor }) {
               </div>
             </div>
           ))}
-          {/* Idiomas extras */}
+
+          {(sailor as any).experiencia_embarcado !== undefined && (
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
+                <Anchor className="w-3.5 h-3.5 text-[#c9a96e]" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Experiência embarcado</p>
+                <p className={`text-sm font-bold truncate ${(sailor as any).experiencia_embarcado ? 'text-emerald-600' : 'text-gray-400'}`}>
+                  {(sailor as any).experiencia_embarcado ? '✓ Sim, trabalhou embarcado' : '✗ Sem experiência embarcado'}
+                </p>
+              </div>
+            </div>
+          )}
+
           {(sailor as any).idiomas?.length > 0 && (
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -475,35 +638,129 @@ function PerfilTab({ sailor }: { sailor: Sailor }) {
         </div>
       </div>
 
-      {/* Disponibilidade */}
-      {((sailor as any).disponivel_imediato !== undefined || (sailor as any).tempo_embarque) && (
+      {/* ── Funções/Skills — editável para o owner ──────────────────────── */}
+      {(funcoesList.length > 0 || isOwner) && (
         <div className="bg-white border-2 border-[#0a1628]/5 p-5">
-          <SectionLabel><CalendarDays className="w-3.5 h-3.5" /> Disponibilidade</SectionLabel>
+          <SectionLabel><Anchor className="w-3.5 h-3.5" /> Função</SectionLabel>
+
+          {/* Tags das funções selecionadas */}
           <div className="flex flex-wrap gap-2">
-            {(sailor as any).disponivel_imediato !== undefined && (
-              <span className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 border-2 ${
-                (sailor as any).disponivel_imediato
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-gray-50 text-gray-500 border-gray-200'
-              }`}>
-                {(sailor as any).disponivel_imediato ? '✓' : '✗'} Embarque imediato
+            {funcoesList.map(f => (
+              <span key={f} className="flex items-center gap-1.5 bg-[#0a1628] text-[#c9a96e] font-bold text-xs uppercase tracking-widest px-3 py-2 border border-[#c9a96e]/20">
+                {f}
+                {isOwner && (
+                  <button onClick={() => toggleFuncao(f)}
+                    className="text-[#c9a96e]/50 hover:text-red-400 transition-colors leading-none">
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
               </span>
-            )}
-            {(sailor as any).disponivel_internacional !== undefined && (
-              <span className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 border-2 ${
-                (sailor as any).disponivel_internacional
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-gray-50 text-gray-500 border-gray-200'
-              }`}>
-                {(sailor as any).disponivel_internacional ? '✓' : '✗'} Viagens internacionais
-              </span>
-            )}
-            {(sailor as any).tempo_embarque && (
-              <span className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 border-2 bg-[#0a1628]/5 text-[#1a2b4a] border-[#0a1628]/10">
-                <Clock className="w-3 h-3" /> {(sailor as any).tempo_embarque}
-              </span>
+            ))}
+
+            {/* Botão para abrir o menu — só para owner */}
+            {isOwner && (
+              <button
+                onClick={() => setShowFuncMenu(v => !v)}
+                className="flex items-center gap-1 text-xs font-semibold px-3 py-2 border-2 border-dashed border-[#c9a96e]/30 text-[#c9a96e]/70 hover:border-[#c9a96e] hover:text-[#c9a96e] transition-all">
+                <PlusCircle className="w-3.5 h-3.5" /> Adicionar
+              </button>
             )}
           </div>
+
+          {/* Painel de seleção — colapsável */}
+          {isOwner && showFuncMenu && (
+            <div className="mt-3 border border-[#c9a96e]/20 bg-gray-50 p-3 space-y-3">
+              <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Selecione as funções</p>
+              <div className="flex flex-wrap gap-1.5">
+                {FUNCOES_MARITIMAS.filter(f => f !== 'Outro').map(f => {
+                  const active = funcoesList.includes(f);
+                  return (
+                    <button key={f} onClick={() => toggleFuncao(f)}
+                      className={`text-[10px] font-bold uppercase px-3 py-1.5 border transition-all ${
+                        active
+                          ? 'bg-[#0a1628] text-[#c9a96e] border-[#c9a96e]/30'
+                          : 'bg-white text-gray-500 border-gray-200 hover:border-[#c9a96e]/40 hover:text-[#1a2b4a]'
+                      }`}>
+                      {active ? '✓ ' : ''}{f}
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Função personalizada */}
+              <div className="flex gap-2">
+                <input
+                  value={customFuncao}
+                  onChange={e => setCustomFuncao(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomFuncao(); } }}
+                  placeholder="Função personalizada…"
+                  className="flex-1 border border-gray-200 px-3 py-2 text-xs font-semibold text-[#1a2b4a] outline-none focus:border-[#c9a96e] bg-white"
+                />
+                <button onClick={addCustomFuncao}
+                  className="px-3 py-2 bg-[#0a1628] text-[#c9a96e] text-xs font-bold hover:bg-[#1a2b4a] transition-all">
+                  + Adicionar
+                </button>
+              </div>
+              <button onClick={() => setShowFuncMenu(false)}
+                className="text-[9px] font-semibold text-gray-400 hover:text-gray-600 uppercase tracking-wider">
+                Fechar ▲
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Disponibilidade — multi-select colapsável ────────────────────── */}
+      {(dispSelecionadas.length > 0 || isOwner) && (
+        <div className="bg-white border-2 border-[#0a1628]/5 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <SectionLabel><CalendarDays className="w-3.5 h-3.5" /> Disponibilidade</SectionLabel>
+            {isOwner && (
+              <button
+                onClick={() => setShowDispMenu(v => !v)}
+                className="text-[9px] font-bold text-[#c9a96e] uppercase tracking-wider hover:text-[#1a2b4a] transition-colors flex items-center gap-1">
+                {showDispMenu ? <>Fechar <ChevronRight className="w-3 h-3 rotate-90" /></> : <>Editar <ChevronRight className="w-3 h-3" /></>}
+              </button>
+            )}
+          </div>
+
+          {/* Badges das opções selecionadas */}
+          {dispSelecionadas.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {dispSelecionadas.map(id => {
+                const opt = DISP_OPTIONS.find(o => o.id === id);
+                if (!opt) return null;
+                return (
+                  <span key={id} className={`flex items-center gap-1 text-xs font-bold uppercase px-3 py-1.5 border-2 ${opt.cls}`}>
+                    {opt.label}
+                  </span>
+                );
+              })}
+            </div>
+          ) : (
+            isOwner && !showDispMenu && (
+              <p className="text-xs font-semibold text-gray-300 italic">Nenhuma opção selecionada</p>
+            )
+          )}
+
+          {/* Painel de seleção — colapsável */}
+          {isOwner && showDispMenu && (
+            <div className="mt-3 border border-[#c9a96e]/20 bg-gray-50 p-3 space-y-2">
+              <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Selecione sua disponibilidade</p>
+              <div className="flex flex-wrap gap-2">
+                {DISP_OPTIONS.map(opt => {
+                  const active = dispSelecionadas.includes(opt.id);
+                  return (
+                    <button key={opt.id} onClick={() => toggleDisp(opt.id)}
+                      className={`text-[10px] font-bold uppercase px-3 py-1.5 border-2 transition-all ${
+                        active ? opt.cls : 'bg-white text-gray-400 border-gray-200 hover:border-[#c9a96e]/30'
+                      }`}>
+                      {active ? '✓ ' : ''}{opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -587,18 +844,15 @@ function DocumentosTab({ sailor, isOwner, onDocAdded }: DocumentosTabProps) {
     pendingStatus: pendingDocs['medico']?.status,
   });
 
-  // STCW
-  STCW_CERTS.forEach(cert => {
-    const hasStcw = !!(sailor.stcw?.[cert.id]);
-    docs.push({
-      label:    `STCW — ${cert.label}`,
-      validade: (sailor as any).stcw_validades?.[cert.id],
-      present:  hasStcw,
-      docKey:   `stcw_${cert.id}`,
-      docUrl:   (sailor as any).stcw_docs?.[cert.id] ?? null,
-      pendingStatus: pendingDocs[`stcw_${cert.id}`]?.status,
-    });
-  });
+  // STCW — sub-grupo da Caderneta Marítima
+  const stcwDocs: DocEntry[] = STCW_CERTS.map(cert => ({
+    label:    `STCW — ${cert.label}`,
+    validade: (sailor as any).stcw_validades?.[cert.id],
+    present:  !!(sailor.stcw?.[cert.id]),
+    docKey:   `stcw_${cert.id}`,
+    docUrl:   (sailor as any).stcw_docs?.[cert.id] ?? null,
+    pendingStatus: pendingDocs[`stcw_${cert.id}`]?.status,
+  }));
 
   function handleSuccess(docKey: string) {
     setIncluirModal(null);
@@ -649,7 +903,83 @@ function DocumentosTab({ sailor, isOwner, onDocAdded }: DocumentosTabProps) {
 
       <div className="space-y-3">
         {docs.map((d, i) => {
-          // Se está em análise pendente
+          // ── Caderneta Marítima: inclui sub-grupo STCW ────────────────────────
+          if (d.docKey === 'caderneta_maritima') {
+            const hasSomething = d.present || stcwDocs.some(sd => sd.present) || isOwner;
+            if (!hasSomething) return null;
+
+            const cadernetaCard = (() => {
+              if (d.pendingStatus === 'pending') return (
+                <div className="bg-amber-50 border-2 border-amber-200 p-4 flex items-start gap-3">
+                  <div className="w-9 h-9 bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5"><FileText className="w-4 h-4 text-amber-600" /></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-[#1a2b4a] text-sm uppercase leading-tight">{d.label}</p>
+                    <p className="text-[10px] font-semibold text-amber-600 mt-0.5">Aguardando análise do admin</p>
+                  </div>
+                  <span className={`flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-1 border ${STATUS_CFG.pending.cls} flex-shrink-0`}><Clock className="w-3 h-3" /> Em revisão</span>
+                </div>
+              );
+              if (d.present) return (
+                <DocCard label={d.label} validade={d.validade} docUrl={d.docUrl} isOwner={isOwner} onClick={() => setViewingDoc(d)} />
+              );
+              if (!isOwner) return null;
+              return (
+                <div className="bg-white border-2 border-dashed border-gray-200 p-4 flex items-start gap-3 hover:border-[#c9a96e]/30 transition-all">
+                  <div className="w-9 h-9 bg-gray-50 flex items-center justify-center flex-shrink-0 mt-0.5"><FileText className="w-4 h-4 text-gray-300" /></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-400 text-sm uppercase leading-tight">{d.label}</p>
+                    <p className="text-[10px] font-semibold text-gray-300 mt-0.5">Validade: —</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={`flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-1 border ${STATUS_CFG.missing.cls}`}><XCircle className="w-3 h-3" /> Não possui</span>
+                    <button onClick={() => setIncluirModal({ label: d.label, docKey: d.docKey })} className="flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-1 border border-[#c9a96e]/40 bg-[#c9a96e]/10 text-[#c9a96e] hover:bg-[#c9a96e]/20 transition-all flex-shrink-0"><PlusCircle className="w-3 h-3" /> Incluir</button>
+                  </div>
+                </div>
+              );
+            })();
+
+            return (
+              <div key={i}>
+                {cadernetaCard}
+                <div className="ml-4 border-l-2 border-[#c9a96e]/20 space-y-1 pt-1.5">
+                  <p className="text-[9px] font-semibold text-[#c9a96e]/70 uppercase tracking-[0.15em] pl-3 pb-1">
+                    ⚡ Certificados STCW
+                  </p>
+                  {stcwDocs.map((sd, si) => {
+                    if (sd.pendingStatus === 'pending') return (
+                      <div key={si} className="bg-amber-50 border-2 border-amber-200 p-3 flex items-start gap-3">
+                        <div className="w-8 h-8 bg-amber-100 flex items-center justify-center flex-shrink-0"><FileText className="w-3.5 h-3.5 text-amber-600" /></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-[#1a2b4a] text-xs uppercase leading-tight">{sd.label}</p>
+                          <p className="text-[10px] font-semibold text-amber-600 mt-0.5">Aguardando análise do admin</p>
+                        </div>
+                        <span className={`flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-1 border ${STATUS_CFG.pending.cls} flex-shrink-0`}><Clock className="w-3 h-3" /> Em revisão</span>
+                      </div>
+                    );
+                    if (sd.present) return (
+                      <DocCard key={si} label={sd.label} validade={sd.validade} docUrl={sd.docUrl} isOwner={isOwner} onClick={() => setViewingDoc(sd)} />
+                    );
+                    if (!isOwner) return null;
+                    return (
+                      <div key={si} className="bg-white border-2 border-dashed border-gray-200 p-3 flex items-start gap-3 hover:border-[#c9a96e]/30 transition-all">
+                        <div className="w-8 h-8 bg-gray-50 flex items-center justify-center flex-shrink-0"><FileText className="w-3.5 h-3.5 text-gray-300" /></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-gray-400 text-xs uppercase leading-tight">{sd.label}</p>
+                          <p className="text-[10px] font-semibold text-gray-300 mt-0.5">Validade: —</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className={`flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-1 border ${STATUS_CFG.missing.cls}`}><XCircle className="w-3 h-3" /> Não possui</span>
+                          <button onClick={() => setIncluirModal({ label: sd.label, docKey: sd.docKey })} className="flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-1 border border-[#c9a96e]/40 bg-[#c9a96e]/10 text-[#c9a96e] hover:bg-[#c9a96e]/20 transition-all flex-shrink-0"><PlusCircle className="w-3 h-3" /> Incluir</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          }
+
+          // ── Outros documentos ─────────────────────────────────────────────────
           if (d.pendingStatus === 'pending') {
             return (
               <div key={i} className="bg-amber-50 border-2 border-amber-200 p-4 flex items-start gap-3">
@@ -826,12 +1156,11 @@ function ExperienciaTab({ sailor }: { sailor: Sailor }) {
 
 // ── Componente Principal ──────────────────────────────────────────────────────
 
-export type ViewTab = 'perfil' | 'documentos' | 'experiencia';
+export type ViewTab = 'perfil' | 'documentos';
 
 export const VIEW_TABS: { key: ViewTab; icon: React.ElementType; label: string; short: string }[] = [
-  { key: 'perfil',      icon: User,        label: 'Perfil',       short: 'Perfil'  },
-  { key: 'documentos',  icon: FileText,    label: 'Documentos',   short: 'Docs'    },
-  { key: 'experiencia', icon: Briefcase,   label: 'Experiência',  short: 'Exp.'    },
+  { key: 'perfil',     icon: User,     label: 'Perfil',     short: 'Perfil' },
+  { key: 'documentos', icon: FileText, label: 'Documentos', short: 'Docs'   },
 ];
 
 // ── SailorProfileContent — conteúdo inline (sem navbar/sidebar próprios) ──────
@@ -860,9 +1189,8 @@ export function SailorProfileContent({ sailor, subTab, isOwner, onDocAdded }: Sa
 
   return (
     <>
-      {subTab === 'perfil'      && <PerfilTab      sailor={localSailor} />}
-      {subTab === 'documentos'  && <DocumentosTab  sailor={localSailor} isOwner={isOwner} onDocAdded={handleDocAdded} />}
-      {subTab === 'experiencia' && <ExperienciaTab sailor={localSailor} />}
+      {subTab === 'perfil'     && <PerfilTab     sailor={localSailor} isOwner={isOwner} onUpdated={handleDocAdded} />}
+      {subTab === 'documentos' && <DocumentosTab sailor={localSailor} isOwner={isOwner} onDocAdded={handleDocAdded} />}
     </>
   );
 }
@@ -873,8 +1201,9 @@ interface SailorProfileViewProps {
   isOwner?:  boolean;
 }
 
+// ── Tipo para itens do sino ───────────────────────────────────────────────────
 export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileViewProps) {
-  const [tab,        setTab]        = useState<ViewTab>('perfil');
+  const [tab,         setTab]         = useState<ViewTab>('perfil');
   const [localSailor, setLocalSailor] = useState<Sailor>(sailor);
 
   // Refresh local sailor data after adding a doc
@@ -947,6 +1276,7 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
             {VIEW_TABS.map(t => {
               const Icon   = t.icon;
               const active = tab === t.key;
+              const badge  = t.key === 'empresa' && isOwner && empresaUnread > 0 ? empresaUnread : 0;
               return (
                 <button key={t.key} onClick={() => setTab(t.key)}
                   className={`w-full flex items-center gap-3 px-4 py-3.5 text-xs font-semibold uppercase tracking-wider transition-all border-b border-[#0a1628]/5 last:border-0 ${
@@ -956,7 +1286,12 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
                   }`}>
                   <Icon className="w-3.5 h-3.5 flex-shrink-0" />
                   <span className="flex-1 text-left">{t.label}</span>
-                  {active && <ChevronRight className="w-3 h-3 text-[#c9a96e]" />}
+                  {badge > 0 && (
+                    <span className="w-4 h-4 bg-red-500 text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+                      {badge > 9 ? '9+' : badge}
+                    </span>
+                  )}
+                  {active && !badge && <ChevronRight className="w-3 h-3 text-[#c9a96e]" />}
                 </button>
               );
             })}
@@ -965,9 +1300,8 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
 
         {/* ── MAIN CONTENT ── */}
         <main className="flex-1 min-w-0 px-4 py-6 pb-24 md:pb-6 overflow-hidden">
-          {tab === 'perfil'      && <PerfilTab      sailor={localSailor} />}
-          {tab === 'documentos'  && <DocumentosTab  sailor={localSailor} isOwner={isOwner} onDocAdded={handleDocAdded} />}
-          {tab === 'experiencia' && <ExperienciaTab sailor={localSailor} />}
+          {tab === 'perfil'     && <PerfilTab     sailor={localSailor} isOwner={isOwner} onUpdated={handleDocAdded} />}
+          {tab === 'documentos' && <DocumentosTab sailor={localSailor} isOwner={isOwner} onDocAdded={handleDocAdded} />}
         </main>
       </div>
 
@@ -977,12 +1311,20 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
           {VIEW_TABS.map(t => {
             const Icon   = t.icon;
             const active = tab === t.key;
+            const badge  = t.key === 'empresa' && isOwner && empresaUnread > 0 ? empresaUnread : 0;
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all relative ${
                   active ? 'text-[#c9a96e]' : 'text-white/40'
                 }`}>
-                <Icon className={`w-5 h-5 transition-all ${active ? 'scale-110' : ''}`} />
+                <div className="relative">
+                  <Icon className={`w-5 h-5 transition-all ${active ? 'scale-110' : ''}`} />
+                  {badge > 0 && (
+                    <span className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-red-500 text-white text-[8px] font-bold flex items-center justify-center">
+                      {badge > 9 ? '9+' : badge}
+                    </span>
+                  )}
+                </div>
                 <span className="text-[9px] font-semibold uppercase tracking-wide">{t.short}</span>
                 {active && <div className="absolute bottom-0 h-0.5 w-8 bg-[#c9a96e]" />}
               </button>

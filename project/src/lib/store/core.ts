@@ -87,6 +87,8 @@ export interface Sailor {
   profile_photo?: string | null;
   username?:      string;
   pending_docs?:  Record<string, { doc_url: string; validade?: string; numero?: string; submitted_at: string; status: 'pending' | 'approved' | 'rejected' }> | null;
+  album?:         string[];
+  disponibilidade?: string[];
 }
 
 export interface Client {

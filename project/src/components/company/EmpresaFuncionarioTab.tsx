@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   Building2, FileText, Download, Bell, ChevronDown, ChevronUp,
-  Plus, Eye, HeartPulse, Sun,
+  Plus, Eye, HeartPulse, Sun, Send, MessageSquare,
 } from 'lucide-react';
 import { uploadDoc } from '../../lib/storage';
 import { getCompanies, refreshAll } from '../../lib/localStore';
@@ -265,17 +265,11 @@ export function EmpresaFuncionarioTab({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <h2 className="text-lg font-['Playfair_Display'] font-bold text-[#1a2b4a] uppercase flex items-center gap-2">
-            <Building2 className="w-5 h-5" /> Empresa
-          </h2>
-          <p className="text-xs text-gray-400 font-bold">Comunicações internas</p>
-        </div>
-        <button onClick={openNew}
-          className="bg-[#0a1628] hover:bg-[#0a1628]/90 text-white px-4 py-2.5 font-semibold text-xs uppercase flex items-center gap-1.5 flex-shrink-0 transition-all">
-          <Plus className="w-3.5 h-3.5" /> Mensagem
-        </button>
+      <div>
+        <h2 className="text-lg font-['Playfair_Display'] font-bold text-[#1a2b4a] uppercase flex items-center gap-2">
+          <Building2 className="w-5 h-5" /> Empresa
+        </h2>
+        <p className="text-xs text-gray-400 font-bold">Comunicações internas</p>
       </div>
 
       {/* Banner férias/atestado ativo */}
@@ -438,12 +432,20 @@ export function EmpresaFuncionarioTab({
       {/* ── Enviadas ── */}
       {subTab === 'enviadas' && (
         respostas.length === 0 ? (
-          <div className="bg-white border border-dashed border-gray-200 py-12 text-center">
+          <div className="bg-white border border-dashed border-gray-200 py-12 text-center px-6">
             <Send className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-            <p className="font-semibold text-gray-300 uppercase text-sm">Sem mensagens enviadas</p>
+            <p className="font-semibold text-gray-300 uppercase text-sm mb-4">Sem mensagens enviadas</p>
+            <button onClick={openNew}
+              className="inline-flex items-center gap-2 bg-[#0a1628] hover:bg-[#0a1628]/90 text-white px-5 py-2.5 font-semibold text-xs uppercase transition-all">
+              <Plus className="w-3.5 h-3.5" /> Nova Mensagem
+            </button>
           </div>
         ) : (
           <div className="space-y-2">
+            <button onClick={openNew}
+              className="w-full flex items-center justify-center gap-2 border border-dashed border-[#0a1628]/20 hover:border-[#c9a96e]/40 hover:bg-[#c9a96e]/5 py-2.5 font-semibold text-xs uppercase text-[#1a2b4a]/50 hover:text-[#1a2b4a] transition-all">
+              <Plus className="w-3.5 h-3.5" /> Nova Mensagem
+            </button>
             {respostas.map(r => (
               <div key={r.id} className="bg-white border border-gray-100 overflow-hidden hover:border-[#c9a96e]/20 transition-all">
                 <div className="px-4 py-3">

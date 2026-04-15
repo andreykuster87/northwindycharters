@@ -228,7 +228,7 @@ export function DossierSailorProfile({ sailor, isPending, isVerified }: Props) {
         />
       </div>
 
-      {/* 2b. Caderneta Marítima */}
+      {/* 2b. Caderneta Marítima + sub-grupo STCW */}
       <div>
         <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">
           ⚓ Caderneta Marítima (CIR)
@@ -248,6 +248,36 @@ export function DossierSailorProfile({ sailor, isPending, isVerified }: Props) {
         ) : (
           <p className="text-[10px] text-gray-400 font-bold bg-gray-50 px-4 py-3">Não informada</p>
         )}
+
+        {/* Certificados STCW — sub-grupo */}
+        <div className="ml-4 border-l-2 border-[#c9a96e]/20 mt-3 space-y-2">
+          <p className="text-[9px] font-semibold text-[#c9a96e]/70 uppercase tracking-[0.15em] pl-3 pb-1">
+            ⚡ Certificados STCW
+          </p>
+          {sailor.stcw && Object.values(sailor.stcw).some(Boolean) ? (
+            <div className="pl-3 space-y-1.5">
+              {Object.entries(sailor.stcw)
+                .filter(([, v]) => v)
+                .map(([k]) => {
+                  const validade = (sailor as any).stcw_validades?.[k];
+                  return (
+                    <div key={k} className="flex items-center justify-between bg-[#0a1628] text-white px-4 py-2.5">
+                      <span className="text-[10px] font-semibold uppercase">✓ {k}</span>
+                      {validade && (
+                        <span className="text-[10px] font-bold text-[#c9a96e]">
+                          Val: {fmtAnyDate(validade)}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          ) : (
+            <p className="text-[10px] text-gray-400 font-bold bg-gray-50 px-4 py-3 ml-3">
+              Nenhum certificado informado
+            </p>
+          )}
+        </div>
       </div>
 
       {/* 3. Carta de Patrão / Mestre */}
@@ -270,36 +300,6 @@ export function DossierSailorProfile({ sailor, isPending, isVerified }: Props) {
         ) : (
           <p className="text-[10px] text-gray-400 font-bold bg-gray-50 px-4 py-3">
             Não informada
-          </p>
-        )}
-      </div>
-
-      {/* 4. Certificados STCW */}
-      <div>
-        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">
-          ⚡ Certificados STCW
-        </p>
-        {sailor.stcw && Object.values(sailor.stcw).some(Boolean) ? (
-          <div className="space-y-2">
-            {Object.entries(sailor.stcw)
-              .filter(([, v]) => v)
-              .map(([k]) => {
-                const validade = (sailor as any).stcw_validades?.[k];
-                return (
-                  <div key={k} className="flex items-center justify-between bg-[#0a1628] text-white px-4 py-2.5">
-                    <span className="text-[10px] font-semibold uppercase">✓ {k}</span>
-                    {validade && (
-                      <span className="text-[10px] font-bold text-[#c9a96e]">
-                        Val: {fmtAnyDate(validade)}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-          </div>
-        ) : (
-          <p className="text-[10px] text-gray-400 font-bold bg-gray-50 px-4 py-3">
-            Nenhum certificado informado
           </p>
         )}
       </div>

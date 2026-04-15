@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { MarketplaceTab } from '../shared/MarketplaceTab';
 import { EmpresaFuncionarioTab } from '../company/EmpresaFuncionarioTab';
-import { loadEmpresaUnread } from '../../lib/rh';
+import { loadEmpresaBell, markComunicadoSeen, type BellItem } from '../../lib/rh';
 import type { Company } from '../../lib/store/companies';
 import {
   getSailors, getClients, getBoats, getTrips, getBookings,
@@ -118,6 +118,7 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
   const activeCompaniesCount  = getCompanies().filter(c => c.status === 'active').length;
   const unreadMsgs            = isSailor && auth.sailorId ? sailorMsgs.filter(m => !m.read).length : 0;
   const [empresaUnread, setEmpresaUnread] = useState(0);
+  const [bellItems,     setBellItems]     = useState<BellItem[]>([]);
 
   useEffect(() => { loadData(); }, [auth]); // eslint-disable-line
   useEffect(() => { setSailorPhoto(sailorData?.profile_photo || ''); }, [sailorData?.profile_photo]); // eslint-disable-line
@@ -131,7 +132,10 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
       setBoats(getBoats(auth.sailorId));
       setTrips(getTrips(auth.sailorId));
       setSailorMsgs(getMessages(auth.sailorId));
-      loadEmpresaUnread(auth.sailorId).then(setEmpresaUnread);
+      loadEmpresaBell(auth.sailorId).then(({ count, items }) => {
+        setEmpresaUnread(count);
+        setBellItems(items);
+      });
     } else {
       setBoats(getBoats());
       setTrips(getTrips());
@@ -269,10 +273,19 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
         isAdmin={isAdmin} isSailor={isSailor} auth={auth}
         sailorData={sailorData} sailorPhoto={sailorPhoto}
         unreadMsgs={unreadMsgs} empresaUnread={empresaUnread} solBadge={solBadge}
+        bellItems={bellItems}
         onLogout={onLogout}
         onSettings={() => setShowSettings(true)}
         onGoToMessages={() => handleTabChange('mensagens')}
         onGoToSol={() => handleTabChange('sol')}
+        onGoToEmpresa={(itemId?: string) => {
+          handleTabChange('empresa');
+          if (itemId) {
+            markComunicadoSeen(auth?.sailorId ?? '', itemId);
+            setBellItems(prev => prev.filter(i => i.id !== itemId));
+            setEmpresaUnread(prev => Math.max(0, prev - 1));
+          }
+        }}
         onOpenSailorDossier={s => setViewingSailorProfile(s)}
         onOpenClientDossier={c => setDossierClient(c)}
         onOpenCompanyDossier={(c: Company) => setViewingCompany(c)}
