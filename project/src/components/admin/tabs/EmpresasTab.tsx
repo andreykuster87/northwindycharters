@@ -281,7 +281,11 @@ function CompanyCard({ company, onStatusChange, onDelete, defaultExpanded = fals
 
 // ── Linha compacta na lista ───────────────────────────────────────────────────
 
-function CompanyRow({ company, onClick }: { company: Company; onClick: () => void }) {
+function CompanyRow({ company, onClick, onViewProfile }: {
+  company: Company;
+  onClick: () => void;
+  onViewProfile?: (company: Company) => void;
+}) {
   const initials = company.nome_fantasia.substring(0, 2).toUpperCase();
   const rating   = (company as any).rating;
 
@@ -311,6 +315,14 @@ function CompanyRow({ company, onClick }: { company: Company; onClick: () => voi
         <span className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold px-2 py-0.5">
           #{company.profile_number}
         </span>
+        {onViewProfile && (
+          <button
+            onClick={e => { e.stopPropagation(); onViewProfile(company); }}
+            title="Ver perfil público"
+            className="flex items-center gap-1 text-[9px] font-semibold uppercase px-2 py-1 bg-[#0a1628]/5 text-[#1a2b4a] hover:bg-[#c9a96e]/15 hover:text-[#c9a96e] transition-colors border border-[#0a1628]/10">
+            <ExternalLink className="w-3 h-3" /> Perfil
+          </button>
+        )}
         <StatusBadge status={company.status} />
         <ChevronDown className="w-3.5 h-3.5 text-gray-300 group-hover:text-amber-500 transition-colors" />
       </div>
@@ -352,7 +364,10 @@ function CompanyDetailModal({ company, onClose, onStatusChange, onDelete }: {
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
-export function EmpresasTab({ onGoToSolicitacoes }: { onGoToSolicitacoes: () => void }) {
+export function EmpresasTab({ onGoToSolicitacoes, onViewProfile }: {
+  onGoToSolicitacoes: () => void;
+  onViewProfile?: (company: Company) => void;
+}) {
   const [search,          setSearch]          = useState('');
   const [filterSetor,     setFilterSetor]     = useState('');
   const [filterStatus,    setFilterStatus]    = useState('active');
@@ -516,6 +531,7 @@ export function EmpresasTab({ onGoToSolicitacoes }: { onGoToSolicitacoes: () => 
                 key={c.id}
                 company={c}
                 onClick={() => setSelectedCompany(c)}
+                onViewProfile={onViewProfile}
               />
             ))}
           </div>

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__apply_migration",
+      "Bash(find . -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) -exec grep -l \"ProfileSearch\\\\|CompanyArea\\\\|SailorArea\\\\|empresa.*lista\\\\|company.*list\" {} \\\\;)",
+      "Bash(echo \"EXIT: $?\")",
+      "mcp__26b236b4-6d6b-446f-a0c7-c3dca3d58d25__deploy_to_vercel",
+      "Bash(npx vercel:*)",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}

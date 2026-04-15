@@ -1,6 +1,9 @@
 // src/components/client/PerfilTab.tsx
-import { useRef } from 'react';
-import { Camera, CheckCircle2, Mail, Phone, Anchor } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Camera, CheckCircle2, Mail, Phone, Anchor, User, FileText } from 'lucide-react';
+import { DocumentosTab } from './DocumentosTab';
+import { DocumentoViewer } from './DocumentoViewer';
+import type { DocumentoDisplayItem } from './DocumentoViewer';
 
 interface Props {
   client:           any;
@@ -10,8 +13,12 @@ interface Props {
   onOpenApplication: () => void;
 }
 
+type SubTab = 'perfil' | 'documentos';
+
 export function PerfilTab({ client, profilePhoto, onPhotoChange, onGoToComunidade, onOpenApplication }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [subTab, setSubTab] = useState<SubTab>('perfil');
+  const [docViewing, setDocViewing] = useState<DocumentoDisplayItem | null>(null);
 
   function handleFile(file: File) {
     if (file.size > 4 * 1024 * 1024) { alert('Máximo 4MB'); return; }
@@ -105,77 +112,118 @@ export function PerfilTab({ client, profilePhoto, onPhotoChange, onGoToComunidad
         )}
       </div>
 
-      {/* Contacto */}
-      <div className="bg-white border border-gray-100 p-4 space-y-3 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/30 to-transparent" />
-        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Contacto</p>
-        {[
-          { icon: Mail,  value: client.email },
-          { icon: Phone, value: client.phone,
-            href: client.phone ? `https://wa.me/${client.phone.replace(/\D/g,'')}` : undefined },
-        ].filter(r => r.value).map((r, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[#0a1628] flex items-center justify-center flex-shrink-0">
-              <r.icon className="w-4 h-4 text-[#c9a96e]" />
-            </div>
-            {r.href
-              ? <a href={r.href} target="_blank" rel="noreferrer"
-                  className="text-sm font-medium text-green-600 hover:underline truncate">{r.value}</a>
-              : <p className="text-sm font-medium text-gray-700 truncate">{r.value}</p>
-            }
-          </div>
+      {/* SubTabs: Perfil | Documentos */}
+      <div className="flex border-b border-gray-200">
+        {([
+          { key: 'perfil',      label: 'Informações',  icon: User },
+          { key: 'documentos',  label: 'Documentos',   icon: FileText },
+        ] as { key: SubTab; label: string; icon: any }[]).map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => setSubTab(key)}
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold transition-all border-b-2 -mb-px ${
+              subTab === key
+                ? 'border-[#c9a96e] text-[#c9a96e]'
+                : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {label}
+          </button>
         ))}
       </div>
 
-      {/* Documento */}
-      <div className="bg-white border border-gray-100 p-4 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/30 to-transparent" />
-        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">Documento de Identidade</p>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            ['Tipo',      client.doc_type || '—'],
-            ['Número',    client.passport_number || '—'],
-            ['Validade',  client.passport_expires ? new Date(client.passport_expires).toLocaleDateString('pt-PT') : '—'],
-          ].map(([l, v]) => (
-            <div key={l} className="bg-gray-50 border border-gray-100 px-3 py-2.5">
-              <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">{l}</p>
-              <p className="text-sm font-['Playfair_Display'] font-bold text-[#1a2b4a] mt-0.5">{v}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Conteúdo da subaba */}
+      {subTab === 'perfil' && (
+        <div className="space-y-4">
+          {/* Contacto */}
+          <div className="bg-white border border-gray-100 p-4 space-y-3 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/30 to-transparent" />
+            <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Contacto</p>
+            {[
+              { icon: Mail,  value: client.email },
+              { icon: Phone, value: client.phone,
+                href: client.phone ? `https://wa.me/${client.phone.replace(/\D/g,'')}` : undefined },
+            ].filter(r => r.value).map((r, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-[#0a1628] flex items-center justify-center flex-shrink-0">
+                  <r.icon className="w-4 h-4 text-[#c9a96e]" />
+                </div>
+                {r.href
+                  ? <a href={r.href} target="_blank" rel="noreferrer"
+                      className="text-sm font-medium text-green-600 hover:underline truncate">{r.value}</a>
+                  : <p className="text-sm font-medium text-gray-700 truncate">{r.value}</p>
+                }
+              </div>
+            ))}
+          </div>
 
-      {/* Data de nascimento */}
-      {client.birth_date && (
-        <div className="bg-white border border-gray-100 p-4 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/30 to-transparent" />
-          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-2">Data de Nascimento</p>
-          <p className="text-sm font-['Playfair_Display'] font-bold text-[#1a2b4a]">
-            {new Date(client.birth_date).toLocaleDateString('pt-PT', { day:'2-digit', month:'long', year:'numeric' })}
-          </p>
+          {/* Documento */}
+          <div className="bg-white border border-gray-100 p-4 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/30 to-transparent" />
+            <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3">Documento de Identidade</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                ['Tipo',      client.doc_type || '—'],
+                ['Número',    client.passport_number || '—'],
+                ['Validade',  client.passport_expires ? new Date(client.passport_expires).toLocaleDateString('pt-PT') : '—'],
+              ].map(([l, v]) => (
+                <div key={l} className="bg-gray-50 border border-gray-100 px-3 py-2.5">
+                  <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">{l}</p>
+                  <p className="text-sm font-['Playfair_Display'] font-bold text-[#1a2b4a] mt-0.5">{v}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Data de nascimento */}
+          {client.birth_date && (
+            <div className="bg-white border border-gray-100 p-4 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/30 to-transparent" />
+              <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-2">Data de Nascimento</p>
+              <p className="text-sm font-['Playfair_Display'] font-bold text-[#1a2b4a]">
+                {new Date(client.birth_date).toLocaleDateString('pt-PT', { day:'2-digit', month:'long', year:'numeric' })}
+              </p>
+            </div>
+          )}
+
+          {/* Aviso comunidade */}
+          <div className="bg-[#0a1628] p-4 flex items-start gap-3 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-[0.04]"
+              style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 0,transparent 60px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 0,transparent 60px)' }} />
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/60 to-transparent" />
+            <div className="w-9 h-9 bg-[#c9a96e]/15 border border-[#c9a96e]/30 flex items-center justify-center flex-shrink-0 mt-0.5 relative">
+              <Anchor className="w-4 h-4 text-[#c9a96e]" />
+            </div>
+            <div className="flex-1 min-w-0 relative">
+              <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Faça parte da comunidade</p>
+              <p className="text-xs font-medium text-white/60 mt-1 leading-relaxed">
+                Para fazer parte da comunidade, insira os documentos necessários e fique visível para empresas náuticas.
+              </p>
+              <button
+                onClick={onOpenApplication}
+                className="mt-3 border border-[#c9a96e] text-[#c9a96e] hover:bg-[#c9a96e] hover:text-[#0a1628] px-4 py-2 font-semibold text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5">
+                <CheckCircle2 className="w-3 h-3" /> Inserir Documentos
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Aviso comunidade */}
-      <div className="bg-[#0a1628] p-4 flex items-start gap-3 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.04]"
-          style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 0,transparent 60px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 0,transparent 60px)' }} />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/60 to-transparent" />
-        <div className="w-9 h-9 bg-[#c9a96e]/15 border border-[#c9a96e]/30 flex items-center justify-center flex-shrink-0 mt-0.5 relative">
-          <Anchor className="w-4 h-4 text-[#c9a96e]" />
-        </div>
-        <div className="flex-1 min-w-0 relative">
-          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Faça parte da comunidade</p>
-          <p className="text-xs font-medium text-white/60 mt-1 leading-relaxed">
-            Para fazer parte da comunidade, insira os documentos necessários e fique visível para empresas náuticas.
-          </p>
-          <button
-            onClick={onOpenApplication}
-            className="mt-3 border border-[#c9a96e] text-[#c9a96e] hover:bg-[#c9a96e] hover:text-[#0a1628] px-4 py-2 font-semibold text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5">
-            <CheckCircle2 className="w-3 h-3" /> Inserir Documentos
-          </button>
-        </div>
-      </div>
+      {subTab === 'documentos' && (
+        <DocumentosTab
+          client={client}
+          onDocumentoClick={setDocViewing}
+        />
+      )}
+
+      {/* Modal de visualização */}
+      {docViewing && (
+        <DocumentoViewer
+          documento={docViewing}
+          onClose={() => setDocViewing(null)}
+        />
+      )}
     </div>
   );
 }

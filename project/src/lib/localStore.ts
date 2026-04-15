@@ -71,7 +71,7 @@ export async function refreshAll(): Promise<void> {
       supabase.from('job_offers').select('*').order('created_at', { ascending: false }).limit(300),
       supabase.from('event_bookings').select('*').order('created_at', { ascending: false }).limit(500),
       // sailor_applications agora em paralelo com as demais (antes era sequencial — +1 round trip)
-      supabase.from('sailor_applications').select('*').order('created_at', { ascending: false }),
+      supabase.from('sailor_applications').select('*').order('created_at', { ascending: false }).limit(500),
     ]);
 
     const get = (i: number) => results[i].status === 'fulfilled' ? (results[i] as any).value.data ?? [] : [];

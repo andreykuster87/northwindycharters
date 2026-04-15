@@ -68,14 +68,21 @@ function App() {
       });
   }, []); // eslint-disable-line
 
+  // ── preload de chunks autenticados ──────────────────────────────────────────
+  const preloadAdmin   = () => import('./components/admin/AdminDashboard');
+  const preloadClient  = () => import('./components/pages/ClientArea');
+  const preloadCompany = () => import('./components/pages/CompanyArea');
+
   // ── handlers ────────────────────────────────────────────────────────────────
   function handleLoginAsSailor(name: string, id: string) {
+    preloadAdmin();
     loginAsSailor(name, id);
     close('sailorLogin');
     close('adminPortal');
   }
 
   function handleLoginAsClient(name: string, id: string) {
+    preloadClient();
     flushToSession();
     loginAsClient(name, id);
     close('clientLogin');
@@ -83,6 +90,7 @@ function App() {
   }
 
   function handleLoginAsCompany(name: string, id: string) {
+    preloadCompany();
     loginAsCompany(name, id);
     close('companyLogin');
     close('adminPortal');
@@ -100,12 +108,21 @@ function App() {
   const handleExplore = () => navigate('/passeios');
 
   // ── rotas autenticadas ───────────────────────────────────────────────────────
+  const areaFallback = (
+    <div className="min-h-screen flex items-center justify-center bg-[#0a1628]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+        <span className="text-white/60 text-sm tracking-wide">Carregando…</span>
+      </div>
+    </div>
+  );
+
   if (auth.isAuthenticated && auth.role === 'client')
-    return <Suspense fallback={null}><ClientArea auth={auth} onLogout={() => { logout(); loadPublicTrips(); }} /></Suspense>;
+    return <Suspense fallback={areaFallback}><ClientArea auth={auth} onLogout={() => { logout(); loadPublicTrips(); }} /></Suspense>;
   if (auth.isAuthenticated && auth.role === 'company')
-    return <Suspense fallback={null}><CompanyArea auth={auth} onLogout={() => { logout(); loadPublicTrips(); }} /></Suspense>;
+    return <Suspense fallback={areaFallback}><CompanyArea auth={auth} onLogout={() => { logout(); loadPublicTrips(); }} /></Suspense>;
   if (auth.isAuthenticated && (auth.role === 'admin' || auth.role === 'sailor'))
-    return <Suspense fallback={null}><AdminDashboard auth={auth} onLogout={() => { logout(); loadPublicTrips(); }} /></Suspense>;
+    return <Suspense fallback={areaFallback}><AdminDashboard auth={auth} onLogout={() => { logout(); loadPublicTrips(); }} /></Suspense>;
 
   // ── site público ─────────────────────────────────────────────────────────────
   return (
@@ -234,7 +251,7 @@ function App() {
 
           {adminLoginOpen && (
             <AdminLoginModal
-              onSuccess={() => { setAdminLoginOpen(false); loginAsAdmin(); }}
+              onSuccess={() => { preloadAdmin(); setAdminLoginOpen(false); loginAsAdmin(); }}
               onClose={() => setAdminLoginOpen(false)}
             />
           )}

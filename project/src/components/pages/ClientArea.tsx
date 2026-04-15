@@ -6,13 +6,12 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Waves, LogOut, Bell, Settings, Camera,
-  User, BookOpen, Ship, MessageSquare,
+  User, BookOpen, MessageSquare,
   ChevronRight, ChevronUp, ChevronDown,
-  CalendarDays, Users, Search, X,
+  Users, Search, X,
   CheckCircle2, Clock, XCircle,
   Building2, Store, SlidersHorizontal,
 } from 'lucide-react';
-import { EventosMural } from '../shared/EventosMural';
 import { SailorApplicationModal } from '../modals/SailorApplicationModal';
 import {
   getClients, getBookings, getTrips, saveBooking,
@@ -30,23 +29,21 @@ import { CompanyProfileView } from './CompanyProfileView';
 import { SailorProfileView }  from './SailorProfileView';
 import { ComunidadeTab }      from '../client/ComunidadeTab';
 import { ConfiguracoesTab }   from '../client/ConfiguracoesTab';
-import { PasseiosTab }        from '../client/PasseiosTab';
 import { ReservasTab }        from '../client/ReservasTab';
 import { PerfilTab }          from '../client/PerfilTab';
 import { MarketplaceTab }     from '../shared/MarketplaceTab';
 
 // ── Tipos de abas ─────────────────────────────────────────────────────────────
 
-type TabKey = 'perfil' | 'reservas' | 'passeios' | 'eventos' | 'mensagens' | 'configuracoes' | 'comunidade' | 'marketplace';
+type TabKey = 'perfil' | 'reservas' | 'marketplace' | 'mensagens' | 'configuracoes' | 'comunidade';
 
 const TABS: { key: TabKey; icon: React.ElementType; label: string; short: string }[] = [
   { key: 'perfil',        icon: User,          label: 'Perfil',                      short: 'Perfil'     },
-  { key: 'reservas',      icon: BookOpen,      label: 'Reservas',                    short: 'Reservas'   },
-  { key: 'passeios',      icon: Ship,          label: 'Passeios',                    short: 'Passeios'   },
-  { key: 'eventos',       icon: CalendarDays,  label: 'Eventos',                     short: 'Eventos'    },
-  { key: 'mensagens',     icon: MessageSquare, label: 'Mensagens',                   short: 'Mensagens'  },
-  { key: 'comunidade',    icon: Users,         label: 'Faça parte da comunidade',    short: 'Comunidade' },
   { key: 'marketplace',   icon: Store,         label: 'Marketplace',                 short: 'Market'     },
+  { key: 'reservas',      icon: BookOpen,      label: 'Reservas',                    short: 'Reservas'   },
+  { key: 'mensagens',     icon: MessageSquare, label: 'Mensagens',                   short: 'Mensagens'  },
+  { key: 'configuracoes', icon: Settings,      label: 'Configurações',               short: 'Config'     },
+  { key: 'comunidade',    icon: Users,         label: 'Faça parte da comunidade',    short: 'Comunidade' },
 ];
 
 // ══ COMPONENTE PRINCIPAL ═══════════════════════════════════════════════════════
@@ -602,9 +599,6 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
 
         {/* ── MAIN CONTENT ── */}
         <main className="flex-1 min-w-0 px-4 py-4 pb-24 md:pb-6 md:py-6 overflow-hidden">
-          {tab === 'passeios'      && (
-            <PasseiosTab allBoats={allBoats} onSelect={handleSelect} />
-          )}
           {tab === 'reservas'      && <ReservasTab bookings={myBookings} eventBookings={myEventBookings} onRefresh={refreshBookings} />}
           {tab === 'mensagens'     && (
             <div className="space-y-4">
@@ -614,23 +608,6 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
                 <div className="w-8 h-px bg-[#c9a96e] mt-2" />
               </div>
               <MensagensBox key={msgKey} clientId={auth.clientId || ''} />
-            </div>
-          )}
-          {tab === 'eventos' && (
-            <div className="space-y-4">
-              <div>
-                <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-1">Calendário</p>
-                <h2 className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xl">Eventos</h2>
-                <div className="w-8 h-px bg-[#c9a96e] mt-2" />
-              </div>
-              <EventosMural
-                title=""
-                subtitle=""
-                emptyMessage="Nenhum evento disponível no momento. Fique atento às novidades!"
-                clientId={auth.clientId}
-                clientName={client?.name || auth.userName}
-                clientPhone={client?.phone || ''}
-              />
             </div>
           )}
           {tab === 'perfil'        && (
@@ -705,7 +682,7 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
           {/* Botão "Mais" */}
           <button onClick={() => setMoreOpen(v => !v)}
             className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all ${
-              moreOpen || tab === 'mensagens' || tab === 'comunidade' || tab === 'marketplace' ? 'text-[#c9a96e]' : 'text-gray-400'
+              moreOpen || tab === 'configuracoes' || tab === 'comunidade' ? 'text-[#c9a96e]' : 'text-gray-400'
             }`}>
             {moreOpen ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
             <span className="text-[9px] font-semibold uppercase tracking-wide">Mais</span>

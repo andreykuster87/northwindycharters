@@ -1,6 +1,6 @@
 // src/components/AdminDashboard/tabs/ClientesTab.tsx
 import { useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, ExternalLink } from 'lucide-react';
 import { type Client } from '../../../lib/localStore';
 import { usePagination } from '../../../hooks/usePagination';
 import { Pagination }    from '../../shared/Pagination';
@@ -13,6 +13,7 @@ interface ClientesTabProps {
   /** Navega para a sub-aba de usuários em Solicitações */
   onGoToSolicitacoes: () => void;
   onOpenDossier: (client: Client) => void;
+  onViewProfile?: (client: Client) => void;
 }
 
 // ── Componente ────────────────────────────────────────────────────────────────
@@ -22,6 +23,7 @@ export function ClientesTab({
   pendingClients,
   onGoToSolicitacoes,
   onOpenDossier,
+  onViewProfile,
 }: ClientesTabProps) {
   const [search, setSearch] = useState('');
 
@@ -90,6 +92,14 @@ export function ClientesTab({
                     <span className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold px-2 py-0.5">
                       #{String(parseInt((c as any).profile_number, 10))}
                     </span>
+                  )}
+                  {onViewProfile && (
+                    <button
+                      onClick={e => { e.stopPropagation(); onViewProfile(c); }}
+                      title="Ver perfil"
+                      className="flex items-center gap-1 text-[9px] font-semibold uppercase px-2 py-1 bg-[#0a1628]/5 text-[#1a2b4a] hover:bg-[#c9a96e]/15 hover:text-[#c9a96e] transition-colors border border-[#0a1628]/10">
+                      <ExternalLink className="w-3 h-3" /> Perfil
+                    </button>
                   )}
                   {(c as any).blocked ? (
                     <span className="text-red-500 text-lg">🚫</span>

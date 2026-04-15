@@ -73,13 +73,14 @@ function canRenew(validade?: string): boolean {
 interface DocCardProps {
   label:      string;
   validade?:  string;
+  numero?:    string;
   status?:    DocStatus;
   docUrl?:    string | null;
   isOwner?:   boolean;
   onClick?:   () => void;
 }
 
-function DocCard({ label, validade, status: forcedStatus, docUrl, isOwner, onClick }: DocCardProps) {
+function DocCard({ label, validade, numero, status: forcedStatus, docUrl, isOwner, onClick }: DocCardProps) {
   const st  = forcedStatus ?? docStatus(validade);
   const cfg = STATUS_CFG[st];
   const Icon = cfg.icon;
@@ -96,9 +97,16 @@ function DocCard({ label, validade, status: forcedStatus, docUrl, isOwner, onCli
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-bold text-[#1a2b4a] text-sm uppercase leading-tight">{label}</p>
-        <p className="text-[10px] font-semibold text-gray-400 mt-0.5">
-          Validade: {fmtDate(validade)}
-        </p>
+        <div className="flex flex-col gap-1 mt-0.5">
+          {numero && (
+            <p className="text-[10px] font-semibold text-gray-400">
+              Nº: {numero}
+            </p>
+          )}
+          <p className="text-[10px] font-semibold text-gray-400">
+            Validade: {fmtDate(validade)}
+          </p>
+        </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         {clickable && (
@@ -122,12 +130,13 @@ interface DocViewerModalProps {
   docKey:   string;
   docUrl:   string;
   validade?: string;
+  numero?:  string;
   isOwner?: boolean;
   onClose:  () => void;
   onRenew:  () => void;
 }
 
-function DocViewerModal({ label, docKey: _docKey, docUrl, validade, isOwner, onClose, onRenew }: DocViewerModalProps) {
+function DocViewerModal({ label, docKey: _docKey, docUrl, validade, numero, isOwner, onClose, onRenew }: DocViewerModalProps) {
   const isPdf = docUrl.toLowerCase().includes('.pdf') || docUrl.toLowerCase().includes('application/pdf');
   const renewable = isOwner && canRenew(validade);
   const daysUntilExpiry = (() => {
@@ -172,6 +181,12 @@ function DocViewerModal({ label, docKey: _docKey, docUrl, validade, isOwner, onC
 
         {/* Info bar */}
         <div className="bg-gray-50 border-b border-gray-100 px-6 py-3 flex items-center gap-4 flex-shrink-0">
+          {numero && (
+            <div>
+              <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Nº</p>
+              <p className="text-sm font-bold text-[#1a2b4a]">{numero}</p>
+            </div>
+          )}
           <div>
             <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Validade</p>
             <p className="text-sm font-bold text-[#1a2b4a]">{fmtDate(validade)}</p>
@@ -268,7 +283,9 @@ function IncluirDocModal({ label, docKey, sailorId, onClose, onSuccess }: Inclui
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit() {
-    if (!file) { setError('Selecione um arquivo.'); return; }
+    if (!file)        { setError('Selecione um arquivo.'); return; }
+    if (!validade.trim()) { setError('Informe a data de validade.'); return; }
+    if (!numero.trim())   { setError('Informe o número do documento.'); return; }
     setLoading(true);
     try {
       const url = await uploadDoc(file, 'sailors', `pending-${sailorId}-${docKey}`);
@@ -347,7 +364,7 @@ function IncluirDocModal({ label, docKey, sailorId, onClose, onSuccess }: Inclui
           {/* Validade */}
           <div>
             <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.12em] block mb-1.5">
-              Validade (opcional)
+              Validade <span className="text-red-500">*</span>
             </label>
             <input
               type="text" placeholder="DD/MM/AAAA"
@@ -359,7 +376,7 @@ function IncluirDocModal({ label, docKey, sailorId, onClose, onSuccess }: Inclui
           {/* Número */}
           <div>
             <label className="text-[10px] font-semibold text-[#1a2b4a] uppercase tracking-[0.12em] block mb-1.5">
-              Número do documento (opcional)
+              Número do documento <span className="text-red-500">*</span>
             </label>
             <input
               type="text" placeholder="Nº..."
@@ -385,7 +402,7 @@ function IncluirDocModal({ label, docKey, sailorId, onClose, onSuccess }: Inclui
 
           <button
             onClick={handleSubmit}
-            disabled={loading || !file}
+            disabled={loading || !file || !validade.trim() || !numero.trim()}
             className="w-full bg-[#0a1628] text-white py-4 px-6 font-semibold uppercase tracking-widest text-sm hover:bg-[#1a2b4a] transition-all disabled:opacity-50">
             {loading ? '⏳ Enviando...' : '📤 Enviar para análise'}
           </button>
@@ -772,6 +789,7 @@ function PerfilTab({ sailor, isOwner, onUpdated }: { sailor: Sailor; isOwner?: b
 type DocEntry = {
   label:    string;
   validade?: string;
+  numero?:  string;
   present:  boolean;
   docKey:   string;
   docUrl?:  string | null;
@@ -794,7 +812,10 @@ function DocumentosTab({ sailor, isOwner, onDocAdded }: DocumentosTabProps) {
   const docs: DocEntry[] = [];
 
   // Documento de identificação
-  const hasPassaporte = !!(sailor.passaporte?.validade || sailor.passaporte?.doc_url);
+  const pendingPassaporte = pendingDocs['passaporte'];
+  const hasPendingPassaporte = !!pendingPassaporte?.doc_url;
+  const hasApprovedPassaporte = !!sailor.passaporte?.doc_url;
+  const hasPassaporte = hasPendingPassaporte || hasApprovedPassaporte;
   const passType = sailor.passaporte?.tipo;
   const passLabel = passType === 'passport' ? 'Passaporte'
     : passType === 'rg' ? 'RG — Registro Geral'
@@ -804,55 +825,74 @@ function DocumentosTab({ sailor, isOwner, onDocAdded }: DocumentosTabProps) {
     : 'Documento de Identificação';
   docs.push({
     label:    passLabel,
-    validade: sailor.passaporte?.validade,
+    validade: pendingPassaporte?.validade ?? sailor.passaporte?.validade,
+    numero:   pendingPassaporte?.numero ?? sailor.passaporte?.numero,
     present:  hasPassaporte,
     docKey:   'passaporte',
-    docUrl:   sailor.passaporte?.doc_url ?? null,
-    pendingStatus: pendingDocs['passaporte']?.status,
+    docUrl:   pendingPassaporte?.doc_url ?? sailor.passaporte?.doc_url ?? null,
+    pendingStatus: pendingPassaporte?.status,
   });
 
   // Caderneta Marítima
-  const hasCaderneta = !!((sailor as any).caderneta_maritima?.possui || (sailor as any).caderneta_maritima?.validade);
+  const pendingCaderneta = pendingDocs['caderneta_maritima'];
+  const hasPendingCaderneta = !!pendingCaderneta?.doc_url;
+  const hasApprovedCaderneta = !!((sailor as any).caderneta_maritima?.doc_url);
+  const hasCaderneta = hasPendingCaderneta || hasApprovedCaderneta || !!((sailor as any).caderneta_maritima?.possui || (sailor as any).caderneta_maritima?.validade);
   docs.push({
     label:    'Caderneta Marítima (CIR)',
-    validade: (sailor as any).caderneta_maritima?.validade,
+    validade: pendingCaderneta?.validade ?? (sailor as any).caderneta_maritima?.validade,
+    numero:   pendingCaderneta?.numero ?? (sailor as any).caderneta_maritima?.numero,
     present:  hasCaderneta,
     docKey:   'caderneta_maritima',
-    docUrl:   (sailor as any).caderneta_maritima?.doc_url ?? null,
-    pendingStatus: pendingDocs['caderneta_maritima']?.status,
+    docUrl:   pendingCaderneta?.doc_url ?? (sailor as any).caderneta_maritima?.doc_url ?? null,
+    pendingStatus: pendingCaderneta?.status,
   });
 
   // Carta de Patrão / Mestre
-  const hasCarta = !!(sailor.cartahabitacao?.validade || sailor.cartahabitacao?.doc_url);
+  const pendingCarta = pendingDocs['cartahabitacao'];
+  const hasPendingCarta = !!pendingCarta?.doc_url;
+  const hasApprovedCarta = !!sailor.cartahabitacao?.doc_url;
+  const hasCarta = hasPendingCarta || hasApprovedCarta || !!sailor.cartahabitacao?.validade;
   docs.push({
     label:    'Carta de Patrão / Mestre',
-    validade: sailor.cartahabitacao?.validade,
+    validade: pendingCarta?.validade ?? sailor.cartahabitacao?.validade,
+    numero:   pendingCarta?.numero ?? sailor.cartahabitacao?.numero,
     present:  hasCarta,
     docKey:   'cartahabitacao',
-    docUrl:   sailor.cartahabitacao?.doc_url ?? null,
-    pendingStatus: pendingDocs['cartahabitacao']?.status,
+    docUrl:   pendingCarta?.doc_url ?? sailor.cartahabitacao?.doc_url ?? null,
+    pendingStatus: pendingCarta?.status,
   });
 
   // Certificado Médico
-  const hasMedico = !!((sailor as any).possui_medico !== false && (sailor.medico?.validade || sailor.medico?.doc_url));
+  const pendingMedico = pendingDocs['medico'];
+  const hasPendingMedico = !!pendingMedico?.doc_url;
+  const hasApprovedMedico = !!sailor.medico?.doc_url;
+  const hasMedico = !!((sailor as any).possui_medico !== false && (hasPendingMedico || hasApprovedMedico || sailor.medico?.validade));
   docs.push({
     label:    'Certificado Médico Marítimo',
-    validade: sailor.medico?.validade,
+    validade: pendingMedico?.validade ?? sailor.medico?.validade,
+    numero:   pendingMedico?.numero ?? sailor.medico?.numero,
     present:  hasMedico,
     docKey:   'medico',
-    docUrl:   sailor.medico?.doc_url ?? null,
-    pendingStatus: pendingDocs['medico']?.status,
+    docUrl:   pendingMedico?.doc_url ?? sailor.medico?.doc_url ?? null,
+    pendingStatus: pendingMedico?.status,
   });
 
   // STCW — sub-grupo da Caderneta Marítima
-  const stcwDocs: DocEntry[] = STCW_CERTS.map(cert => ({
-    label:    `STCW — ${cert.label}`,
-    validade: (sailor as any).stcw_validades?.[cert.id],
-    present:  !!(sailor.stcw?.[cert.id]),
-    docKey:   `stcw_${cert.id}`,
-    docUrl:   (sailor as any).stcw_docs?.[cert.id] ?? null,
-    pendingStatus: pendingDocs[`stcw_${cert.id}`]?.status,
-  }));
+  const stcwDocs: DocEntry[] = STCW_CERTS.map(cert => {
+    const pendingStcw = pendingDocs[`stcw_${cert.id}`];
+    const hasPendingStcw = !!pendingStcw?.doc_url;
+    const hasApprovedStcw = !!(sailor.stcw?.[cert.id]);
+    return {
+      label:    `STCW — ${cert.label}`,
+      validade: pendingStcw?.validade ?? (sailor as any).stcw_validades?.[cert.id],
+      numero:   pendingStcw?.numero ?? (sailor as any).stcw_numeros?.[cert.id],
+      present:  hasPendingStcw || hasApprovedStcw,
+      docKey:   `stcw_${cert.id}`,
+      docUrl:   pendingStcw?.doc_url ?? (sailor as any).stcw_docs?.[cert.id] ?? null,
+      pendingStatus: pendingStcw?.status,
+    };
+  });
 
   function handleSuccess(docKey: string) {
     setIncluirModal(null);
@@ -909,18 +949,16 @@ function DocumentosTab({ sailor, isOwner, onDocAdded }: DocumentosTabProps) {
             if (!hasSomething) return null;
 
             const cadernetaCard = (() => {
-              if (d.pendingStatus === 'pending') return (
-                <div className="bg-amber-50 border-2 border-amber-200 p-4 flex items-start gap-3">
-                  <div className="w-9 h-9 bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5"><FileText className="w-4 h-4 text-amber-600" /></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-[#1a2b4a] text-sm uppercase leading-tight">{d.label}</p>
-                    <p className="text-[10px] font-semibold text-amber-600 mt-0.5">Aguardando análise do admin</p>
-                  </div>
-                  <span className={`flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-1 border ${STATUS_CFG.pending.cls} flex-shrink-0`}><Clock className="w-3 h-3" /> Em revisão</span>
-                </div>
-              );
               if (d.present) return (
-                <DocCard label={d.label} validade={d.validade} docUrl={d.docUrl} isOwner={isOwner} onClick={() => setViewingDoc(d)} />
+                <div>
+                  {d.pendingStatus === 'pending' && (
+                    <div className="bg-amber-50 border-2 border-amber-200 p-3 mb-2 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-600" />
+                      <p className="text-xs font-semibold text-amber-600">Em revisão pelo admin</p>
+                    </div>
+                  )}
+                  <DocCard label={d.label} validade={d.validade} numero={d.numero} docUrl={d.docUrl} isOwner={isOwner} onClick={() => setViewingDoc(d)} />
+                </div>
               );
               if (!isOwner) return null;
               return (
@@ -946,18 +984,16 @@ function DocumentosTab({ sailor, isOwner, onDocAdded }: DocumentosTabProps) {
                     ⚡ Certificados STCW
                   </p>
                   {stcwDocs.map((sd, si) => {
-                    if (sd.pendingStatus === 'pending') return (
-                      <div key={si} className="bg-amber-50 border-2 border-amber-200 p-3 flex items-start gap-3">
-                        <div className="w-8 h-8 bg-amber-100 flex items-center justify-center flex-shrink-0"><FileText className="w-3.5 h-3.5 text-amber-600" /></div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-[#1a2b4a] text-xs uppercase leading-tight">{sd.label}</p>
-                          <p className="text-[10px] font-semibold text-amber-600 mt-0.5">Aguardando análise do admin</p>
-                        </div>
-                        <span className={`flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-1 border ${STATUS_CFG.pending.cls} flex-shrink-0`}><Clock className="w-3 h-3" /> Em revisão</span>
-                      </div>
-                    );
                     if (sd.present) return (
-                      <DocCard key={si} label={sd.label} validade={sd.validade} docUrl={sd.docUrl} isOwner={isOwner} onClick={() => setViewingDoc(sd)} />
+                      <div key={si}>
+                        {sd.pendingStatus === 'pending' && (
+                          <div className="bg-amber-50 border-2 border-amber-200 p-2 mb-1 flex items-center gap-2">
+                            <Clock className="w-3 h-3 text-amber-600" />
+                            <p className="text-[10px] font-semibold text-amber-600">Em revisão</p>
+                          </div>
+                        )}
+                        <DocCard key={si} label={sd.label} validade={sd.validade} numero={sd.numero} docUrl={sd.docUrl} isOwner={isOwner} onClick={() => setViewingDoc(sd)} />
+                      </div>
                     );
                     if (!isOwner) return null;
                     return (
@@ -980,33 +1016,24 @@ function DocumentosTab({ sailor, isOwner, onDocAdded }: DocumentosTabProps) {
           }
 
           // ── Outros documentos ─────────────────────────────────────────────────
-          if (d.pendingStatus === 'pending') {
-            return (
-              <div key={i} className="bg-amber-50 border-2 border-amber-200 p-4 flex items-start gap-3">
-                <div className="w-9 h-9 bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <FileText className="w-4 h-4 text-amber-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-[#1a2b4a] text-sm uppercase leading-tight">{d.label}</p>
-                  <p className="text-[10px] font-semibold text-amber-600 mt-0.5">Aguardando análise do admin</p>
-                </div>
-                <span className={`flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-1 border ${STATUS_CFG.pending.cls} flex-shrink-0`}>
-                  <Clock className="w-3 h-3" /> Em revisão
-                </span>
-              </div>
-            );
-          }
-
           if (d.present) {
             return (
-              <DocCard
-                key={i}
-                label={d.label}
-                validade={d.validade}
-                docUrl={d.docUrl}
-                isOwner={isOwner}
-                onClick={() => setViewingDoc(d)}
-              />
+              <div key={i}>
+                {d.pendingStatus === 'pending' && (
+                  <div className="bg-amber-50 border-2 border-amber-200 p-3 mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-600" />
+                    <p className="text-xs font-semibold text-amber-600">Em revisão pelo admin</p>
+                  </div>
+                )}
+                <DocCard
+                  label={d.label}
+                  validade={d.validade}
+                  numero={d.numero}
+                  docUrl={d.docUrl}
+                  isOwner={isOwner}
+                  onClick={() => setViewingDoc(d)}
+                />
+              </div>
             );
           }
 
@@ -1054,6 +1081,7 @@ function DocumentosTab({ sailor, isOwner, onDocAdded }: DocumentosTabProps) {
           docKey={viewingDoc.docKey}
           docUrl={viewingDoc.docUrl}
           validade={viewingDoc.validade}
+          numero={viewingDoc.numero}
           isOwner={isOwner}
           onClose={() => setViewingDoc(null)}
           onRenew={() => {

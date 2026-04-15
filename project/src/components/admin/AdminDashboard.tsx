@@ -42,7 +42,7 @@ import { MensagensTab }     from './tabs/MensagensTab';
 import { FinanceiroTab }    from './tabs/FinanceiroTab';
 import { EmpresasTab }      from './tabs/EmpresasTab';
 import { EventosAdminTab }  from './tabs/EventosAdminTab';
-import { KpiCard, DevResetBanner, type Auth, type TabKey, type TabDef, type ClientesSubTab } from './AdminDashboardShared';
+import { KpiCard, type Auth, type TabKey, type TabDef, type ClientesSubTab } from './AdminDashboardShared';
 
 // Modais globais
 import { DossierSailor }       from '../shared/DossierSailor';
@@ -132,10 +132,6 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
       setBoats(getBoats(auth.sailorId));
       setTrips(getTrips(auth.sailorId));
       setSailorMsgs(getMessages(auth.sailorId));
-      loadEmpresaBell(auth.sailorId).then(({ count, items }) => {
-        setEmpresaUnread(count);
-        setBellItems(items);
-      });
     } else {
       setBoats(getBoats());
       setTrips(getTrips());
@@ -147,21 +143,37 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
   // os dados de um refresh mais recente — evita race conditions pós-write.
   const refreshTicketRef = useRef(0);
 
+  /** Carrega bell de empresa em paralelo (não bloqueia o render). */
+  function loadBell() {
+    if (isSailor && auth?.sailorId) {
+      loadEmpresaBell(auth.sailorId).then(({ count, items }) => {
+        setEmpresaUnread(count);
+        setBellItems(items);
+      });
+    }
+  }
+
   async function loadData() {
     // Stale-while-revalidate: se o cache já tem dados, renderiza imediatamente
     // e actualiza em background — sem delay percetível nas visitas seguintes.
     if (isInitialized()) {
       syncFromCache();                        // render instantâneo com dados anteriores
+      loadBell();                             // bell em paralelo com refreshAll
       const ticket = ++refreshTicketRef.current;
       refreshAll().then(() => {
         // Só aplica se nenhum refresh mais recente foi iniciado depois
-        if (ticket === refreshTicketRef.current) syncFromCache();
+        if (ticket === refreshTicketRef.current) { syncFromCache(); loadBell(); }
       });
       return;
     }
-    // Primeira carga: aguarda o refresh (cache está vazio, não há nada para mostrar)
+    // Primeira carga: refreshAll + bell correm em paralelo
     const ticket = ++refreshTicketRef.current;
-    await refreshAll();
+    const bellP = isSailor && auth?.sailorId
+      ? loadEmpresaBell(auth.sailorId)
+      : Promise.resolve(null);
+    await Promise.all([refreshAll(), bellP.then(r => {
+      if (r) { setEmpresaUnread(r.count); setBellItems(r.items); }
+    })]);
     if (ticket === refreshTicketRef.current) syncFromCache();
   }
 
@@ -322,7 +334,7 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
                   { emoji:'🏢', label:'Empresas',      value: activeCompaniesCount },
                 ].map(s => <KpiCard key={s.label} {...s} />)}
               </div>
-              <DevResetBanner onReset={loadData} />
+
             </div>
           )}
 
@@ -414,13 +426,15 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
               </div>
               {clientesSubTab === 'usuarios' && (
                 <ClientesTab activeClients={activeClients} pendingClients={pendingClients}
-                  onGoToSolicitacoes={() => setTab('sol')} onOpenDossier={setDossierClient} />
+                  onGoToSolicitacoes={() => setTab('sol')} onOpenDossier={setDossierClient}
+                  onViewProfile={setDossierClient} />
               )}
               {clientesSubTab === 'verificados' && (
                 <VerificadosTab verified={verified} onOpenDossier={setDossierSailor} onViewProfile={setViewingSailorProfile} />
               )}
               {clientesSubTab === 'empresas' && (
-                <EmpresasTab onGoToSolicitacoes={() => { setSolInitialSub('empresas'); setTab('sol'); }} />
+                <EmpresasTab onGoToSolicitacoes={() => { setSolInitialSub('empresas'); setTab('sol'); }}
+                  onViewProfile={setViewingCompany} />
               )}
               {clientesSubTab === 'frota' && (
                 <FrotaTab boats={boats} trips={trips} bookings={bookings} sailors={sailors}
