@@ -11,7 +11,7 @@ import {
   Building2,
 } from 'lucide-react';
 import { uploadDoc } from '../../lib/storage';
-import { updateSailor, getSailors, getCompanies, type Sailor } from '../../lib/localStore';
+import { updateSailor, getSailors, getCompanies, refreshAll, type Sailor } from '../../lib/localStore';
 import { STCW_CERTS, FUNCOES_MARITIMAS } from '../../constants/sailorConstants';
 import { findCompanyForSailorDB } from '../../lib/rh';
 
@@ -1209,7 +1209,8 @@ export function SailorProfileContent({ sailor, subTab, isOwner, onDocAdded }: Sa
     setLocalSailor(sailor);
   }
 
-  function handleDocAdded() {
+  async function handleDocAdded() {
+    await refreshAll();
     const fresh = getSailors().find(s => s.id === sailor.id);
     if (fresh) setLocalSailor(fresh);
     onDocAdded?.();
@@ -1235,7 +1236,8 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
   const [localSailor, setLocalSailor] = useState<Sailor>(sailor);
 
   // Refresh local sailor data after adding a doc
-  function handleDocAdded() {
+  async function handleDocAdded() {
+    await refreshAll();
     const fresh = getSailors().find(s => s.id === sailor.id);
     if (fresh) setLocalSailor(fresh);
   }
