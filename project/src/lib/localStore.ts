@@ -34,6 +34,8 @@ import type { SailorApplication } from './store/sailor-applications';
 export type { SailorApplication } from './store/sailor-applications';
 export { APP_REJECT_REASONS, FUNCOES_MARITIMAS } from './store/sailor-applications';
 export type { NauticEvent, JobOffer, EventBooking, EventGuest } from './store/events';
+export type { Friendship, FriendProfileType, FriendshipStatus } from './store/friendships';
+export { fetchFriendships, sendFriendRequest, respondFriendRequest, deleteFriendship, getFriendshipBetween } from './store/friendships';
 
 // ── Cache em memória ──────────────────────────────────────────────────────────
 const cache = {
