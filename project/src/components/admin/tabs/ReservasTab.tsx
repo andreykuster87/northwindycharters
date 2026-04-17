@@ -225,11 +225,21 @@ export function ReservasTab({
           <div className="flex items-center gap-2">
             {displayBookings.filter(b => b.status === 'cancelado').length > 0 && role === 'admin' && (
               <button
-                onClick={() => {
-                  displayBookings.filter(b => b.status === 'cancelado').forEach(b => deleteBooking(b.id));
-                  onReload();
+                onClick={async (e) => {
+                  const btn = e.currentTarget;
+                  if (btn.disabled) return;
+                  btn.disabled = true;
+                  try {
+                    const cancelled = displayBookings.filter(b => b.status === 'cancelado');
+                    await Promise.all(cancelled.map(b => deleteBooking(b.id)));
+                    await onReload();
+                  } catch {
+                    alert('Não foi possível remover todas as reservas. Tente novamente.');
+                  } finally {
+                    btn.disabled = false;
+                  }
                 }}
-                className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 border-2 border-red-100 text-red-600 px-3 py-1.5 font-semibold text-[10px] uppercase transition-all"
+                className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 border-2 border-red-100 text-red-600 px-3 py-1.5 font-semibold text-[10px] uppercase transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 🗑️ Limpar canceladas ({displayBookings.filter(b => b.status === 'cancelado').length})
               </button>
@@ -301,8 +311,20 @@ export function ReservasTab({
                         </span>
                         {role === 'admin' && (
                           <button
-                            onClick={() => { deleteBooking(b.id); onReload(); }}
-                            className="bg-red-100 hover:bg-red-500 text-red-500 hover:text-white p-1.5 transition-all border-2 border-red-200 hover:border-red-500"
+                            onClick={async e => {
+                              const btn = e.currentTarget;
+                              if (btn.disabled) return;
+                              btn.disabled = true;
+                              try {
+                                await deleteBooking(b.id);
+                                await onReload();
+                              } catch {
+                                alert('Não foi possível remover a reserva. Tente novamente.');
+                              } finally {
+                                btn.disabled = false;
+                              }
+                            }}
+                            className="bg-red-100 hover:bg-red-500 text-red-500 hover:text-white p-1.5 transition-all border-2 border-red-200 hover:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <XCircle className="w-3.5 h-3.5" />
                           </button>

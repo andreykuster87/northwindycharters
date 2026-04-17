@@ -26,14 +26,14 @@ export function useBooking() {
     const boat        = bookingData.boat;
     const sailorPhone = selection?.boat.sailor.phone || '5511999999999';
 
-    // Busca o trip para obter o sailor_id
-    const { data: trip } = await supabase
+    const { data: trip, error: tripErr } = await supabase
       .from('trips').select('sailor_id').eq('id', boat.id).single();
+    if (tripErr) throw tripErr;
 
-    // Gera o próximo booking_number via contador do banco
-    const { data: cnt } = await supabase.rpc('next_counter', { counter_key: 'booking_counter' });
+    const { data: cnt, error: cntErr } = await supabase.rpc('next_counter', { counter_key: 'booking_counter' });
+    if (cntErr) throw cntErr;
 
-    await supabase.from('bookings').insert({
+    const { error: insErr } = await supabase.from('bookings').insert({
       trip_id:        boat.id,
       sailor_id:      trip?.sailor_id || null,
       customer_name:  bookingData.customerName,
@@ -47,6 +47,10 @@ export function useBooking() {
       booking_number: Number(cnt),
       guests:         [],
     });
+    if (insErr) {
+      if (insErr.message?.includes('OVERBOOK')) throw new Error('OVERBOOK');
+      throw insErr;
+    }
 
     const link   = generateWhatsAppLink(bookingData, sailorPhone);
     const newWin = window.open(link, '_blank');

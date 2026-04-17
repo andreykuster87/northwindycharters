@@ -10,7 +10,11 @@
       "Bash(echo \"EXIT: $?\")",
       "mcp__26b236b4-6d6b-446f-a0c7-c3dca3d58d25__deploy_to_vercel",
       "Bash(npx vercel:*)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm install *)",
+      "mcp__supabase__list_tables",
+      "Bash(sed -n '20,50p' project/src/lib/store/clients.ts)",
+      "Bash(sed -n '120,170p' project/src/lib/store/sailors.ts)"
     ]
   }
 }

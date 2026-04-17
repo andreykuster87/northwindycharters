@@ -90,9 +90,9 @@ function CompanyCard({ company, onStatusChange, onDelete, defaultExpanded = fals
       <div className="p-5 space-y-3">
         {/* Setores — múltiplos */}
         <div className="flex flex-wrap gap-1.5">
-          {company.setor.split(',').map(s => (
+          {(company.setor || '').split(',').map(s => s.trim()).filter(Boolean).map(s => (
             <span key={s} className="inline-flex items-center gap-1 bg-[#c9a96e]/5 border border-[#c9a96e]/20 text-[#1a2b4a] text-[11px] font-semibold px-2.5 py-1">
-              🏭 {s.trim()}
+              🏭 {s}
             </span>
           ))}
         </div>
@@ -302,7 +302,7 @@ function CompanyRow({ company, onClick, onViewProfile }: {
           {company.nome_fantasia}
         </p>
         <p className="text-xs font-bold text-gray-400 truncate">
-          {company.setor.split(',')[0].trim()} · {company.cidade}
+          {(company.setor || '').split(',')[0]?.trim() || '—'} · {company.cidade || '—'}
         </p>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
@@ -377,17 +377,17 @@ export function EmpresasTab({ onGoToSolicitacoes, onViewProfile }: {
 
   const allCompanies = getCompanies().filter(c => c.status !== 'pending');
   const pendingCount = getCompanies().filter(c => c.status === 'pending').length;
-  const setores      = Array.from(new Set(allCompanies.flatMap(c => c.setor.split(',').map(s => s.trim())))).sort();
+  const setores      = Array.from(new Set(allCompanies.flatMap(c => (c.setor || '').split(',').map(s => s.trim()).filter(Boolean)))).sort();
 
   const filtered = allCompanies.filter(c => {
     const matchSearch = !search || [c.nome_fantasia, c.razao_social, c.email, c.cidade, c.setor]
       .some(v => v?.toLowerCase().includes(search.toLowerCase()));
-    const matchSetor  = !filterSetor  || c.setor.includes(filterSetor);
+    const matchSetor  = !filterSetor  || (c.setor || '').includes(filterSetor);
     const matchStatus = !filterStatus || c.status === filterStatus;
     return matchSearch && matchSetor && matchStatus;
   });
 
-  const sorted = [...filtered].sort((a, b) => a.nome_fantasia.localeCompare(b.nome_fantasia, 'pt'));
+  const sorted = [...filtered].sort((a, b) => (a.nome_fantasia || '').localeCompare(b.nome_fantasia || '', 'pt'));
   const pg     = usePagination(sorted, 20);
 
   function handleStatusChange(id: string, status: Company['status']) {

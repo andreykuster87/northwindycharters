@@ -327,7 +327,14 @@ export async function saveSailor(
   const row = { ...sailorToRow(data as any), profile_number: String(cnt).padStart(5, '0'), status: 'pending', verified: false };
   const { data: r, error } = await supabase.from('sailors').insert(row).select().single();
   if (error) {
-    if (error.code === '23505') throw new Error(error.message.includes('email') ? 'DUPLICATE_EMAIL' : 'DUPLICATE_DOCUMENT');
+    if (error.code === '23505') {
+      const msg = error.message || '';
+      if (msg.includes('email'))          throw new Error('DUPLICATE_EMAIL');
+      if (msg.includes('sailor_login'))   throw new Error('DUPLICATE_LOGIN');
+      if (msg.includes('cpf_nif'))        throw new Error('DUPLICATE_DOCUMENT');
+      if (msg.includes('profile_number')) throw new Error('DUPLICATE_PROFILE_NUMBER');
+      throw new Error('DUPLICATE_DOCUMENT');
+    }
     throw error;
   }
   const sailor = mapSailor(r);
@@ -371,7 +378,14 @@ export async function saveClient(
     ...data, profile_number: String(cnt).padStart(5, '0'), status: 'pending_verification', role: 'client',
   }).select().single();
   if (error) {
-    if (error.code === '23505') throw new Error(error.message.includes('email') ? 'DUPLICATE_EMAIL' : 'DUPLICATE_DOCUMENT');
+    if (error.code === '23505') {
+      const msg = error.message || '';
+      if (msg.includes('email'))           throw new Error('DUPLICATE_EMAIL');
+      if (msg.includes('client_login'))    throw new Error('DUPLICATE_LOGIN');
+      if (msg.includes('passport_number')) throw new Error('DUPLICATE_DOCUMENT');
+      if (msg.includes('profile_number'))  throw new Error('DUPLICATE_PROFILE_NUMBER');
+      throw new Error('DUPLICATE_DOCUMENT');
+    }
     throw error;
   }
   cache.clients = [r, ...cache.clients];
@@ -404,7 +418,17 @@ export async function saveCompany(
   const { data: cnt } = await supabase.rpc('next_counter', { counter_key: 'profile_counter' });
   const profile_number = `EMP-${String(Number(cnt)).padStart(5, '0')}`;
   const { data: r, error } = await supabase.from('companies').insert({ ...data, profile_number }).select().single();
-  if (error) throw error;
+  if (error) {
+    if (error.code === '23505') {
+      const msg = error.message || '';
+      if (msg.includes('email'))           throw new Error('DUPLICATE_EMAIL');
+      if (msg.includes('company_login'))   throw new Error('DUPLICATE_LOGIN');
+      if (msg.includes('numero_registro')) throw new Error('DUPLICATE_REGISTRY');
+      if (msg.includes('profile_number'))  throw new Error('DUPLICATE_PROFILE_NUMBER');
+      throw new Error('DUPLICATE_COMPANY');
+    }
+    throw error;
+  }
   cache.companies = [r, ...cache.companies];
   return r;
 }
@@ -453,7 +477,12 @@ export function companyLogin(loginInput: string, password: string): { ok: true; 
 // ── Boats ─────────────────────────────────────────────────────────────────────
 export async function saveBoat(data: Omit<Boat, 'id' | 'created_at'>): Promise<Boat> {
   const { data: r, error } = await supabase.from('boats').insert(data).select().single();
-  if (error) throw error;
+  if (error) {
+    if (error.code === '23505' && (error.message || '').includes('matricula')) {
+      throw new Error('DUPLICATE_REGISTRY');
+    }
+    throw error;
+  }
   const boat = { ...r, photos: r.photos ?? [], crew: r.crew ?? [] };
   cache.boats = [boat, ...cache.boats];
   return boat;
@@ -522,10 +551,14 @@ export async function deleteTrip(id: string): Promise<void> {
 export async function saveBooking(
   data: Omit<Booking, 'id' | 'booking_number' | 'created_at' | 'trip'>
 ): Promise<Booking> {
-  const { data: cnt } = await supabase.rpc('next_counter', { counter_key: 'booking_counter' });
+  const { data: cnt, error: cntErr } = await supabase.rpc('next_counter', { counter_key: 'booking_counter' });
+  if (cntErr) throw cntErr;
   const { data: r, error } = await supabase.from('bookings')
     .insert({ ...data, booking_number: Number(cnt), guests: data.guests ?? [] }).select().single();
-  if (error) throw error;
+  if (error) {
+    if (error.message?.includes('OVERBOOK')) throw new Error('OVERBOOK');
+    throw error;
+  }
 
   // Fetch with trip join so b.trip is available immediately
   const { data: withTrip } = await supabase

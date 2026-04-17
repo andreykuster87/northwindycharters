@@ -249,6 +249,7 @@ export function SailorRegistration({ onClose }: { onClose?: () => void }) {
       deleteUploadedDocs(uploadedUrls);
       if (err.message === 'DUPLICATE_EMAIL')         { showErr('Este e-mail já está cadastrado.'); goTo(1); }
       else if (err.message === 'DUPLICATE_DOCUMENT') { showErr('Este documento já está cadastrado.'); goTo(2); }
+      else if (err.message === 'DUPLICATE_LOGIN')    { showErr('Este nome de utilizador já está em uso.'); goTo(1); }
       else if (err.name === 'QuotaExceededError' || err.code === 22) {
         try {
           const fullPhone = `${phoneCountry.ddi} ${phoneRaw}`;

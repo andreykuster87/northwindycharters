@@ -135,8 +135,12 @@ export function CompanyRegistrationModal({ onClose, onSuccess }: Props) {
       });
       setDone(true);
       onSuccess?.();
-    } catch {
-      setError('Erro ao salvar. Tente novamente.');
+    } catch (err: any) {
+      const m = err?.message;
+      if (m === 'DUPLICATE_EMAIL')        setError('Este e-mail já está cadastrado.');
+      else if (m === 'DUPLICATE_LOGIN')   setError('Este login de empresa já está em uso.');
+      else if (m === 'DUPLICATE_REGISTRY') setError('Este número de registo já está cadastrado.');
+      else                                 setError('Erro ao salvar. Tente novamente.');
     } finally {
       setLoading(false);
     }
