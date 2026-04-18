@@ -10,6 +10,7 @@ import {
   CalendarDays, Store, User,
 } from 'lucide-react';
 import { MarketplaceTab } from '../shared/MarketplaceTab';
+import { AmigosTab, useFriendships } from '../shared/FriendComponents';
 import { EmpresaFuncionarioTab } from '../company/EmpresaFuncionarioTab';
 import { loadEmpresaBell, markComunicadoSeen, type BellItem } from '../../lib/rh';
 import type { Company } from '../../lib/store/companies';
@@ -119,6 +120,7 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
   const unreadMsgs            = isSailor && auth.sailorId ? sailorMsgs.filter(m => !m.read).length : 0;
   const [empresaUnread, setEmpresaUnread] = useState(0);
   const [bellItems,     setBellItems]     = useState<BellItem[]>([]);
+  const { friendships, loadFriendships, pendingCount: friendPendingCount } = useFriendships(isSailor ? auth?.sailorId : undefined);
 
   useEffect(() => { loadData(); }, [auth]); // eslint-disable-line
   useEffect(() => { setSailorPhoto(sailorData?.profile_photo || ''); }, [sailorData?.profile_photo]); // eslint-disable-line
@@ -250,7 +252,7 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
   const solBadge = pending.length + pendingClients.length + pendingBoats.length + pendingCompaniesCount + candidatosBadge;
 
   const ADMIN_TABS: TabDef[] = [
-    { key: 'reservas',      icon: Users,        label: 'Reservas',      short: 'Reservas' },
+    { key: 'reservas',      icon: Users,        label: 'Reservas e Cancelamentos',      short: 'Res./Canc.' },
     { key: 'sol',           icon: UserCheck,    label: 'Solicitações',  short: 'Solicit.', badge: solBadge > 0 ? solBadge : undefined },
     { key: 'passeios',      icon: Compass,      label: 'Passeios',      short: 'Passeios' },
     { key: 'clientes',      icon: Users,        label: 'Clientes',      short: 'Clientes' },
@@ -263,9 +265,10 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
 
   const SAILOR_TABS: TabDef[] = [
     { key: 'perfil',        icon: User,           label: 'Perfil Público',      short: 'Perfil'   },
-    { key: 'reservas',      icon: Users,          label: 'Reservas',            short: 'Reservas' },
+    { key: 'amigos',        icon: Users,          label: 'Amigos',              short: 'Amigos',  badge: friendPendingCount > 0 ? friendPendingCount : undefined },
+    { key: 'reservas',      icon: Users,          label: 'Reservas e Cancelamentos', short: 'Res./Canc.' },
     { key: 'frota',         icon: Ship,           label: 'Minha Frota',         short: 'Frota' },
-    { key: 'eventos',       icon: CalendarDays,   label: 'Eventos',             short: 'Eventos' },
+    { key: 'eventos',       icon: CalendarDays,   label: 'Passeios e Eventos',  short: 'Pass./Ev.' },
     { key: 'empresa',       icon: Building2,      label: 'Empresa',             short: 'Empresa', badge: empresaUnread > 0 ? empresaUnread : undefined },
     { key: 'cancelamentos', icon: XCircle,  label: 'Cancelamentos', short: 'Cancels.' },
     { key: 'mensagens',     icon: Bell,     label: 'Mensagens',     short: 'Msgs', badge: unreadMsgs > 0 ? unreadMsgs : undefined },
@@ -365,6 +368,9 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
               />
             </div>
           )}
+          {tab === 'amigos' && isSailor && auth?.sailorId && (
+            <AmigosTab myId={auth.sailorId} myType="sailor" friendships={friendships} onRefresh={loadFriendships} />
+          )}
           {tab === 'reservas' && (
             <ReservasTab bookings={bookings} boats={boats} trips={trips}
               role={auth?.role ?? null} filterBoatId={filterBoatId}
@@ -451,7 +457,7 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
             <FinanceiroTab bookings={bookings} sailors={sailors} trips={trips} boats={boats} role={auth?.role ?? null} />
           )}
           {tab === 'eventos' && (
-            <EventosAdminTab role={auth?.role ?? null} />
+            <EventosAdminTab role={auth?.role ?? null} sailorId={auth?.sailorId} sailorName={sailorData?.name ?? auth?.userName} />
           )}
           {tab === 'empresa' && isSailor && auth?.sailorId && (
             <EmpresaFuncionarioTab
@@ -543,6 +549,8 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
           <SailorProfileView
             sailor={viewingSailorProfile}
             onBack={() => setViewingSailorProfile(null)}
+            currentUserId={auth?.sailorId}
+            currentUserType={auth?.sailorId ? 'sailor' : undefined}
           />
         </div>
       )}

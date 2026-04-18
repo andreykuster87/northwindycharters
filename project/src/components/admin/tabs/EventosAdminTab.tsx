@@ -46,9 +46,11 @@ function EventRow({ ev, onOpen }: { ev: NauticEvent; onOpen: () => void }) {
 
 interface Props {
   role: 'admin' | 'sailor' | null;
+  sailorId?:   string;
+  sailorName?: string;
 }
 
-export function EventosAdminTab({ role }: Props) {
+export function EventosAdminTab({ role, sailorId, sailorName }: Props) {
   const [subTab,       setSubTab]       = useState<'mural' | 'gestao' | 'criar'>('mural');
   const [filterStatus, setFilterStatus] = useState<EventStatus | ''>('');
   const [activeEvent,  setActiveEvent]  = useState<NauticEvent | null>(null);
@@ -67,7 +69,13 @@ export function EventosAdminTab({ role }: Props) {
 
   // Sailor só vê o mural
   if (role === 'sailor') {
-    return <EventosMural title="Mural de Eventos" subtitle="Eventos náuticos aprovados para a comunidade" />;
+    return (
+      <EventosMural
+        title="Mural de Eventos"
+        subtitle="Eventos náuticos aprovados para a comunidade"
+        currentUser={sailorId ? { id: sailorId, name: sailorName ?? 'Tripulante', type: 'sailor' } : undefined}
+      />
+    );
   }
 
   return (

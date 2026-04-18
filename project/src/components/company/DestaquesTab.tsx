@@ -1,6 +1,6 @@
 // src/components/company/DestaquesTab.tsx
 import { useState, useEffect, useRef } from 'react';
-import { Camera, Image, Trash2, MapPin, Phone, Mail, Globe, Building2, Star, Search } from 'lucide-react';
+import { Camera, Image, Trash2, MapPin, Building2, Star, Search } from 'lucide-react';
 import { getCompanies, updateCompany, type Company } from '../../lib/localStore';
 import { uploadDoc } from '../../lib/storage';
 import { CompanySearchCard } from '../shared/CompanySearchCard';
@@ -20,28 +20,14 @@ export function DestaquesTab({ company, onViewCompany }: Props) {
 
   const [searchExpanded, setSearchExpanded] = useState(false);
 
-  const [contactEditing, setContactEditing] = useState(false);
-  const [telefone, setTelefone] = useState(company.telefone || '');
-  const [email, setEmail]       = useState(company.email || '');
-  const [website, setWebsite]   = useState(company.website || '');
-
   useEffect(() => {
     const fresh = getCompanies().find(c => c.id === company.id);
     if (fresh) {
       setAlbum((fresh as any).album || []);
       setProfilePhoto((fresh as any).profile_photo || null);
       setBio((fresh as any).descricao || '');
-      setTelefone(fresh.telefone || '');
-      setEmail(fresh.email || '');
-      setWebsite(fresh.website || '');
     }
   }, [company.id]);
-
-  async function saveContact() {
-    await updateCompany(company.id, { telefone, email, website });
-    setContactEditing(false);
-  }
-
 
   async function handleProfilePhoto(file: File) {
     setUploading(true);
@@ -206,64 +192,6 @@ export function DestaquesTab({ company, onViewCompany }: Props) {
         )}
       </div>
 
-      <div className="bg-white border border-gray-100 p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Contacto</p>
-          <button
-            onClick={() => contactEditing ? saveContact() : setContactEditing(true)}
-            className="text-xs font-semibold text-[#1a2b4a]"
-          >
-            {contactEditing ? '✅ Guardar' : '✏️ Editar'}
-          </button>
-        </div>
-
-        {/* Telefone */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
-            <Phone className="w-4 h-4 text-[#c9a96e]" />
-          </div>
-          {contactEditing
-            ? <input value={telefone} onChange={e => setTelefone(e.target.value)}
-                className="flex-1 bg-gray-50 border border-gray-200 px-3 py-1.5 text-sm font-semibold text-[#1a2b4a] focus:border-[#c9a96e] outline-none"
-                placeholder="Telefone" />
-            : <p className="text-sm font-semibold text-gray-700 truncate">{telefone || '—'}</p>
-          }
-        </div>
-
-        {/* Email */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
-            <Mail className="w-4 h-4 text-[#c9a96e]" />
-          </div>
-          {contactEditing
-            ? <input value={email} onChange={e => setEmail(e.target.value)}
-                className="flex-1 bg-gray-50 border border-gray-200 px-3 py-1.5 text-sm font-semibold text-[#1a2b4a] focus:border-[#c9a96e] outline-none"
-                placeholder="Email" />
-            : <p className="text-sm font-semibold text-gray-700 truncate">{email || '—'}</p>
-          }
-        </div>
-
-        {/* Website */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
-            <Globe className="w-4 h-4 text-[#c9a96e]" />
-          </div>
-          {contactEditing
-            ? <input value={website} onChange={e => setWebsite(e.target.value)}
-                className="flex-1 bg-gray-50 border border-gray-200 px-3 py-1.5 text-sm font-semibold text-[#1a2b4a] focus:border-[#c9a96e] outline-none"
-                placeholder="Website" />
-            : <p className="text-sm font-semibold text-gray-700 truncate">{website || '—'}</p>
-          }
-        </div>
-
-        {/* Localização (só leitura) */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
-            <MapPin className="w-4 h-4 text-[#c9a96e]" />
-          </div>
-          <p className="text-sm font-semibold text-gray-700 truncate">{company.cidade}, {company.pais_nome}</p>
-        </div>
-      </div>
     </div>
   );
 }

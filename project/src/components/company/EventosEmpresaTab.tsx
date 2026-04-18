@@ -7,13 +7,15 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState } from 'react';
 import {
-  Plus, CalendarDays, MapPin, Clock, CheckCircle2,
-  XCircle, Eye, AlertCircle, ChevronDown, ChevronUp, Camera, X as XIcon, Trash2,
+  Plus, Clock, CheckCircle2,
+  XCircle, Eye, AlertCircle, ChevronDown, ChevronUp, Camera, X as XIcon,
+  Ship,
 } from 'lucide-react';
 import {
   getEventsByCompany, saveEvent, deleteEvent,
   type NauticEvent, type EventStatus,
 } from '../../lib/localStore';
+import type { Trip } from '../../lib/localStore';
 import { EventosMural } from '../shared/EventosMural';
 import type { Company } from '../../lib/localStore';
 
@@ -49,7 +51,7 @@ const EMPTY_FORM: EventForm = {
   photos:[],
 };
 
-function NovoEventoForm({
+export function NovoEventoForm({
   company,
   onSuccess,
   onCancel,
@@ -378,103 +380,111 @@ function MeuEventoCard({ ev, onDelete }: { ev: NauticEvent; onDelete: () => void
   );
 }
 
+// ── Card de passeio (visão empresa) ──────────────────────────────────────────
+
+function CompanyTripCard({ trip }: { trip: Trip }) {
+  const [expanded, setExpanded] = useState(false);
+  const statusLabel: Record<string, { label: string; cls: string }> = {
+    active:    { label: 'Activo',    cls: 'bg-green-100 text-green-700' },
+    cancelled: { label: 'Cancelado', cls: 'bg-red-100 text-red-600' },
+    inactive:  { label: 'Inactivo',  cls: 'bg-gray-100 text-gray-500' },
+  };
+  const s = statusLabel[trip.status] ?? { label: trip.status, cls: 'bg-gray-100 text-gray-500' };
+  const nextDate = trip.schedule
+    .map(e => e.date)
+    .filter(d => d >= new Date().toISOString().split('T')[0])
+    .sort()[0];
+
+  return (
+    <div className="bg-white border border-gray-100 overflow-hidden">
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="w-10 h-10 flex-shrink-0 overflow-hidden bg-[#0a1628]/5">
+          {trip.cover_photo
+            ? <img src={trip.cover_photo} alt="" className="w-full h-full object-cover" />
+            : <div className="w-full h-full flex items-center justify-center"><Ship className="w-5 h-5 text-[#c9a96e]" /></div>
+          }
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-[#1a2b4a] text-sm truncate">{trip.boat_name}</p>
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 ${s.cls}`}>{s.label}</span>
+            <span className="text-[10px] font-semibold text-gray-400">{trip.duracao}</span>
+          </div>
+        </div>
+        <button onClick={() => setExpanded(v => !v)} className="text-gray-400 hover:text-[#1a2b4a] flex-shrink-0">
+          {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="px-4 pb-4 pt-1 border-t border-gray-50 space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              ['Saída',  trip.marina_saida],
+              ['Chegada',trip.marina_chegada],
+              ['Preço',  `€${trip.valor_por_pessoa}/pax`],
+              ['Próx. data', nextDate ?? '—'],
+            ].map(([l, v]) => (
+              <div key={l} className="bg-gray-50 px-3 py-2">
+                <p className="text-[9px] font-semibold text-gray-400 uppercase">{l}</p>
+                <p className="text-xs font-bold text-[#1a2b4a]">{v}</p>
+              </div>
+            ))}
+          </div>
+          {trip.descricao && (
+            <p className="text-[11px] text-gray-500 font-semibold leading-relaxed line-clamp-2">{trip.descricao}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Componente principal ──────────────────────────────────────────────────────
 
 export function EventosEmpresaTab({ company }: { company: Company }) {
-  const [subTab,     setSubTab]     = useState<'meus' | 'realizados'>('meus');
-  const [showNovo,   setShowNovo]   = useState(false);
-  const [renderKey,  setRenderKey]  = useState(0);
-
-  const todayStr    = new Date().toISOString().split('T')[0];
-  const allEventos  = getEventsByCompany(company.id);
-  const meusEventos = allEventos.filter(e => e.date >= todayStr);
-  const realizados  = allEventos.filter(e => e.date < todayStr);
+  const [panel,     setPanel]     = useState<null | 'novo'>(null);
+  const [renderKey, setRenderKey] = useState(0);
 
   function reload() { setRenderKey(k => k + 1); }
 
   return (
     <div className="space-y-4" key={renderKey}>
-      {/* Título + botões de sub-tab no canto direito */}
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-['Playfair_Display'] font-bold text-[#1a2b4a] uppercase italic">Meus Eventos</h2>
-          <p className="text-xs text-gray-400 font-semibold">Gerencie e acompanhe os seus eventos</p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {[
-            { key: 'meus'       as const, label: 'Meus Eventos'       },
-            { key: 'realizados' as const, label: 'Eventos Realizados' },
-          ].map(t => (
-            <button key={t.key} onClick={() => setSubTab(t.key)}
-              className={`px-3 py-2 font-semibold text-[10px] uppercase transition-all ${
-                subTab === t.key ? 'bg-[#0a1628] text-white' : 'bg-white border border-gray-100 text-gray-500 hover:border-[#c9a96e]/30'
-              }`}>
-              {t.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Formulário de novo evento (inline) */}
-      {showNovo && (
-        <NovoEventoForm
-          company={company}
-          onSuccess={() => { reload(); setShowNovo(false); }}
-          onCancel={() => setShowNovo(false)}
-        />
-      )}
-
-      {/* Meus eventos */}
-      {!showNovo && subTab === 'meus' && (
-        <div className="space-y-3">
-          {meusEventos.length === 0 ? (
-            <div className="bg-white border-2 border-dashed border-gray-200 py-14 text-center">
-              <div className="text-5xl mb-4">📅</div>
-              <p className="font-semibold text-gray-300 uppercase italic text-sm">Nenhum evento criado ainda</p>
-              <button onClick={() => setShowNovo(true)}
-                className="mt-4 bg-[#0a1628] text-white px-6 py-2.5 font-semibold text-xs uppercase hover:bg-[#1a2b4a] transition-all flex items-center gap-1.5 mx-auto">
-                <Plus className="w-3.5 h-3.5" /> Criar Novo Evento
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-3">
-                {meusEventos.map(ev => (
-                  <MeuEventoCard key={ev.id} ev={ev}
-                    onDelete={() => { deleteEvent(ev.id); reload(); }} />
-                ))}
+      {/* Overlay full-screen do formulário */}
+      {panel === 'novo' && (
+        <div
+          className="fixed inset-0 z-[150] flex items-end md:items-center justify-center"
+          style={{ background: 'rgba(4,10,24,0.85)', backdropFilter: 'blur(6px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setPanel(null); }}
+        >
+          <div className="bg-white w-full md:max-w-xl max-h-[92vh] overflow-y-auto shadow-2xl border-t-2 border-[#c9a96e]/40 md:border-2 md:border-[#c9a96e]/20">
+            <div className="sticky top-0 bg-[#0a1628] px-5 py-4 flex items-center justify-between z-10 border-b border-[#c9a96e]/20">
+              <div>
+                <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Novo Evento</p>
+                <p className="text-white font-bold text-sm font-['Playfair_Display'] italic uppercase">{company.nome_fantasia}</p>
               </div>
-              {/* CTA criar novo evento no painel */}
-              <button onClick={() => setShowNovo(true)}
-                className="w-full border-2 border-dashed border-[#c9a96e]/30 hover:border-[#c9a96e] bg-[#0a1628]/5 hover:bg-gray-50 text-[#1a2b4a] py-3 font-semibold text-xs uppercase transition-all flex items-center justify-center gap-2">
-                <Plus className="w-4 h-4" /> Criar Novo Evento
+              <button onClick={() => setPanel(null)} className="bg-white/10 hover:bg-white/20 text-white p-2 transition-all">
+                <XIcon className="w-4 h-4" />
               </button>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Eventos realizados */}
-      {!showNovo && subTab === 'realizados' && (
-        <div className="space-y-3">
-          {realizados.length === 0 ? (
-            <div className="bg-white border-2 border-dashed border-gray-200 py-14 text-center">
-              <div className="text-5xl mb-4">🏁</div>
-              <p className="font-semibold text-gray-300 uppercase italic text-sm">Nenhum evento realizado ainda</p>
             </div>
-          ) : (
-            realizados.map(ev => (
-              <MeuEventoCard key={ev.id} ev={ev}
-                onDelete={() => { deleteEvent(ev.id); reload(); }} />
-            ))
-          )}
+            <div className="p-4">
+              <NovoEventoForm
+                company={company}
+                onSuccess={() => { reload(); setPanel(null); }}
+                onCancel={() => setPanel(null)}
+              />
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Mural público — sempre visível abaixo */}
-      {!showNovo && (
-        <EventosMural title="Mural de Eventos" subtitle="Eventos aprovados pela NorthWindy" />
-      )}
+      {/* ── Mural Público ─────────────────────────────────────────────── */}
+      <EventosMural
+        title="Mural Público"
+        subtitle="Eventos aprovados e fórum da comunidade"
+        currentUser={{ id: company.id, name: company.nome_fantasia, type: 'company' }}
+      />
+
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   Building2, Store, SlidersHorizontal,
 } from 'lucide-react';
 import { SailorApplicationModal } from '../modals/SailorApplicationModal';
+import { AmigosTab, useFriendships } from '../shared/FriendComponents';
 import {
   getClients, getBookings, getTrips, saveBooking,
   notifyBookingStatusChange, refreshAll, updateClient, getCompanies,
@@ -35,12 +36,13 @@ import { MarketplaceTab }     from '../shared/MarketplaceTab';
 
 // ── Tipos de abas ─────────────────────────────────────────────────────────────
 
-type TabKey = 'perfil' | 'reservas' | 'marketplace' | 'mensagens' | 'configuracoes' | 'comunidade';
+type TabKey = 'perfil' | 'reservas' | 'marketplace' | 'mensagens' | 'configuracoes' | 'comunidade' | 'amigos';
 
 const TABS: { key: TabKey; icon: React.ElementType; label: string; short: string }[] = [
   { key: 'perfil',        icon: User,          label: 'Perfil',                      short: 'Perfil'     },
+  { key: 'amigos',        icon: Users,         label: 'Amigos',                      short: 'Amigos'     },
   { key: 'marketplace',   icon: Store,         label: 'Marketplace',                 short: 'Market'     },
-  { key: 'reservas',      icon: BookOpen,      label: 'Reservas',                    short: 'Reservas'   },
+  { key: 'reservas',      icon: BookOpen,      label: 'Reservas e Cancelamentos',    short: 'Res./Canc.' },
   { key: 'mensagens',     icon: MessageSquare, label: 'Mensagens',                   short: 'Mensagens'  },
   { key: 'configuracoes', icon: Settings,      label: 'Configurações',               short: 'Config'     },
   { key: 'comunidade',    icon: Users,         label: 'Faça parte da comunidade',    short: 'Comunidade' },
@@ -50,6 +52,7 @@ const TABS: { key: TabKey; icon: React.ElementType; label: string; short: string
 
 export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () => void }) {
   const [tab,          setTab]          = useState<TabKey>('perfil');
+  const { friendships, loadFriendships, pendingCount: friendPendingCount } = useFriendships(auth.clientId);
   const [searchOpen,   setSearchOpen]   = useState(false);
   const [clientData,   setClientData]   = useState<any>(() => getClients().find(c => c.id === auth.clientId) || null);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(() => {
@@ -250,12 +253,12 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
 
   // Se clicou numa empresa nos resultados, mostra o perfil completo
   if (viewingCompany) {
-    return <CompanyProfileView company={viewingCompany} onBack={() => { setViewingCompany(null); setSearchOpen(false); clearCompanySearch(); }} />;
+    return <CompanyProfileView company={viewingCompany} onBack={() => { setViewingCompany(null); setSearchOpen(false); clearCompanySearch(); }} currentUserId={auth.clientId} currentUserType="client" />;
   }
 
   // Se clicou num tripulante nos resultados, mostra o perfil completo
   if (viewingSailor) {
-    return <SailorProfileView sailor={viewingSailor} onBack={() => { setViewingSailor(null); setSearchOpen(false); clearSailorSearch(); }} />;
+    return <SailorProfileView sailor={viewingSailor} onBack={() => { setViewingSailor(null); setSearchOpen(false); clearSailorSearch(); }} currentUserId={auth.clientId} currentUserType="client" />;
   }
 
   return (
@@ -582,6 +585,7 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
           {TABS.map(t => {
             const Icon   = t.icon;
             const active = tab === t.key;
+            const badge  = t.key === 'amigos' && friendPendingCount > 0 ? friendPendingCount : 0;
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`flex items-center gap-2.5 px-4 py-3 text-xs font-semibold uppercase tracking-wide transition-all border-l-2 ${
@@ -591,7 +595,12 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
                 }`}>
                 <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${active ? 'text-[#c9a96e]' : ''}`} />
                 {t.label}
-                {active && <ChevronRight className="w-3 h-3 ml-auto text-[#c9a96e]" />}
+                {badge > 0 && (
+                  <span className="ml-auto w-4 h-4 bg-red-500 text-white text-[8px] font-bold flex items-center justify-center flex-shrink-0">
+                    {badge > 9 ? '9+' : badge}
+                  </span>
+                )}
+                {active && !badge && <ChevronRight className="w-3 h-3 ml-auto text-[#c9a96e]" />}
               </button>
             );
           })}
@@ -635,6 +644,9 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
             />
           )}
           {tab === 'marketplace'  && <MarketplaceTab role="client" />}
+          {tab === 'amigos'       && auth.clientId && (
+            <AmigosTab myId={auth.clientId} myType="client" friendships={friendships} onRefresh={loadFriendships} />
+          )}
         </main>
       </div>
 

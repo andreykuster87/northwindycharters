@@ -8,10 +8,12 @@ import {
   MapPin, Globe, Image as ImageIcon, ChevronRight,
   CheckCircle2, AlertTriangle, XCircle, Clock,
   Award, Languages, Anchor, CalendarDays, PlusCircle, Upload, X, Eye, RefreshCw,
-  Building2,
+  Building2, Users,
 } from 'lucide-react';
 import { uploadDoc } from '../../lib/storage';
 import { updateSailor, getSailors, getCompanies, refreshAll, type Sailor } from '../../lib/localStore';
+import type { FriendProfileType } from '../../lib/localStore';
+import { FriendButton, AmigosTab, useFriendships } from '../shared/FriendComponents';
 import { STCW_CERTS, FUNCOES_MARITIMAS } from '../../constants/sailorConstants';
 import { findCompanyForSailorDB } from '../../lib/rh';
 
@@ -1204,7 +1206,6 @@ interface SailorProfileContentProps {
 export function SailorProfileContent({ sailor, subTab, isOwner, onDocAdded }: SailorProfileContentProps) {
   const [localSailor, setLocalSailor] = useState<Sailor>(sailor);
 
-  // Sincroniza quando o sailor externo muda (ex: foto atualizada)
   if (sailor.id !== localSailor.id || sailor.profile_photo !== localSailor.profile_photo) {
     setLocalSailor(sailor);
   }
@@ -1225,15 +1226,17 @@ export function SailorProfileContent({ sailor, subTab, isOwner, onDocAdded }: Sa
 }
 
 interface SailorProfileViewProps {
-  sailor:    Sailor;
-  onBack:    () => void;
-  isOwner?:  boolean;
+  sailor:           Sailor;
+  onBack:           () => void;
+  isOwner?:         boolean;
+  currentUserId?:   string;
+  currentUserType?: FriendProfileType;
 }
 
-// ── Tipo para itens do sino ───────────────────────────────────────────────────
-export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileViewProps) {
+export function SailorProfileView({ sailor, onBack, isOwner, currentUserId, currentUserType }: SailorProfileViewProps) {
   const [tab,         setTab]         = useState<ViewTab>('perfil');
   const [localSailor, setLocalSailor] = useState<Sailor>(sailor);
+  const { friendships, loadFriendships, pendingCount } = useFriendships(currentUserId);
 
   // Refresh local sailor data after adding a doc
   async function handleDocAdded() {
@@ -1245,6 +1248,8 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
   const funcao = (localSailor as any).funcao === 'Outro'
     ? ((localSailor as any).funcao_outro || 'Outro')
     : (localSailor as any).funcao;
+
+  const canAddFriend = !isOwner && !!currentUserId && !!currentUserType && currentUserId !== localSailor.id;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -1262,6 +1267,14 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
               {localSailor.profile_number}{funcao ? ` · ${funcao}` : ''}{isOwner ? ' · Meu perfil público' : ''}
             </p>
           </div>
+          {/* Botão de amizade na navbar (mobile) */}
+          {canAddFriend && (
+            <FriendButton
+              myId={currentUserId!} myType={currentUserType!}
+              theirId={localSailor.id} theirType="sailor"
+              friendships={friendships} onAction={loadFriendships} compact
+            />
+          )}
           <button onClick={onBack}
             className="bg-white/5 hover:bg-red-600/80 px-4 py-2 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition-all flex-shrink-0 border border-white/10">
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -1299,6 +1312,16 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
                 <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-wide text-center">Meu Perfil Público</p>
               </div>
             )}
+            {/* Botão de amizade no sidebar */}
+            {canAddFriend && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <FriendButton
+                  myId={currentUserId!} myType={currentUserType!}
+                  theirId={localSailor.id} theirType="sailor"
+                  friendships={friendships} onAction={loadFriendships}
+                />
+              </div>
+            )}
           </div>
 
           {/* Nav items */}
@@ -1306,7 +1329,6 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
             {VIEW_TABS.map(t => {
               const Icon   = t.icon;
               const active = tab === t.key;
-              const badge  = t.key === 'empresa' && isOwner && empresaUnread > 0 ? empresaUnread : 0;
               return (
                 <button key={t.key} onClick={() => setTab(t.key)}
                   className={`w-full flex items-center gap-3 px-4 py-3.5 text-xs font-semibold uppercase tracking-wider transition-all border-b border-[#0a1628]/5 last:border-0 ${
@@ -1316,11 +1338,6 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
                   }`}>
                   <Icon className="w-3.5 h-3.5 flex-shrink-0" />
                   <span className="flex-1 text-left">{t.label}</span>
-                  {badge > 0 && (
-                    <span className="w-4 h-4 bg-red-500 text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0">
-                      {badge > 9 ? '9+' : badge}
-                    </span>
-                  )}
                   {active && !badge && <ChevronRight className="w-3 h-3 text-[#c9a96e]" />}
                 </button>
               );
@@ -1341,7 +1358,6 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
           {VIEW_TABS.map(t => {
             const Icon   = t.icon;
             const active = tab === t.key;
-            const badge  = t.key === 'empresa' && isOwner && empresaUnread > 0 ? empresaUnread : 0;
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all relative ${
@@ -1349,11 +1365,6 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
                 }`}>
                 <div className="relative">
                   <Icon className={`w-5 h-5 transition-all ${active ? 'scale-110' : ''}`} />
-                  {badge > 0 && (
-                    <span className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-red-500 text-white text-[8px] font-bold flex items-center justify-center">
-                      {badge > 9 ? '9+' : badge}
-                    </span>
-                  )}
                 </div>
                 <span className="text-[9px] font-semibold uppercase tracking-wide">{t.short}</span>
                 {active && <div className="absolute bottom-0 h-0.5 w-8 bg-[#c9a96e]" />}

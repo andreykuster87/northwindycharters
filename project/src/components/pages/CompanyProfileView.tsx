@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { getPublicEvents, getJobsByCompany, type NauticEvent, type JobOffer } from '../../lib/localStore';
 import type { Company } from '../../lib/store/companies';
+import { FriendButton, useFriendships } from '../shared/FriendComponents';
+import type { FriendProfileType } from '../shared/FriendComponents';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -457,12 +459,16 @@ const VIEW_TABS: { key: ViewTab; icon: React.ElementType; label: string; short: 
 ];
 
 interface CompanyProfileViewProps {
-  company: Company;
-  onBack:  () => void;
+  company:          Company;
+  onBack:           () => void;
+  currentUserId?:   string;
+  currentUserType?: FriendProfileType;
 }
 
-export function CompanyProfileView({ company, onBack }: CompanyProfileViewProps) {
+export function CompanyProfileView({ company, onBack, currentUserId, currentUserType }: CompanyProfileViewProps) {
   const [tab, setTab] = useState<ViewTab>('perfil');
+  const { friendships, loadFriendships } = useFriendships(currentUserId);
+  const canAddFriend = !!currentUserId && !!currentUserType && currentUserId !== company.id;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -480,6 +486,13 @@ export function CompanyProfileView({ company, onBack }: CompanyProfileViewProps)
               {company.profile_number} · {company.setor.split(',')[0].trim()}
             </p>
           </div>
+          {canAddFriend && (
+            <FriendButton
+              myId={currentUserId!} myType={currentUserType!}
+              theirId={company.id} theirType="company"
+              friendships={friendships} onAction={loadFriendships} compact
+            />
+          )}
           <button onClick={onBack}
             className="bg-white/5 hover:bg-red-600/80 px-4 py-2 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition-all flex-shrink-0 border border-white/10">
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -504,6 +517,15 @@ export function CompanyProfileView({ company, onBack }: CompanyProfileViewProps)
             <p className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-sm text-center uppercase leading-tight">{company.nome_fantasia}</p>
             <p className="text-[10px] font-semibold text-[#c9a96e] text-center mt-1">{company.profile_number}</p>
             <p className="text-[10px] font-semibold text-gray-400 text-center mt-0.5 truncate">{company.cidade}, {company.pais_nome}</p>
+            {canAddFriend && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <FriendButton
+                  myId={currentUserId!} myType={currentUserType!}
+                  theirId={company.id} theirType="company"
+                  friendships={friendships} onAction={loadFriendships}
+                />
+              </div>
+            )}
           </div>
 
           {/* Nav items */}
