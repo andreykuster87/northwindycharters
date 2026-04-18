@@ -123,6 +123,7 @@ export function ClientRegistrationModal({ onClose, onSuccess }: Props) {
     } catch (err: any) {
       if (err.message === 'DUPLICATE_EMAIL')         { showErr('Este e-mail já está cadastrado.'); setStep(1); }
       else if (err.message === 'DUPLICATE_DOCUMENT') { showErr('Este número de documento já está cadastrado.'); }
+      else if (err.message === 'DUPLICATE_LOGIN')    { showErr('Este nome de utilizador já está em uso.'); setStep(1); }
       else { showErr('Erro ao salvar. Tente novamente.'); }
     } finally {
       setLoading(false);

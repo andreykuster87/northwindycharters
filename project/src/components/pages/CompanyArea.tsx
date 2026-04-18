@@ -8,8 +8,10 @@ import {
   ChevronRight, XCircle,
   CheckCircle2, MessageSquare, Waves, Send,
   Plus, ChevronDown, ChevronUp, Search, X, Check, UserPlus,
-  Inbox, BookOpen, AlertCircle, Camera, Image, Trash2, Briefcase, Store,
+  Inbox, BookOpen, AlertCircle, Camera, Image, Trash2, Briefcase, Store, Settings,
 } from 'lucide-react';
+import { CompanySettingsModal } from '../modals/CompanySettingsModal';
+import { AmigosTab, useFriendships } from '../shared/FriendComponents';
 import { getCompanies, updateCompany, refreshAll, getSailors, getClients, type Company } from '../../lib/localStore';
 import { uploadDoc } from '../../lib/storage';
 import { getMessages, markMessageRead, markAllMessagesRead, getAllBoats, type Message } from '../../lib/localStore';
@@ -18,6 +20,7 @@ import type { AuthState } from '../../hooks/useAuth';
 import { BoatRegistrationModal } from '../modals/BoatRegistrationModal';
 import { EventosEmpresaTab } from '../company/EventosEmpresaTab';
 import { RHTab }             from '../company/RHTab';
+import { PasseiosEventosTab } from '../company/PasseiosEventosTab';
 import { DestaquesTab }      from '../company/DestaquesTab';
 import { FrotaTab }          from '../company/FrotaTab';
 import { ReservasTab }       from '../company/ReservasTab';
@@ -63,12 +66,14 @@ function Toast({ msg, onClose }: { msg: string; onClose: () => void }) {
 
 // ── Tab config ─────────────────────────────────────────────────────────────────
 
-type TabKey = 'eventos' | 'destaques' | 'frota' | 'reservas' | 'funcionarios' | 'mensagens' | 'financeiro' | 'suporte' | 'marketplace';
+type TabKey = 'eventos' | 'destaques' | 'frota' | 'reservas' | 'passeioseventos' | 'funcionarios' | 'mensagens' | 'financeiro' | 'suporte' | 'marketplace' | 'amigos';
 
 const TABS: { key: TabKey; icon: React.ElementType; label: string; short: string }[] = [
   { key: 'destaques',    icon: Star,         label: 'Perfil Público',      short: 'Perfil'     },
-  { key: 'eventos',      icon: CalendarDays, label: 'Mural',               short: 'Mural'      },
-  { key: 'reservas',     icon: ClipboardList,label: 'Reservas',            short: 'Reservas'   },
+  { key: 'amigos',       icon: Users,        label: 'Amigos',              short: 'Amigos'     },
+  { key: 'eventos',         icon: CalendarDays, label: 'Mural',                  short: 'Mural'      },
+  { key: 'passeioseventos', icon: Ship,         label: 'Passeios e Eventos',     short: 'Pass./Ev.'  },
+  { key: 'reservas',        icon: ClipboardList,label: 'Reservas e Cancelamentos', short: 'Res./Canc.' },
   { key: 'frota',        icon: Ship,         label: 'Frota',               short: 'Frota'      },
   { key: 'funcionarios', icon: Briefcase,    label: 'RH',                  short: 'RH'         },
   { key: 'mensagens',    icon: MessageSquare,label: 'Mensagens',           short: 'Mensagens'  },
@@ -81,11 +86,13 @@ const TABS: { key: TabKey; icon: React.ElementType; label: string; short: string
 
 export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () => void }) {
   const [tab, setTab]           = useState<TabKey>('eventos');
+  const { friendships, loadFriendships, pendingCount: friendPendingCount } = useFriendships(auth.companyId);
   const [toast, setToast]       = useState<string | null>(null);
   const [company, setCompany]   = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [viewingCompany, setViewingCompany] = useState<Company | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     refreshAll().then(() => {
@@ -156,6 +163,8 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
       <CompanyProfileView
         company={viewingCompany}
         onBack={() => setViewingCompany(null)}
+        currentUserId={auth.companyId}
+        currentUserType="company"
       />
     );
   }
@@ -164,6 +173,15 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
     <div className="min-h-screen bg-gray-50 flex flex-col">
 
       {toast && <Toast msg={toast} onClose={() => setToast(null)} />}
+
+      {settingsOpen && (
+        <CompanySettingsModal
+          company={company}
+          onClose={() => setSettingsOpen(false)}
+          onCompanyChange={(patch) => setCompany(c => c ? { ...c, ...patch } : c)}
+          onToast={setToast}
+        />
+      )}
 
       {/* ── NAVBAR ── */}
       <nav className="bg-[#0a1628] text-white px-4 py-3 sticky top-0 z-40 shadow-xl border-b border-[#c9a96e]/10">
@@ -187,6 +205,13 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
                   {unread}
                 </span>
               )}
+            </button>
+            <button
+              className="bg-white/5 hover:bg-white/10 p-2 transition-all"
+              onClick={() => setSettingsOpen(true)}
+              title="Configurações"
+            >
+              <Settings className="w-4 h-4 text-white" />
             </button>
             <button onClick={onLogout}
               className="bg-white/5 hover:bg-red-600/80 px-3 py-2 text-xs font-medium uppercase flex items-center gap-1 transition-all">
@@ -216,6 +241,7 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
           {TABS.map(t => {
             const Icon   = t.icon;
             const active = tab === t.key;
+            const badge  = t.key === 'amigos' && friendPendingCount > 0 ? friendPendingCount : 0;
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`flex items-center gap-2.5 px-4 py-3 text-xs font-semibold uppercase tracking-wide transition-all ${
@@ -225,7 +251,12 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
                 }`}>
                 <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${active ? 'text-[#c9a96e]' : ''}`} />
                 {t.label}
-                {active && <ChevronRight className="w-3 h-3 ml-auto text-[#c9a96e]" />}
+                {badge > 0 && (
+                  <span className="ml-auto w-4 h-4 bg-red-500 text-white text-[8px] font-bold flex items-center justify-center flex-shrink-0">
+                    {badge > 9 ? '9+' : badge}
+                  </span>
+                )}
+                {active && !badge && <ChevronRight className="w-3 h-3 ml-auto text-[#c9a96e]" />}
               </button>
             );
           })}
@@ -233,15 +264,19 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
 
         {/* ── MAIN CONTENT ── */}
         <main className="flex-1 min-w-0 px-4 py-4 pb-24 md:pb-6 md:pr-4 md:py-6 overflow-hidden">
-          {tab === 'eventos'      && <EventosEmpresaTab company={company} />}
-          {tab === 'destaques'    && <DestaquesTab    company={company} onViewCompany={setViewingCompany} />}
-          {tab === 'frota'        && <FrotaTab        companyId={company.id} onToast={setToast} />}
-          {tab === 'reservas'     && <ReservasTab companyId={company.id} />}
+          {tab === 'eventos'         && <EventosEmpresaTab company={company} />}
+          {tab === 'passeioseventos' && <PasseiosEventosTab company={company} onToast={setToast} />}
+          {tab === 'destaques'       && <DestaquesTab    company={company} onViewCompany={setViewingCompany} />}
+          {tab === 'frota'           && <FrotaTab        companyId={company.id} onToast={setToast} />}
+          {tab === 'reservas'        && <ReservasTab companyId={company.id} />}
           {tab === 'funcionarios' && <RHTab companyId={company.id} onToast={setToast} />}
           {tab === 'mensagens'    && <MensagensTab    companyId={company.id} />}
           {tab === 'financeiro'   && <FinanceiroTab companyId={company.id} />}
           {tab === 'suporte'      && <SuporteTab      company={company} />}
           {tab === 'marketplace'  && <MarketplaceTab role="company" company={company} />}
+          {tab === 'amigos'       && auth.companyId && (
+            <AmigosTab myId={auth.companyId} myType="company" friendships={friendships} onRefresh={loadFriendships} />
+          )}
         </main>
       </div>
 

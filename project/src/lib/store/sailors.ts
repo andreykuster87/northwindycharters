@@ -132,7 +132,11 @@ export async function saveSailor(
     .from('sailors').insert(row).select().single();
   if (error) {
     if (error.code === '23505') {
-      if (error.message.includes('email')) throw new Error('DUPLICATE_EMAIL');
+      const msg = error.message || '';
+      if (msg.includes('email'))          throw new Error('DUPLICATE_EMAIL');
+      if (msg.includes('sailor_login'))   throw new Error('DUPLICATE_LOGIN');
+      if (msg.includes('cpf_nif'))        throw new Error('DUPLICATE_DOCUMENT');
+      if (msg.includes('profile_number')) throw new Error('DUPLICATE_PROFILE_NUMBER');
       throw new Error('DUPLICATE_DOCUMENT');
     }
     throw error;

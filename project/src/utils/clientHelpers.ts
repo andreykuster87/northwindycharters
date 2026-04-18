@@ -89,34 +89,35 @@ export function buildSchedule(trip: CatalogBoat): ScheduleData[] {
       ['confirmed', 'completed', 'concluido', 'pending', 'aguardando'].includes(b.status),
   );
 
-  return (trip.schedule || []).filter(e => e.date >= today).map(e => {
-    const slotSpots: Record<string, number> = {};
+  return (trip.schedule || [])
+    .filter(e => e?.date && e.date >= today)
+    .map(e => {
+      const slots = Array.isArray(e.time_slots) ? e.time_slots : [];
+      const spots = Number.isFinite(e.spots) ? e.spots : 0;
+      const slotSpots: Record<string, number> = {};
 
-    if (e.time_slots.length > 0) {
-      // Cada slot tem vagas independentes
-      e.time_slots.forEach(slot => {
-        const paxSlot = active
-          .filter(b => b.booking_date === e.date && b.time_slot === slot)
+      if (slots.length > 0) {
+        slots.forEach(slot => {
+          const paxSlot = active
+            .filter(b => b.booking_date === e.date && b.time_slot === slot)
+            .reduce((s, b) => s + (b.passengers || 0), 0);
+          slotSpots[slot] = Math.max(0, spots - paxSlot);
+        });
+
+        const totalDaySpots = spots * slots.length;
+        const paxDay = active
+          .filter(b => b.booking_date === e.date)
           .reduce((s, b) => s + (b.passengers || 0), 0);
-        slotSpots[slot] = Math.max(0, e.spots - paxSlot);
-      });
 
-      // Total do dia = soma das vagas de todos os slots
-      const totalDaySpots = e.spots * e.time_slots.length;
+        return { ...e, time_slots: slots, spots, spotsLeft: Math.max(0, totalDaySpots - paxDay), slotSpots };
+      }
+
       const paxDay = active
         .filter(b => b.booking_date === e.date)
         .reduce((s, b) => s + (b.passengers || 0), 0);
 
-      return { ...e, spotsLeft: Math.max(0, totalDaySpots - paxDay), slotSpots };
-    }
-
-    // Sem slots: vagas directas do dia
-    const paxDay = active
-      .filter(b => b.booking_date === e.date)
-      .reduce((s, b) => s + (b.passengers || 0), 0);
-
-    return { ...e, spotsLeft: Math.max(0, e.spots - paxDay), slotSpots };
-  });
+      return { ...e, time_slots: slots, spots, spotsLeft: Math.max(0, spots - paxDay), slotSpots };
+    });
 }
 
 // ── Carregamento de viagens ───────────────────────────────────────────────────

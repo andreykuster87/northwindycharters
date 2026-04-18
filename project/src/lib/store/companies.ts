@@ -70,7 +70,17 @@ export async function saveCompany(
 
   const { data: inserted, error } = await supabase
     .from('companies').insert({ ...data, profile_number }).select().single();
-  if (error) throw error;
+  if (error) {
+    if (error.code === '23505') {
+      const msg = error.message || '';
+      if (msg.includes('email'))           throw new Error('DUPLICATE_EMAIL');
+      if (msg.includes('company_login'))   throw new Error('DUPLICATE_LOGIN');
+      if (msg.includes('numero_registro')) throw new Error('DUPLICATE_REGISTRY');
+      if (msg.includes('profile_number'))  throw new Error('DUPLICATE_PROFILE_NUMBER');
+      throw new Error('DUPLICATE_COMPANY');
+    }
+    throw error;
+  }
   return inserted;
 }
 

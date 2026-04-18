@@ -104,14 +104,20 @@ interface Props {
 }
 
 export function ReservasTab({ companyId }: Props) {
-  const [filter, setFilter] = useState<'todas'|'confirmada'|'pendente'|'cancelada'>('todas');
+  const [filter,       setFilter]       = useState<'todas'|'confirmada'|'pendente'|'cancelada'>('todas');
+  const [filterEv,     setFilterEv]     = useState<'todas'|'confirmada'|'cancelada'>('todas');
   const [activeTab, setActiveTab] = useState<'passeios'|'eventos'>('passeios');
 
   const total = BOOKINGS.filter(b=>b.status==='confirmada').reduce((a,b)=>a+b.valor,0);
   const filtered = filter === 'todas' ? BOOKINGS : BOOKINGS.filter(b => b.status === filter);
 
   const allEventBookings: EventBooking[] = getEventBookingsByCompany(companyId);
-  const totalEventos = allEventBookings.reduce((a, b) => a + b.total_price, 0);
+  const filteredEvents = filterEv === 'todas'
+    ? allEventBookings
+    : allEventBookings.filter(b =>
+        filterEv === 'confirmada' ? b.status === 'confirmed' : b.status === 'cancelled'
+      );
+  const totalEventos = filteredEvents.reduce((a, b) => a + b.total_price, 0);
 
   return (
     <div className="space-y-4">
@@ -171,16 +177,27 @@ export function ReservasTab({ companyId }: Props) {
 
       {activeTab === 'eventos' && (
         <div className="space-y-2">
-          {allEventBookings.length === 0 ? (
+          <div className="flex gap-2 flex-wrap">
+            {(['todas','confirmada','cancelada'] as const).map(f => (
+              <button key={f} onClick={() => setFilterEv(f)}
+                className={`px-3 py-1.5 text-[10px] font-semibold uppercase transition-all ${
+                  filterEv === f ? 'bg-[#0a1628] text-white' : 'bg-gray-50 border border-gray-100 text-gray-500'
+                }`}>
+                {f}
+              </button>
+            ))}
+          </div>
+          {filteredEvents.length === 0 ? (
             <div className="text-center py-10">
               <span className="text-4xl block mb-2">🎟️</span>
               <p className="font-semibold text-gray-300 uppercase italic text-xs">Sem bilhetes de eventos</p>
             </div>
           ) : (
-            allEventBookings.map(b => {
+            filteredEvents.map(b => {
               const isPast = new Date(`${b.event_date}T${b.event_time || '23:59'}`) < new Date();
-              const statusLabel = isPast ? 'Realizado' : 'Confirmado';
-              const statusCls   = isPast ? 'bg-[#0a1628]/10 text-[#1a2b4a]' : 'bg-green-100 text-green-700';
+              const isCancelled = b.status === 'cancelled';
+              const statusLabel = isCancelled ? 'Cancelada' : isPast ? 'Realizado' : 'Confirmado';
+              const statusCls   = isCancelled ? 'bg-red-100 text-red-600' : isPast ? 'bg-[#0a1628]/10 text-[#1a2b4a]' : 'bg-green-100 text-green-700';
               return (
                 <div key={b.id} className="bg-white border border-gray-100 px-4 py-3 flex items-center gap-3">
                   <div className="w-9 h-9 bg-purple-50 flex items-center justify-center flex-shrink-0 text-base">🎟️</div>
@@ -198,7 +215,7 @@ export function ReservasTab({ companyId }: Props) {
               );
             })
           )}
-          {allEventBookings.length > 0 && (
+          {filteredEvents.length > 0 && (
             <div className="bg-gradient-to-r from-[#0a1628] to-[#1a2b4a] px-5 py-3 flex items-center justify-between">
               <p className="text-[#c9a96e] text-xs font-semibold uppercase tracking-[0.15em]">Total Eventos</p>
               <p className="text-white font-bold text-lg">{currency(totalEventos)}</p>

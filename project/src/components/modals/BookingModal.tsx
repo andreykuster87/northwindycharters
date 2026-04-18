@@ -42,7 +42,7 @@ interface BookingModalProps {
   preselectedDate?:     string;   // vem do modal de horários
   preselectedTimeSlot?: string;   // vem do modal de horários
   onClose:   () => void;
-  onConfirm: (data: BookingData) => void;
+  onConfirm: (data: BookingData) => void | Promise<void>;
 }
 
 function formatCurrency(v: number, currency?: string, locale?: string) {
@@ -89,6 +89,7 @@ export function BookingModal({
   const [passengers, setPassengers] = useState(1);
   const [notes,      setNotes]      = useState('');
   const [formError,  setFormError]  = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const isPreFilled   = !!clientName;
   const hasPreDate    = !!preselectedDate;
@@ -99,27 +100,33 @@ export function BookingModal({
   const prevPhoto = () => setPhotoIdx(i => (i - 1 + photos.length) % photos.length);
   const nextPhoto = () => setPhotoIdx(i => (i + 1) % photos.length);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    if (submitting) return;
     if (!name.trim())  { setFormError('Informe seu nome.'); return; }
     if (!phone.trim()) { setFormError('Informe seu WhatsApp.'); return; }
     if (!date)         { setFormError('Selecione uma data.'); return; }
     setFormError(null);
-    onConfirm({
-      customerName:  name,
-      customerPhone: phone,
-      date,
-      timeSlot:      timeSlot || undefined,
-      passengers,
-      notes,
-      boat: {
-        id:              boat.id,
-        name:            boat.name,
-        price_per_hour:  boat.price_per_hour,
-        capacity:        boat.capacity,
-        marina_location: boat.marina_location,
-        sailor:          boat.sailor,
-      },
-    });
+    setSubmitting(true);
+    try {
+      await onConfirm({
+        customerName:  name,
+        customerPhone: phone,
+        date,
+        timeSlot:      timeSlot || undefined,
+        passengers,
+        notes,
+        boat: {
+          id:              boat.id,
+          name:            boat.name,
+          price_per_hour:  boat.price_per_hour,
+          capacity:        boat.capacity,
+          marina_location: boat.marina_location,
+          sailor:          boat.sailor,
+        },
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -330,9 +337,9 @@ export function BookingModal({
                   className="px-6 py-4 border border-gray-200 text-gray-400 font-semibold text-sm uppercase hover:border-gray-300 transition-all">
                   ← Voltar
                 </button>
-                <button onClick={handleConfirm}
-                  className="flex-1 bg-[#0a1628] text-white py-4 font-semibold uppercase text-sm hover:bg-[#0a1628]/90 transition-all shadow-lg flex items-center justify-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-400"/> Confirmar via WhatsApp
+                <button onClick={handleConfirm} disabled={submitting}
+                  className="flex-1 bg-[#0a1628] text-white py-4 font-semibold uppercase text-sm hover:bg-[#0a1628]/90 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                  <CheckCircle2 className="w-5 h-5 text-green-400"/> {submitting ? 'Processando...' : 'Confirmar via WhatsApp'}
                 </button>
               </div>
             </div>
