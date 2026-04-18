@@ -1,31 +1,32 @@
-// src/components/client/PerfilTab.tsx
+// src/components/sailor/SailorPerfilTab.tsx
 import { useRef, useState } from 'react';
 import { Camera, CheckCircle2, Users, Info, MessageSquare, Image as ImageIcon, Trash2, Plus } from 'lucide-react';
 import { AmigosTab, type FriendProfileType } from '../shared/FriendComponents';
 import { ForumTab, type ForumUser } from '../shared/ForumTab';
 import { pickPhoto } from '../shared/BoatRegPhotoAlbum';
+import { SailorProfileContent } from '../pages/SailorProfileView';
 import type { Friendship } from '../../lib/localStore';
+import type { Sailor } from '../../lib/store/core';
 
 interface Props {
-  client:            any;
-  profilePhoto:      string | null;
-  onPhotoChange:     (p: string | null) => void;
-  onGoToComunidade:  () => void;
-  onOpenApplication: () => void;
-  clientId:          string | null;
-  friendships:       Friendship[];
-  onRefreshFriends:  () => Promise<void>;
-  album:             string[];
-  onAlbumChange:     (next: string[]) => void;
+  sailor:              Sailor;
+  profilePhoto:        string | null;
+  onPhotoChange:       (p: string | null) => void;
+  sailorId:            string | null;
+  friendships:         Friendship[];
+  onRefreshFriends:    () => Promise<void>;
+  album:               string[];
+  onAlbumChange:       (next: string[]) => void;
   onOpenFriendProfile?: (otherId: string, otherType: FriendProfileType) => void;
+  onDocAdded?:         () => void;
 }
 
 type SubTab = 'forum' | 'amigos' | 'fotos' | 'informacoes';
 
-export function PerfilTab({
-  client, profilePhoto, onPhotoChange, onOpenApplication,
-  clientId, friendships, onRefreshFriends,
-  album, onAlbumChange, onOpenFriendProfile,
+export function SailorPerfilTab({
+  sailor, profilePhoto, onPhotoChange,
+  sailorId, friendships, onRefreshFriends,
+  album, onAlbumChange, onOpenFriendProfile, onDocAdded,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [subTab, setSubTab] = useState<SubTab>('amigos');
@@ -70,17 +71,19 @@ export function PerfilTab({
     onAlbumChange(next);
   }
 
-  if (!client) return null;
+  if (!sailor) return null;
 
-  const forumUser: ForumUser | undefined = clientId
-    ? { id: clientId, name: client.name || 'Passageiro', type: 'client' }
+  const forumUser: ForumUser | undefined = sailorId
+    ? { id: sailorId, name: sailor.name || 'Tripulante', type: 'sailor' }
     : undefined;
+
+  const funcao = sailor.funcao === 'Outro' ? (sailor.funcao_outro || 'Outro') : sailor.funcao;
 
   return (
     <div className="space-y-4">
       <div>
         <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-1">Conta</p>
-        <h2 className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xl">Meu Perfil</h2>
+        <h2 className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xl">Perfil Público</h2>
         <div className="w-8 h-px bg-[#c9a96e] mt-2" />
       </div>
 
@@ -98,7 +101,7 @@ export function PerfilTab({
               {profilePhoto
                 ? <img src={profilePhoto} alt="Foto" className="w-full h-full object-cover" />
                 : <div className="w-full h-full bg-white/10 flex items-center justify-center font-bold text-2xl text-[#c9a96e]">
-                    {(client.name || 'U').substring(0, 2).toUpperCase()}
+                    {(sailor.name || 'T').substring(0, 2).toUpperCase()}
                   </div>
               }
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -118,19 +121,21 @@ export function PerfilTab({
 
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#c9a96e] mb-1">
-              {client.profile_number}
+              {sailor.profile_number}{funcao ? ` · ${funcao}` : ''}
             </p>
-            <h3 className="font-['Playfair_Display'] font-bold text-lg leading-tight truncate">{client.name}</h3>
+            <h3 className="font-['Playfair_Display'] font-bold text-lg leading-tight truncate">{sailor.name}</h3>
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-              {client.blocked
+              {sailor.blocked
                 ? <span className="bg-red-400/20 border border-red-400/40 text-red-200 text-[10px] font-semibold px-2.5 py-0.5">🚫 Bloqueada</span>
                 : <span className="bg-[#c9a96e]/15 border border-[#c9a96e]/30 text-[#c9a96e] text-[10px] font-semibold px-2.5 py-0.5 flex items-center gap-1">
                     <CheckCircle2 className="w-2.5 h-2.5" /> Verificado
                   </span>
               }
-              <span className="bg-white/10 text-white/70 text-[10px] font-medium px-2.5 py-0.5">
-                {client.country_name || 'Portugal'}
-              </span>
+              {sailor.nacionalidade && (
+                <span className="bg-white/10 text-white/70 text-[10px] font-medium px-2.5 py-0.5">
+                  {sailor.nacionalidade}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -142,13 +147,13 @@ export function PerfilTab({
         )}
       </div>
 
-      {/* SubTabs: Fórum | Amigos | Fotos | Informações */}
+      {/* SubTabs */}
       <div className="flex border-b border-gray-200 overflow-x-auto">
         {([
           { key: 'forum',       label: 'Fórum',        icon: MessageSquare },
           { key: 'amigos',      label: 'Amigos',       icon: Users },
           { key: 'fotos',       label: 'Fotos',        icon: ImageIcon },
-          { key: 'informacoes', label: 'Biografia',    icon: Info  },
+          { key: 'informacoes', label: 'Informações',  icon: Info },
         ] as { key: SubTab; label: string; icon: any }[]).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -165,23 +170,23 @@ export function PerfilTab({
         ))}
       </div>
 
-      {/* Conteúdo: Fórum */}
+      {/* Fórum */}
       {subTab === 'forum' && (
         <ForumTab currentUser={forumUser} />
       )}
 
-      {/* Conteúdo: Amigos */}
-      {subTab === 'amigos' && clientId && (
+      {/* Amigos */}
+      {subTab === 'amigos' && sailorId && (
         <AmigosTab
-          myId={clientId}
-          myType="client"
+          myId={sailorId}
+          myType="sailor"
           friendships={friendships}
           onRefresh={onRefreshFriends}
           onOpenProfile={onOpenFriendProfile}
         />
       )}
 
-      {/* Conteúdo: Fotos */}
+      {/* Fotos */}
       {subTab === 'fotos' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -234,12 +239,14 @@ export function PerfilTab({
         </div>
       )}
 
-      {/* Conteúdo: Biografia */}
+      {/* Informações — conteúdo completo do perfil do tripulante (sem banner comunidade) */}
       {subTab === 'informacoes' && (
-        <div className="bg-white border border-gray-100 p-6 text-center" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-          <Info className="w-6 h-6 text-gray-300 mx-auto mb-2" />
-          <p className="text-xs font-medium text-gray-400">A biografia ainda não foi preenchida.</p>
-        </div>
+        <SailorProfileContent
+          sailor={sailor}
+          subTab="perfil"
+          isOwner={true}
+          onDocAdded={onDocAdded}
+        />
       )}
     </div>
   );

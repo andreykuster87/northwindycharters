@@ -14,7 +14,13 @@
       "Bash(npm install *)",
       "mcp__supabase__list_tables",
       "Bash(sed -n '20,50p' project/src/lib/store/clients.ts)",
-      "Bash(sed -n '120,170p' project/src/lib/store/sailors.ts)"
+      "Bash(sed -n '120,170p' project/src/lib/store/sailors.ts)",
+      "Bash(node_modules/.bin/tsc --noEmit -p tsconfig.app.json)",
+      "Bash(node node_modules/typescript/bin/tsc --noEmit -p tsconfig.app.json)",
+      "Bash(xargs grep *)",
+      "Bash(find client *)",
+      "Read(//c/Users/andre/OneDrive/Área de Trabalho/extraido/**)",
+      "Read(//c/Users/andre/OneDrive/Área de Trabalho/extraido/project/.vercel/**)"
     ]
   }
 }

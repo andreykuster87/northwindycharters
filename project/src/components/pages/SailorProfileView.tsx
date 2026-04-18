@@ -1338,7 +1338,7 @@ export function SailorProfileView({ sailor, onBack, isOwner, currentUserId, curr
                   }`}>
                   <Icon className="w-3.5 h-3.5 flex-shrink-0" />
                   <span className="flex-1 text-left">{t.label}</span>
-                  {active && !badge && <ChevronRight className="w-3 h-3 text-[#c9a96e]" />}
+                  {active && <ChevronRight className="w-3 h-3 text-[#c9a96e]" />}
                 </button>
               );
             })}

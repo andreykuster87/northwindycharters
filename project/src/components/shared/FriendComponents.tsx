@@ -84,10 +84,11 @@ export function FriendButton({ myId, myType, theirId, theirType, friendships, on
 // ── AmigosTab ─────────────────────────────────────────────────────────────────
 
 export interface AmigosTabProps {
-  myId:        string;
-  myType:      FriendProfileType;
-  friendships: Friendship[];
-  onRefresh:   () => Promise<void>;
+  myId:          string;
+  myType:        FriendProfileType;
+  friendships:   Friendship[];
+  onRefresh:     () => Promise<void>;
+  onOpenProfile?: (otherId: string, otherType: FriendProfileType) => void;
 }
 
 function Label({ children }: { children: React.ReactNode }) {
@@ -98,7 +99,7 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function AmigosTab({ myId, myType: _myType, friendships, onRefresh }: AmigosTabProps) {
+export function AmigosTab({ myId, myType: _myType, friendships, onRefresh, onOpenProfile }: AmigosTabProps) {
   const [loading, setLoading] = useState<string | null>(null);
 
   const pending  = friendships.filter(f => f.status === 'pending' && f.recipient_id === myId);
@@ -134,17 +135,32 @@ export function AmigosTab({ myId, myType: _myType, friendships, onRefresh }: Ami
 
   const btnBase = 'flex items-center gap-1 text-[9px] font-bold uppercase px-2.5 py-1.5 border transition-all';
 
-  function FriendRow({ f, actions }: { f: Friendship; actions: React.ReactNode }) {
+  function FriendRow({ f, actions, clickable }: { f: Friendship; actions: React.ReactNode; clickable?: boolean }) {
     const name  = resolveName(f);
     const photo = resolvePhoto(f);
+    const otherId   = f.requester_id === myId ? f.recipient_id   : f.requester_id;
+    const otherType = f.requester_id === myId ? f.recipient_type : f.requester_type;
+    const canOpen   = clickable && !!onOpenProfile;
+    const openProfile = () => { if (canOpen) onOpenProfile!(otherId, otherType); };
+
     return (
-      <div className="bg-white border-2 border-[#0a1628]/5 p-4 flex items-center gap-3">
-        <div className="w-10 h-10 border border-[#c9a96e]/20 overflow-hidden bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
+      <div className={`bg-white border-2 border-[#0a1628]/5 p-4 flex items-center gap-3 ${canOpen ? 'cursor-pointer hover:border-[#c9a96e]/40 hover:bg-[#c9a96e]/5 transition-all' : ''}`}>
+        <div
+          className={`w-10 h-10 border border-[#c9a96e]/20 overflow-hidden bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0 ${canOpen ? 'cursor-pointer' : ''}`}
+          onClick={openProfile}
+          role={canOpen ? 'button' : undefined}
+          title={canOpen ? 'Abrir perfil' : undefined}
+        >
           {photo
             ? <img src={photo} alt={name} className="w-full h-full object-cover" />
             : <User className="w-5 h-5 text-[#c9a96e]/40" />}
         </div>
-        <div className="flex-1 min-w-0">
+        <div
+          className={`flex-1 min-w-0 ${canOpen ? 'cursor-pointer' : ''}`}
+          onClick={openProfile}
+          role={canOpen ? 'button' : undefined}
+          title={canOpen ? 'Abrir perfil' : undefined}
+        >
           <p className="font-bold text-[#1a2b4a] text-sm truncate uppercase">{name}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>
@@ -184,8 +200,8 @@ export function AmigosTab({ myId, myType: _myType, friendships, onRefresh }: Ami
           <Label><UserCheck className="w-3.5 h-3.5" /> Amigos ({accepted.length})</Label>
           <div className="space-y-2">
             {accepted.map(f => (
-              <FriendRow key={f.id} f={f} actions={
-                <button disabled={loading === f.id} onClick={() => act(f.id, 'remove')}
+              <FriendRow key={f.id} f={f} clickable actions={
+                <button disabled={loading === f.id} onClick={(e) => { e.stopPropagation(); act(f.id, 'remove'); }}
                   className={`${btnBase} border-gray-200 bg-gray-50 text-gray-400 hover:bg-red-50 hover:border-red-200 hover:text-red-600`}>
                   <UserX className="w-3 h-3" /> Remover
                 </button>

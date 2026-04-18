@@ -481,8 +481,7 @@ export function EventosEmpresaTab({ company }: { company: Company }) {
       {/* ── Mural Público ─────────────────────────────────────────────── */}
       <EventosMural
         title="Mural Público"
-        subtitle="Eventos aprovados e fórum da comunidade"
-        currentUser={{ id: company.id, name: company.nome_fantasia, type: 'company' }}
+        subtitle="Eventos aprovados da comunidade"
       />
 
     </div>

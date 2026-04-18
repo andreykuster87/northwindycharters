@@ -10,9 +10,12 @@ import {
   Plus, ChevronDown, ChevronUp, Search, X, Check, UserPlus,
   Inbox, BookOpen, AlertCircle, Camera, Image, Trash2, Briefcase, Store, Settings,
 } from 'lucide-react';
-import { CompanySettingsModal } from '../modals/CompanySettingsModal';
-import { AmigosTab, useFriendships } from '../shared/FriendComponents';
-import { getCompanies, updateCompany, refreshAll, getSailors, getClients, type Company } from '../../lib/localStore';
+import { useFriendships, type FriendProfileType } from '../shared/FriendComponents';
+import { CompanyPerfilTab } from '../company/CompanyPerfilTab';
+import { CompanyConfiguracoesTab } from '../company/CompanyConfiguracoesTab';
+import { SailorProfileView } from './SailorProfileView';
+import { ClientProfileView } from './ClientProfileView';
+import { getCompanies, refreshAll, getSailors, getClients, type Company, type Sailor, type Client } from '../../lib/localStore';
 import { uploadDoc } from '../../lib/storage';
 import { getMessages, markMessageRead, markAllMessagesRead, getAllBoats, type Message } from '../../lib/localStore';
 import { getEventBookings, getEventBookingsByCompany, type EventBooking } from '../../lib/localStore';
@@ -28,8 +31,10 @@ import { MensagensTab }      from '../company/MensagensTab';
 import { FinanceiroTab }     from '../company/FinanceiroTab';
 import { SuporteTab }        from '../company/SuporteTab';
 import { CompanySearchCard } from '../shared/CompanySearchCard';
+import { ProfileSearch }     from '../admin/ProfileSearch';
 import { CompanyProfileView } from './CompanyProfileView';
 import { MarketplaceTab }     from '../shared/MarketplaceTab';
+import { useAdvancedSearch }  from '../shared/AdvancedSearchPanel';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -66,11 +71,10 @@ function Toast({ msg, onClose }: { msg: string; onClose: () => void }) {
 
 // ── Tab config ─────────────────────────────────────────────────────────────────
 
-type TabKey = 'eventos' | 'destaques' | 'frota' | 'reservas' | 'passeioseventos' | 'funcionarios' | 'mensagens' | 'financeiro' | 'suporte' | 'marketplace' | 'amigos';
+type TabKey = 'eventos' | 'destaques' | 'frota' | 'reservas' | 'passeioseventos' | 'funcionarios' | 'mensagens' | 'financeiro' | 'suporte' | 'marketplace' | 'configuracoes';
 
 const TABS: { key: TabKey; icon: React.ElementType; label: string; short: string }[] = [
   { key: 'destaques',    icon: Star,         label: 'Perfil Público',      short: 'Perfil'     },
-  { key: 'amigos',       icon: Users,        label: 'Amigos',              short: 'Amigos'     },
   { key: 'eventos',         icon: CalendarDays, label: 'Mural',                  short: 'Mural'      },
   { key: 'passeioseventos', icon: Ship,         label: 'Passeios e Eventos',     short: 'Pass./Ev.'  },
   { key: 'reservas',        icon: ClipboardList,label: 'Reservas e Cancelamentos', short: 'Res./Canc.' },
@@ -80,6 +84,7 @@ const TABS: { key: TabKey; icon: React.ElementType; label: string; short: string
   { key: 'financeiro',   icon: DollarSign,   label: 'Financeiro',          short: 'Finanças'   },
   { key: 'suporte',      icon: Headphones,   label: 'Suporte',             short: 'Suporte'    },
   { key: 'marketplace',  icon: Store,        label: 'Marketplace',         short: 'Market'     },
+  { key: 'configuracoes',icon: Settings,     label: 'Configurações',       short: 'Config'     },
 ];
 
 // ══ COMPONENTE PRINCIPAL ═══════════════════════════════════════════════════════
@@ -92,7 +97,28 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
   const [isLoading, setIsLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [viewingCompany, setViewingCompany] = useState<Company | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [viewingSailor,  setViewingSailor]  = useState<Sailor | null>(null);
+  const [viewingClient,  setViewingClient]  = useState<Client | null>(null);
+
+  const { toggleButton: searchToggleButton, panel: searchPanel } = useAdvancedSearch({
+    onOpenSailor:  s => setViewingSailor(s),
+    onOpenClient:  c => setViewingClient(c),
+    onOpenCompany: c => setViewingCompany(c),
+    maxWidthClass: 'max-w-6xl',
+  });
+
+  function handleOpenFriendProfile(otherId: string, otherType: FriendProfileType) {
+    if (otherType === 'sailor') {
+      const s = getSailors().find(x => x.id === otherId);
+      if (s) setViewingSailor(s);
+    } else if (otherType === 'client') {
+      const c = getClients().find(x => x.id === otherId);
+      if (c) setViewingClient(c);
+    } else if (otherType === 'company') {
+      const co = getCompanies().find(x => x.id === otherId);
+      if (co) setViewingCompany(co);
+    }
+  }
 
   useEffect(() => {
     refreshAll().then(() => {
@@ -157,12 +183,32 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
     setMobileMenuOpen(false);
   }
 
-  // Se o utilizador clicou numa empresa nos resultados de busca, mostra o perfil dessa empresa
+  // Perfis públicos (overlay full-screen)
   if (viewingCompany) {
     return (
       <CompanyProfileView
         company={viewingCompany}
         onBack={() => setViewingCompany(null)}
+        currentUserId={auth.companyId}
+        currentUserType="company"
+      />
+    );
+  }
+  if (viewingSailor) {
+    return (
+      <SailorProfileView
+        sailor={viewingSailor}
+        onBack={() => setViewingSailor(null)}
+        currentUserId={auth.companyId}
+        currentUserType="company"
+      />
+    );
+  }
+  if (viewingClient) {
+    return (
+      <ClientProfileView
+        client={viewingClient}
+        onBack={() => setViewingClient(null)}
         currentUserId={auth.companyId}
         currentUserType="company"
       />
@@ -174,30 +220,31 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
 
       {toast && <Toast msg={toast} onClose={() => setToast(null)} />}
 
-      {settingsOpen && (
-        <CompanySettingsModal
-          company={company}
-          onClose={() => setSettingsOpen(false)}
-          onCompanyChange={(patch) => setCompany(c => c ? { ...c, ...patch } : c)}
-          onToast={setToast}
-        />
-      )}
-
       {/* ── NAVBAR ── */}
       <nav className="bg-[#0a1628] text-white px-4 py-3 sticky top-0 z-40 shadow-xl border-b border-[#c9a96e]/10">
         <div className="flex items-center gap-3 max-w-6xl mx-auto">
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Waves className="w-5 h-5 text-[#c9a96e]/60" />
-            <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline">NorthWindy</span>
-            <span className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold uppercase px-2 py-0.5 tracking-wider">Empresa</span>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Waves className="w-5 h-5 text-[#c9a96e]/60 flex-shrink-0" />
+            <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline flex-shrink-0">NorthWindy</span>
+            <span className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold uppercase px-2 py-0.5 tracking-wider flex-shrink-0">Empresa</span>
+            <div className="min-w-0 hidden md:block">
+              <p className="font-['Playfair_Display'] font-bold text-white text-sm truncate">{company.nome_fantasia}</p>
+              <p className="text-white/40 text-[10px] font-medium truncate">
+                {company.profile_number} · {company.setor.split(',')[0]}
+              </p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-['Playfair_Display'] font-bold text-white text-sm truncate">{company.nome_fantasia}</p>
-            <p className="text-white/40 text-[10px] font-medium truncate hidden sm:block">
-              {company.profile_number} · {company.setor.split(',')[0]}
-            </p>
+          <div className="flex-1 flex justify-center min-w-0">
+            <div className="flex items-center gap-1.5 w-full max-w-xs">
+              <ProfileSearch
+                onOpenSailor={s => setViewingSailor(s)}
+                onOpenClient={c => setViewingClient(c)}
+                onOpenCompany={c => setViewingCompany(c)}
+              />
+              {searchToggleButton}
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-shrink-0 flex-1 justify-end">
             <button className="relative bg-white/5 hover:bg-white/10 p-2 transition-all" onClick={() => handleTabChange('mensagens')}>
               <Bell className="w-4 h-4 text-white" />
               {unread > 0 && (
@@ -208,7 +255,7 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
             </button>
             <button
               className="bg-white/5 hover:bg-white/10 p-2 transition-all"
-              onClick={() => setSettingsOpen(true)}
+              onClick={() => handleTabChange('configuracoes')}
               title="Configurações"
             >
               <Settings className="w-4 h-4 text-white" />
@@ -220,6 +267,9 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
             </button>
           </div>
         </div>
+
+        {/* Painel de busca avançada (Empresas / Tripulantes) */}
+        {searchPanel}
       </nav>
 
       {/* ── CONTENT AREA ── */}
@@ -266,7 +316,17 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
         <main className="flex-1 min-w-0 px-4 py-4 pb-24 md:pb-6 md:pr-4 md:py-6 overflow-hidden">
           {tab === 'eventos'         && <EventosEmpresaTab company={company} />}
           {tab === 'passeioseventos' && <PasseiosEventosTab company={company} onToast={setToast} />}
-          {tab === 'destaques'       && <DestaquesTab    company={company} onViewCompany={setViewingCompany} />}
+          {tab === 'destaques'       && auth.companyId && (
+            <CompanyPerfilTab
+              company={company}
+              companyId={auth.companyId}
+              friendships={friendships}
+              onRefreshFriends={loadFriendships}
+              onCompanyChange={(patch) => setCompany(c => c ? { ...c, ...patch } as Company : c)}
+              onOpenFriendProfile={handleOpenFriendProfile}
+              onViewCompany={setViewingCompany}
+            />
+          )}
           {tab === 'frota'           && <FrotaTab        companyId={company.id} onToast={setToast} />}
           {tab === 'reservas'        && <ReservasTab companyId={company.id} />}
           {tab === 'funcionarios' && <RHTab companyId={company.id} onToast={setToast} />}
@@ -274,8 +334,12 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
           {tab === 'financeiro'   && <FinanceiroTab companyId={company.id} />}
           {tab === 'suporte'      && <SuporteTab      company={company} />}
           {tab === 'marketplace'  && <MarketplaceTab role="company" company={company} />}
-          {tab === 'amigos'       && auth.companyId && (
-            <AmigosTab myId={auth.companyId} myType="company" friendships={friendships} onRefresh={loadFriendships} />
+          {tab === 'configuracoes' && (
+            <CompanyConfiguracoesTab
+              company={company}
+              onLogout={onLogout}
+              onCompanyChange={(patch) => setCompany(c => c ? { ...c, ...patch } as Company : c)}
+            />
           )}
         </main>
       </div>

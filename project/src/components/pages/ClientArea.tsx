@@ -3,24 +3,24 @@
 // Área do passageiro — mesmo layout e DNA visual da CompanyArea.
 // Sidebar no desktop | Bottom tab bar no mobile | Foto de perfil editável
 // ─────────────────────────────────────────────────────────────────────────────
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
-  Waves, LogOut, Bell, Settings, Camera,
+  Waves, LogOut, Settings, Camera,
   User, BookOpen, MessageSquare,
-  ChevronRight, ChevronUp, ChevronDown,
-  Users, Search, X,
+  ChevronRight,
+  Users,
   CheckCircle2, Clock, XCircle,
-  Building2, Store, SlidersHorizontal,
+  Store,
 } from 'lucide-react';
 import { SailorApplicationModal } from '../modals/SailorApplicationModal';
-import { AmigosTab, useFriendships } from '../shared/FriendComponents';
+import { useFriendships } from '../shared/FriendComponents';
 import {
   getClients, getBookings, getTrips, saveBooking,
   notifyBookingStatusChange, refreshAll, updateClient, getCompanies,
   getSailors, getSailorApplicationsByClient,
 } from '../../lib/localStore';
 import type { Company } from '../../lib/store/companies';
-import type { Sailor }  from '../../lib/store/core';
+import type { Sailor, Client }  from '../../lib/store/core';
 import { getEventBookingsByClient, type EventBooking } from '../../lib/store/events';
 import { BookingModal, type BookingData } from '../modals/BookingModal';
 import type { AuthState } from '../../hooks/useAuth';
@@ -28,23 +28,23 @@ import { loadTrips, parseLocation, type CatalogBoat } from '../../utils/clientHe
 import { MensagensBox }       from '../shared/MensagensBox';
 import { CompanyProfileView } from './CompanyProfileView';
 import { SailorProfileView }  from './SailorProfileView';
+import { ClientProfileView }  from './ClientProfileView';
 import { ComunidadeTab }      from '../client/ComunidadeTab';
 import { ConfiguracoesTab }   from '../client/ConfiguracoesTab';
 import { ReservasTab }        from '../client/ReservasTab';
 import { PerfilTab }          from '../client/PerfilTab';
 import { MarketplaceTab }     from '../shared/MarketplaceTab';
+import { ProfileSearch }      from '../admin/ProfileSearch';
+import { useAdvancedSearch }  from '../shared/AdvancedSearchPanel';
 
 // ── Tipos de abas ─────────────────────────────────────────────────────────────
 
-type TabKey = 'perfil' | 'reservas' | 'marketplace' | 'mensagens' | 'configuracoes' | 'comunidade' | 'amigos';
+type TabKey = 'perfil' | 'reservas' | 'marketplace' | 'mensagens' | 'configuracoes' | 'comunidade';
 
 const TABS: { key: TabKey; icon: React.ElementType; label: string; short: string }[] = [
   { key: 'perfil',        icon: User,          label: 'Perfil',                      short: 'Perfil'     },
-  { key: 'amigos',        icon: Users,         label: 'Amigos',                      short: 'Amigos'     },
   { key: 'marketplace',   icon: Store,         label: 'Marketplace',                 short: 'Market'     },
-  { key: 'reservas',      icon: BookOpen,      label: 'Reservas e Cancelamentos',    short: 'Res./Canc.' },
-  { key: 'mensagens',     icon: MessageSquare, label: 'Mensagens',                   short: 'Mensagens'  },
-  { key: 'configuracoes', icon: Settings,      label: 'Configurações',               short: 'Config'     },
+  { key: 'reservas',      icon: BookOpen,      label: 'Reservas e Cancelamentos',    short: 'Reservas'   },
   { key: 'comunidade',    icon: Users,         label: 'Faça parte da comunidade',    short: 'Comunidade' },
 ];
 
@@ -53,7 +53,6 @@ const TABS: { key: TabKey; icon: React.ElementType; label: string; short: string
 export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () => void }) {
   const [tab,          setTab]          = useState<TabKey>('perfil');
   const { friendships, loadFriendships, pendingCount: friendPendingCount } = useFriendships(auth.clientId);
-  const [searchOpen,   setSearchOpen]   = useState(false);
   const [clientData,   setClientData]   = useState<any>(() => getClients().find(c => c.id === auth.clientId) || null);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(() => {
     return getClients().find(c => c.id === auth.clientId)?.profile_photo ?? null;
@@ -71,7 +70,6 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
   });
   const [preDate, setPreDate] = useState<string | undefined>();
   const [preSlot, setPreSlot] = useState<string | undefined>();
-  const [moreOpen, setMoreOpen] = useState(false);
   const [appModalOpen, setAppModalOpen] = useState(false);
 
   // Candidatura existente deste client
@@ -81,104 +79,17 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
       )[0]
     : null;
 
-  // ── Busca (navbar) — aba Empresas / Tripulantes ────────────────────────────
-  const [searchTab, setSearchTab] = useState<'empresas' | 'tripulantes'>('empresas');
+  // ── Busca (navbar) — profile views abertos a partir dos resultados ──
+  const [viewingSailor,  setViewingSailor]  = useState<Sailor | null>(null);
+  const [viewingClient,  setViewingClient]  = useState<Client | null>(null);
+  const [viewingCompany, setViewingCompany] = useState<Company | null>(null);
 
-  // Empresas
-  const [companySearchNome,   setCompanySearchNome]   = useState('');
-  const [companySearchPais,   setCompanySearchPais]   = useState('');
-  const [companySearchEstado, setCompanySearchEstado] = useState('');
-  const [companySearchCidade, setCompanySearchCidade] = useState('');
-  const [companySearchPerfil, setCompanySearchPerfil] = useState('');
-  const [companySearchEmail,  setCompanySearchEmail]  = useState('');
-  const [companySearchSetor,  setCompanySearchSetor]  = useState('');
-  const [companyResults,      setCompanyResults]      = useState<Company[] | null>(null);
-  const [viewingCompany,      setViewingCompany]      = useState<Company | null>(null);
-
-  // Tripulantes
-  const [sailorSearchQuery,  setSailorSearchQuery]  = useState('');
-  const [sailorSearchNac,    setSailorSearchNac]    = useState('');
-  const [sailorSearchPerfil, setSailorSearchPerfil] = useState('');
-  const [sailorSearchFuncao, setSailorSearchFuncao] = useState('');
-  const [sailorSearchDisp,   setSailorSearchDisp]   = useState('');
-  const [showSailorAdvanced, setShowSailorAdvanced] = useState(false);
-  const [viewingSailor,      setViewingSailor]       = useState<Sailor | null>(null);
-
-  function handleCompanySearch() {
-    const all = getCompanies().filter(c => c.status === 'active');
-    const r = all.filter(c => {
-      const matchNome   = !companySearchNome   || c.nome_fantasia.toLowerCase().includes(companySearchNome.toLowerCase());
-      const matchPais   = !companySearchPais   || (c.pais_nome || '').toLowerCase().includes(companySearchPais.toLowerCase());
-      const matchEstado = !companySearchEstado || (c.estado || '').toLowerCase().includes(companySearchEstado.toLowerCase());
-      const matchCidade = !companySearchCidade || (c.cidade || '').toLowerCase().includes(companySearchCidade.toLowerCase());
-      const matchPerfil = !companySearchPerfil || (c.profile_number || '').toLowerCase().includes(companySearchPerfil.toLowerCase());
-      const matchEmail  = !companySearchEmail  || c.email.toLowerCase().includes(companySearchEmail.toLowerCase());
-      const matchSetor  = !companySearchSetor  || c.setor.toLowerCase().includes(companySearchSetor.toLowerCase());
-      return matchNome && matchPais && matchEstado && matchCidade && matchPerfil && matchEmail && matchSetor;
-    });
-    setCompanyResults(r);
-  }
-
-  function clearCompanySearch() {
-    setCompanyResults(null);
-    setCompanySearchNome(''); setCompanySearchPais(''); setCompanySearchEstado('');
-    setCompanySearchCidade(''); setCompanySearchPerfil(''); setCompanySearchEmail(''); setCompanySearchSetor('');
-  }
-
-  const hasCompanyFilters = companySearchNome || companySearchPais || companySearchEstado ||
-    companySearchCidade || companySearchPerfil || companySearchEmail || companySearchSetor;
-
-  // ── Busca de tripulantes ──────────────────────────────────────────────────
-  const DISP_OPTIONS_SEARCH = [
-    { id: 'indisponivel',   label: 'Indisponível'           },
-    { id: 'disponivel',     label: 'Disponível'             },
-    { id: 'imediato',       label: 'Embarque Imediato'      },
-    { id: 'trajeto_curto',  label: 'Trajeto Curto'          },
-    { id: 'nacionais',      label: 'Viagens Nacionais'      },
-    { id: 'internacionais', label: 'Viagens Internacionais' },
-    { id: 'meio_periodo',   label: 'Meio Período'           },
-    { id: 'sob_demanda',    label: 'Sob Demanda'            },
-    { id: 'ferias',         label: 'Férias'                 },
-  ];
-
-  const hasSailorAdvanced = sailorSearchNac || sailorSearchPerfil || sailorSearchFuncao || sailorSearchDisp;
-
-  // Lê fresh do cache a cada filtro (getSailors() é síncrono e lê do cache já populado)
-  const sailorResults = useMemo(() => {
-    if (!sailorSearchQuery && !hasSailorAdvanced) return null;
-    const all = getSailors().filter(s => s.status === 'approved');
-    return all.filter(s => {
-      const q = sailorSearchQuery.toLowerCase();
-      const matchQuery = !sailorSearchQuery || [s.name, s.funcao, s.nacionalidade, s.profile_number, ...(s.idiomas ?? [])]
-        .some(v => v?.toLowerCase().includes(q));
-      const matchNac   = !sailorSearchNac    || (s.nacionalidade || '').toLowerCase().includes(sailorSearchNac.toLowerCase());
-      const matchPerf  = !sailorSearchPerfil || (s.profile_number || '').toLowerCase().includes(sailorSearchPerfil.toLowerCase());
-      const matchFunc  = !sailorSearchFuncao || (s.funcao || '').toLowerCase().includes(sailorSearchFuncao.toLowerCase());
-      const matchDisp  = !sailorSearchDisp   || (s.disponibilidade ?? []).includes(sailorSearchDisp);
-      return matchQuery && matchNac && matchPerf && matchFunc && matchDisp;
-    });
-  }, [sailorSearchQuery, sailorSearchNac, sailorSearchPerfil, sailorSearchFuncao, sailorSearchDisp, hasSailorAdvanced]);
-
-  // Funções e disponibilidades para os chips (lê fresh quando o painel abre)
-  const sailorFuncoes = useMemo(() => {
-    if (!showSailorAdvanced) return [];
-    const all = getSailors().filter(s => s.status === 'approved');
-    return Array.from(new Set(all.flatMap(s => (s.funcao || '').split(',').map(f => f.trim()).filter(Boolean)))).sort();
-  }, [showSailorAdvanced]);
-
-  const sailorDisps = useMemo(() => {
-    if (!showSailorAdvanced) return [];
-    const all = getSailors().filter(s => s.status === 'approved');
-    const ids = new Set(all.flatMap(s => s.disponibilidade ?? []));
-    return DISP_OPTIONS_SEARCH.filter(o => ids.has(o.id));
-  }, [showSailorAdvanced]);
-
-  function clearSailorSearch() {
-    setSailorSearchQuery(''); setSailorSearchNac(''); setSailorSearchPerfil('');
-    setSailorSearchFuncao(''); setSailorSearchDisp(''); setShowSailorAdvanced(false);
-  }
-
-  const hasSailorFilters = sailorSearchQuery || hasSailorAdvanced;
+  const { toggleButton: searchToggleButton, panel: searchPanel, closePanelAndClear } = useAdvancedSearch({
+    onOpenSailor:  s => setViewingSailor(s),
+    onOpenClient:  c => setViewingClient(c),
+    onOpenCompany: c => setViewingCompany(c),
+    maxWidthClass: 'max-w-6xl',
+  });
 
   useEffect(() => {
     refreshAll().then(async () => {
@@ -193,7 +104,7 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
   const client   = clientData;
   const unreadMsgs = 0; // futuro: contar mensagens não lidas
 
-  const BOTTOM_TABS = TABS.slice(0, 4);
+  const BOTTOM_TABS = TABS;
 
   async function refreshBookings() {
     await refreshAll();
@@ -261,17 +172,35 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
   }
 
   function handleTabChange(key: TabKey) {
-    setTab(key); setMoreOpen(false);
+    setTab(key);
   }
 
   // Se clicou numa empresa nos resultados, mostra o perfil completo
   if (viewingCompany) {
-    return <CompanyProfileView company={viewingCompany} onBack={() => { setViewingCompany(null); setSearchOpen(false); clearCompanySearch(); }} currentUserId={auth.clientId} currentUserType="client" />;
+    return <CompanyProfileView company={viewingCompany} onBack={() => { setViewingCompany(null); closePanelAndClear(); }} currentUserId={auth.clientId} currentUserType="client" />;
   }
 
   // Se clicou num tripulante nos resultados, mostra o perfil completo
   if (viewingSailor) {
-    return <SailorProfileView sailor={viewingSailor} onBack={() => { setViewingSailor(null); setSearchOpen(false); clearSailorSearch(); }} currentUserId={auth.clientId} currentUserType="client" />;
+    return <SailorProfileView sailor={viewingSailor} onBack={() => { setViewingSailor(null); closePanelAndClear(); }} currentUserId={auth.clientId} currentUserType="client" />;
+  }
+
+  // Se clicou num amigo-passageiro, mostra o perfil público
+  if (viewingClient) {
+    return <ClientProfileView client={viewingClient} onBack={() => setViewingClient(null)} currentUserId={auth.clientId ?? undefined} currentUserType="client" />;
+  }
+
+  function handleOpenFriendProfile(otherId: string, otherType: 'sailor' | 'client' | 'company') {
+    if (otherType === 'sailor') {
+      const s = getSailors().find(x => x.id === otherId);
+      if (s) setViewingSailor(s);
+    } else if (otherType === 'client') {
+      const c = getClients().find(x => x.id === otherId);
+      if (c) setViewingClient(c);
+    } else if (otherType === 'company') {
+      const c = getCompanies().find(x => x.id === otherId);
+      if (c) setViewingCompany(c);
+    }
   }
 
   return (
@@ -280,17 +209,13 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
       {/* ── NAVBAR ── */}
       <nav className="bg-[#0a1628] text-white px-4 py-3 sticky top-0 z-40 shadow-xl border-b border-[#c9a96e]/10">
         <div className="flex items-center gap-3 max-w-6xl mx-auto">
-          {/* Logo */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Waves className="w-5 h-5 text-[#c9a96e]/60" />
-            <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline">NorthWindy</span>
-            <span className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold uppercase px-2 py-0.5 tracking-wider">
+          {/* Logo + role + avatar */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Waves className="w-5 h-5 text-[#c9a96e]/60 flex-shrink-0" />
+            <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline flex-shrink-0">NorthWindy</span>
+            <span className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold uppercase px-2 py-0.5 tracking-wider flex-shrink-0">
               Passageiro
             </span>
-          </div>
-
-          {/* Avatar + nome */}
-          <div className="flex-1 min-w-0 flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 border-2 border-white/20">
               {profilePhoto
                 ? <img src={profilePhoto} alt="" className="w-full h-full object-cover" />
@@ -301,13 +226,20 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
             </div>
           </div>
 
+          {/* Busca global de perfis — centralizada + botão filtros avançados */}
+          <div className="flex-1 flex justify-center min-w-0">
+            <div className="flex items-center gap-1.5 w-full max-w-xs">
+              <ProfileSearch
+                onOpenSailor={s => setViewingSailor(s)}
+                onOpenClient={c => setViewingClient(c)}
+                onOpenCompany={c => setViewingCompany(c)}
+              />
+              {searchToggleButton}
+            </div>
+          </div>
+
           {/* Ações */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button onClick={() => { setSearchOpen(v => !v); if (searchOpen) { clearCompanySearch(); clearSailorSearch(); } }}
-              className={`flex items-center gap-2 px-3 py-2 rounded-[10px] transition-all ${searchOpen ? 'bg-white text-blue-900' : 'bg-white/5 text-white hover:bg-white/10'}`}>
-              <Search className="w-4 h-4 flex-shrink-0" />
-              <span className="text-xs font-bold hidden sm:inline">Buscar perfil</span>
-            </button>
+          <div className="flex items-center gap-1.5 flex-shrink-0 flex-1 justify-end">
             <button onClick={() => handleTabChange('mensagens')} className="relative bg-white/5 hover:bg-white/10 p-2 transition-all">
               <MessageSquare className="w-4 h-4 text-white" />
             </button>
@@ -323,220 +255,7 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
         </div>
 
         {/* ── PAINEL DE BUSCA (Empresas / Tripulantes) ── */}
-        {searchOpen && (
-          <div className="border-t border-[#c9a96e]/10 bg-[#060e1e] px-4 py-4">
-            <div className="max-w-6xl mx-auto">
-
-              {/* ── Tabs Empresas / Tripulantes ── */}
-              <div className="flex gap-2 mb-4">
-                <button onClick={() => setSearchTab('empresas')}
-                  className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-all ${
-                    searchTab === 'empresas'
-                      ? 'bg-[#c9a96e] text-[#0a1628] border-[#c9a96e]'
-                      : 'bg-white/5 text-white/60 border-white/10 hover:border-[#c9a96e]/40 hover:text-white'
-                  }`}>
-                  <Building2 className="w-3.5 h-3.5" /> Empresas
-                </button>
-                <button onClick={() => setSearchTab('tripulantes')}
-                  className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-all ${
-                    searchTab === 'tripulantes'
-                      ? 'bg-[#c9a96e] text-[#0a1628] border-[#c9a96e]'
-                      : 'bg-white/5 text-white/60 border-white/10 hover:border-[#c9a96e]/40 hover:text-white'
-                  }`}>
-                  <User className="w-3.5 h-3.5" /> Tripulantes
-                </button>
-              </div>
-
-              {/* ══ ABA EMPRESAS ══ */}
-              {searchTab === 'empresas' && (
-                <>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 mb-2">
-                    {([
-                      { placeholder: 'Nome',      value: companySearchNome,   set: setCompanySearchNome   },
-                      { placeholder: 'País',      value: companySearchPais,   set: setCompanySearchPais   },
-                      { placeholder: 'Estado',    value: companySearchEstado, set: setCompanySearchEstado },
-                      { placeholder: 'Cidade',    value: companySearchCidade, set: setCompanySearchCidade },
-                      { placeholder: 'Nº Perfil', value: companySearchPerfil, set: setCompanySearchPerfil },
-                      { placeholder: 'Email',     value: companySearchEmail,  set: setCompanySearchEmail  },
-                    ] as const).map(({ placeholder, value, set }) => (
-                      <input key={placeholder} value={value}
-                        onChange={e => set(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleCompanySearch()}
-                        placeholder={placeholder}
-                        className="bg-white/5 border border-white/10 px-3 py-2 text-xs font-medium text-white placeholder:text-white/30 focus:border-[#c9a96e]/60 outline-none transition-colors" />
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <input value={companySearchSetor} onChange={e => setCompanySearchSetor(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && handleCompanySearch()}
-                      placeholder="Setor de negócio"
-                      className="flex-1 bg-white/5 border border-white/10 px-3 py-2 text-xs font-medium text-white placeholder:text-white/30 focus:border-[#c9a96e]/60 outline-none transition-colors" />
-                    <button onClick={handleCompanySearch}
-                      className="border border-[#c9a96e] text-[#c9a96e] hover:bg-[#c9a96e] hover:text-[#0a1628] px-5 py-2 font-semibold text-xs uppercase tracking-wide transition-all flex items-center gap-1.5">
-                      <Search className="w-3.5 h-3.5" /> Pesquisar
-                    </button>
-                    {(companyResults !== null || hasCompanyFilters) && (
-                      <button onClick={clearCompanySearch}
-                        className="px-3 border border-white/20 text-white/50 hover:border-red-400 hover:text-red-300 font-semibold text-xs transition-all">
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                  {companyResults !== null && (
-                    <div className="mt-3 space-y-1.5 max-h-60 overflow-y-auto">
-                      {companyResults.length === 0 ? (
-                        <p className="text-center text-xs font-medium text-white/40 py-4">Nenhuma empresa encontrada</p>
-                      ) : (
-                        companyResults.map(c => (
-                          <button key={c.id} onClick={() => setViewingCompany(c)}
-                            className="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#c9a96e]/40 px-3 py-2.5 flex items-center gap-3 transition-all text-left">
-                            <div className="w-8 h-8 overflow-hidden bg-[#1a2b4a] flex items-center justify-center flex-shrink-0">
-                              {(c as any).profile_photo
-                                ? <img src={(c as any).profile_photo} alt={c.nome_fantasia} className="w-full h-full object-cover" />
-                                : <Building2 className="w-4 h-4 text-[#c9a96e]" />
-                              }
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-['Playfair_Display'] font-bold text-white text-xs truncate">{c.nome_fantasia}</p>
-                              <p className="text-[10px] font-medium text-[#c9a96e]/70 truncate">{c.cidade} · {c.setor.split(',')[0]}</p>
-                            </div>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* ══ ABA TRIPULANTES ══ */}
-              {searchTab === 'tripulantes' && (
-                <>
-                  {/* Live search + botão filtros avançados */}
-                  <div className="flex gap-2 mb-2">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
-                      <input
-                        value={sailorSearchQuery}
-                        onChange={e => setSailorSearchQuery(e.target.value)}
-                        placeholder="Buscar por nome, função, nacionalidade, idioma…"
-                        className="w-full bg-white/5 border border-white/10 py-2.5 pl-9 pr-3 text-xs font-medium text-white placeholder:text-white/30 focus:border-[#c9a96e]/60 outline-none transition-colors"
-                        autoFocus
-                      />
-                    </div>
-                    <button
-                      onClick={() => setShowSailorAdvanced(v => !v)}
-                      title="Filtros avançados"
-                      className={`flex items-center gap-1.5 px-3 border font-semibold text-xs transition-all flex-shrink-0 ${
-                        showSailorAdvanced || hasSailorAdvanced
-                          ? 'bg-[#c9a96e] text-[#0a1628] border-[#c9a96e]'
-                          : 'bg-white/5 border-white/10 text-white/50 hover:border-[#c9a96e]/40'
-                      }`}
-                    >
-                      <SlidersHorizontal className="w-3.5 h-3.5" />
-                      {showSailorAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                    </button>
-                    {hasSailorFilters && (
-                      <button onClick={clearSailorSearch}
-                        className="px-3 border border-white/20 text-white/50 hover:border-red-400 hover:text-red-300 font-semibold text-xs transition-all flex-shrink-0">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Filtros avançados — colapsável */}
-                  {showSailorAdvanced && (
-                    <div className="bg-white/5 border border-white/10 p-3 space-y-3 mb-2">
-                      {/* Campos de texto */}
-                      <div>
-                        <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-1.5">Filtros por campo</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          <input value={sailorSearchNac} onChange={e => setSailorSearchNac(e.target.value)}
-                            placeholder="Nacionalidade"
-                            className="bg-white/5 border border-white/10 px-3 py-2 text-xs font-medium text-white placeholder:text-white/30 focus:border-[#c9a96e]/60 outline-none transition-colors" />
-                          <input value={sailorSearchPerfil} onChange={e => setSailorSearchPerfil(e.target.value)}
-                            placeholder="Nº Perfil"
-                            className="bg-white/5 border border-white/10 px-3 py-2 text-xs font-medium text-white placeholder:text-white/30 focus:border-[#c9a96e]/60 outline-none transition-colors" />
-                        </div>
-                      </div>
-
-                      {/* Filtro por função — chips */}
-                      {sailorFuncoes.length > 0 && (
-                        <div>
-                          <p className="text-[9px] font-semibold text-white/40 uppercase tracking-wider mb-1.5">Função</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            <button onClick={() => setSailorSearchFuncao('')}
-                              className={`px-2.5 py-1 text-[10px] font-semibold border transition-all ${sailorSearchFuncao === '' ? 'bg-[#c9a96e] text-[#0a1628] border-[#c9a96e]' : 'bg-white/5 border-white/10 text-white/50 hover:border-[#c9a96e]/40'}`}>
-                              Todas
-                            </button>
-                            {sailorFuncoes.map(f => (
-                              <button key={f} onClick={() => setSailorSearchFuncao(sailorSearchFuncao === f ? '' : f)}
-                                className={`px-2.5 py-1 text-[10px] font-semibold border transition-all ${sailorSearchFuncao === f ? 'bg-[#c9a96e] text-[#0a1628] border-[#c9a96e]' : 'bg-white/5 border-white/10 text-white/50 hover:border-[#c9a96e]/40'}`}>
-                                {f}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Filtro por disponibilidade — chips */}
-                      {sailorDisps.length > 0 && (
-                        <div>
-                          <p className="text-[9px] font-semibold text-white/40 uppercase tracking-wider mb-1.5">Disponibilidade</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            <button onClick={() => setSailorSearchDisp('')}
-                              className={`px-2.5 py-1 text-[10px] font-semibold border transition-all ${sailorSearchDisp === '' ? 'bg-[#c9a96e] text-[#0a1628] border-[#c9a96e]' : 'bg-white/5 border-white/10 text-white/50 hover:border-[#c9a96e]/40'}`}>
-                              Todas
-                            </button>
-                            {sailorDisps.map(d => (
-                              <button key={d.id} onClick={() => setSailorSearchDisp(sailorSearchDisp === d.id ? '' : d.id)}
-                                className={`px-2.5 py-1 text-[10px] font-semibold border transition-all ${sailorSearchDisp === d.id ? 'bg-[#c9a96e] text-[#0a1628] border-[#c9a96e]' : 'bg-white/5 border-white/10 text-white/50 hover:border-[#c9a96e]/40'}`}>
-                                {d.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Resultados tripulantes — live */}
-                  {sailorResults !== null && (
-                    <div className="space-y-1.5 max-h-60 overflow-y-auto">
-                      {sailorResults.length === 0 ? (
-                        <p className="text-center text-xs font-medium text-white/40 py-4">Nenhum tripulante encontrado</p>
-                      ) : (
-                        sailorResults.map(s => {
-                          const funcao = s.funcao ? s.funcao.split(',')[0].trim() : '';
-                          return (
-                            <button key={s.id} onClick={() => setViewingSailor(s)}
-                              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#c9a96e]/40 px-3 py-2.5 flex items-center gap-3 transition-all text-left">
-                              <div className="w-8 h-8 overflow-hidden bg-[#1a2b4a] flex items-center justify-center flex-shrink-0">
-                                {s.profile_photo
-                                  ? <img src={s.profile_photo} alt={s.name} className="w-full h-full object-cover" />
-                                  : <User className="w-4 h-4 text-[#c9a96e]" />
-                                }
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-['Playfair_Display'] font-bold text-white text-xs truncate flex items-center gap-1.5">
-                                  {s.name}
-                                  {s.verified && <CheckCircle2 className="w-3 h-3 text-emerald-400 flex-shrink-0" />}
-                                </p>
-                                <p className="text-[10px] font-medium text-[#c9a96e]/70 truncate">
-                                  {[funcao, s.nacionalidade].filter(Boolean).join(' · ')}
-                                </p>
-                              </div>
-                              <span className="text-[9px] font-semibold text-white/40 bg-white/5 px-2 py-0.5 flex-shrink-0">{s.profile_number}</span>
-                            </button>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        )}
+        {searchPanel}
       </nav>
 
       {/* ── CONTENT AREA ── */}
@@ -598,7 +317,7 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
           {TABS.map(t => {
             const Icon   = t.icon;
             const active = tab === t.key;
-            const badge  = t.key === 'amigos' && friendPendingCount > 0 ? friendPendingCount : 0;
+            const badge  = t.key === 'perfil' && friendPendingCount > 0 ? friendPendingCount : 0;
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`flex items-center gap-2.5 px-4 py-3 text-xs font-semibold uppercase tracking-wide transition-all border-l-2 ${
@@ -633,11 +352,25 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
             </div>
           )}
           {tab === 'perfil'        && (
-            <PerfilTab client={client} profilePhoto={profilePhoto} onPhotoChange={p => {
-              setProfilePhoto(p);
-              if (auth.clientId) updateClient(auth.clientId, { profile_photo: p });
-            }} onGoToComunidade={() => handleTabChange('comunidade')}
-            onOpenApplication={() => setAppModalOpen(true)} />
+            <PerfilTab
+              client={client}
+              profilePhoto={profilePhoto}
+              onPhotoChange={p => {
+                setProfilePhoto(p);
+                if (auth.clientId) updateClient(auth.clientId, { profile_photo: p });
+              }}
+              onGoToComunidade={() => handleTabChange('comunidade')}
+              onOpenApplication={() => setAppModalOpen(true)}
+              clientId={auth.clientId}
+              friendships={friendships}
+              onRefreshFriends={loadFriendships}
+              album={client?.album || []}
+              onAlbumChange={next => {
+                setClientData((p: any) => ({ ...p, album: next }));
+                if (auth.clientId) updateClient(auth.clientId, { album: next });
+              }}
+              onOpenFriendProfile={handleOpenFriendProfile}
+            />
           )}
           {tab === 'configuracoes' && (
             <ConfiguracoesTab
@@ -657,42 +390,15 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
             />
           )}
           {tab === 'marketplace'  && <MarketplaceTab role="client" />}
-          {tab === 'amigos'       && auth.clientId && (
-            <AmigosTab myId={auth.clientId} myType="client" friendships={friendships} onRefresh={loadFriendships} />
-          )}
         </main>
       </div>
 
       {/* ── BOTTOM TAB BAR (mobile) ── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-gray-100 shadow-2xl">
-        {/* Tabs adicionais no overlay (Mensagens, Comunidade) */}
-        {moreOpen && (
-          <div className="absolute bottom-full left-0 right-0 bg-white border-t border-gray-100 shadow-2xl p-4">
-            <div className="grid grid-cols-1 gap-2">
-              {TABS.slice(4).map(t => {
-                const Icon   = t.icon;
-                const active = tab === t.key;
-                return (
-                  <button key={t.key} onClick={() => handleTabChange(t.key)}
-                    className={`flex items-center gap-3 px-4 py-3 font-semibold text-xs uppercase tracking-wide transition-all border-l-2 ${
-                      active ? 'bg-[#0a1628] text-white border-[#c9a96e]' : 'bg-gray-50 text-gray-500 border-transparent'
-                    }`}>
-                    <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-[#c9a96e]' : ''}`} /> {t.label}
-                  </button>
-                );
-              })}
-            </div>
-            <button onClick={() => setMoreOpen(false)}
-              className="w-full mt-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider border border-gray-100">
-              Fechar
-            </button>
-          </div>
-        )}
-
         <div className="flex items-stretch h-16">
           {BOTTOM_TABS.map(t => {
             const Icon   = t.icon;
-            const active = tab === t.key && !moreOpen;
+            const active = tab === t.key;
             return (
               <button key={t.key} onClick={() => handleTabChange(t.key)}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-all ${
@@ -704,14 +410,6 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
               </button>
             );
           })}
-          {/* Botão "Mais" */}
-          <button onClick={() => setMoreOpen(v => !v)}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all ${
-              moreOpen || tab === 'configuracoes' || tab === 'comunidade' ? 'text-[#c9a96e]' : 'text-gray-400'
-            }`}>
-            {moreOpen ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
-            <span className="text-[9px] font-semibold uppercase tracking-wide">Mais</span>
-          </button>
         </div>
       </div>
 
