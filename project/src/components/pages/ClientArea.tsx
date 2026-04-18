@@ -211,21 +211,34 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
     setSelectedBoat(null); setPreDate(undefined); setPreSlot(undefined);
   }
 
-  function handleClientBooking(data: BookingData) {
+  async function handleClientBooking(data: BookingData) {
     const trip = getTrips().find(t => t.id === data.boat.id);
-    saveBooking({
-      trip_id:        data.boat.id,
-      sailor_id:      trip?.sailor_id || '',
-      client_id:      auth.clientId,
-      customer_name:  data.customerName,
-      customer_phone: data.customerPhone,
-      booking_date:   data.date,
-      time_slot:      data.timeSlot || '',
-      passengers:     data.passengers,
-      notes:          data.notes,
-      total_price:    data.boat.price_per_hour * data.passengers,
-      status:         'pending',
-    });
+    try {
+      await saveBooking({
+        trip_id:        data.boat.id,
+        sailor_id:      trip?.sailor_id || '',
+        client_id:      auth.clientId,
+        customer_name:  data.customerName,
+        customer_phone: data.customerPhone,
+        booking_date:   data.date,
+        time_slot:      data.timeSlot || '',
+        passengers:     data.passengers,
+        notes:          data.notes,
+        total_price:    data.boat.price_per_hour * data.passengers,
+        status:         'pending',
+      });
+    } catch (e: any) {
+      await refreshBookings();
+      if (e?.message === 'OVERBOOK') {
+        alert(
+          'Esta vaga acabou de ser preenchida enquanto confirmava a reserva. ' +
+          'Escolha outro horário — a disponibilidade foi atualizada.'
+        );
+      } else {
+        alert('Não foi possível concluir a reserva. Tente novamente.');
+      }
+      return;
+    }
     notifyBookingStatusChange({
       clientId:    auth.clientId || '',
       bookingId:   '',
@@ -243,7 +256,7 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
       `👥 ${data.passengers} pessoa${data.passengers !== 1 ? 's' : ''}\n\nAguarde a confirmação! ⛵`
     );
     if (ph) window.open(`https://wa.me/${ph}?text=${msg}`, '_blank');
-    refreshBookings();
+    await refreshBookings();
     clearBoat();
   }
 

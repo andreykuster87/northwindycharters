@@ -33,7 +33,12 @@ export async function getPendingBoats(): Promise<Boat[]> {
 export async function saveBoat(data: Omit<Boat, 'id' | 'created_at'>): Promise<Boat> {
   const { data: inserted, error } = await supabase
     .from('boats').insert(data).select().single();
-  if (error) throw error;
+  if (error) {
+    if (error.code === '23505' && (error.message || '').includes('matricula')) {
+      throw new Error('DUPLICATE_REGISTRY');
+    }
+    throw error;
+  }
   return normalize(inserted);
 }
 

@@ -25,7 +25,10 @@ export async function saveBooking(
     .from('bookings')
     .insert({ ...data, booking_number: Number(cnt), guests: data.guests ?? [] })
     .select().single();
-  if (error) throw error;
+  if (error) {
+    if (error.message?.includes('OVERBOOK')) throw new Error('OVERBOOK');
+    throw error;
+  }
   return normalize(inserted);
 }
 

@@ -21,7 +21,11 @@ export async function saveClient(
     .select().single();
   if (error) {
     if (error.code === '23505') {
-      if (error.message.includes('email')) throw new Error('DUPLICATE_EMAIL');
+      const msg = error.message || '';
+      if (msg.includes('email'))           throw new Error('DUPLICATE_EMAIL');
+      if (msg.includes('client_login'))    throw new Error('DUPLICATE_LOGIN');
+      if (msg.includes('passport_number')) throw new Error('DUPLICATE_DOCUMENT');
+      if (msg.includes('profile_number'))  throw new Error('DUPLICATE_PROFILE_NUMBER');
       throw new Error('DUPLICATE_DOCUMENT');
     }
     throw error;

@@ -6,16 +6,21 @@ import type { ScheduleData } from '../components/modals/TimeSlotsModal';
 // ── Formatação de preço ───────────────────────────────────────────────────────
 
 export function formatPrice(value: number, boat?: CatalogBoat): string {
+  const safeValue = Number.isFinite(value) ? value : 0;
   try {
-    if (boat?.currency && boat?.currency_locale) {
-      return new Intl.NumberFormat(boat.currency_locale, {
+    if (boat?.currency) {
+      return new Intl.NumberFormat(boat.currency_locale || 'pt-PT', {
         style:                 'currency',
         currency:              boat.currency,
         minimumFractionDigits: boat.currency === 'JPY' ? 0 : 2,
-      }).format(value);
+      }).format(safeValue);
     }
   } catch {}
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  try {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(safeValue);
+  } catch {
+    return `R$ ${safeValue.toFixed(2)}`;
+  }
 }
 
 export function fmtBRL(value: number): string {
@@ -24,13 +29,16 @@ export function fmtBRL(value: number): string {
 
 // ── Localização ───────────────────────────────────────────────────────────────
 
-export function parseLocation(loc: string): { from: string; to: string } {
-  const arrow = loc.split('→');
+export function parseLocation(loc?: string | null): { from: string; to: string } {
+  const safe = (loc ?? '').toString();
+  if (!safe) return { from: '', to: '' };
+  const arrow = safe.split('→');
   if (arrow.length >= 2) return { from: arrow[0].trim(), to: arrow[1].split('·')[0].trim() };
-  return { from: loc, to: '' };
+  return { from: safe, to: '' };
 }
 
 export function getBoatCity(boat: CatalogBoat): string {
+  if (!boat) return '';
   return (
     boat.city?.trim() ||
     boat.marina_saida?.trim() ||
@@ -63,31 +71,33 @@ export async function buildSchedule(trip: CatalogBoat): Promise<ScheduleData[]> 
   const active = bookings ?? [];
 
   return (trip.schedule || [])
-    .filter(e => e.date >= today)
+    .filter(e => e?.date && e.date >= today)
     .map(e => {
+      const slots = Array.isArray(e.time_slots) ? e.time_slots : [];
+      const spots = Number.isFinite(e.spots) ? e.spots : 0;
       const slotSpots: Record<string, number> = {};
 
-      if (e.time_slots.length > 0) {
-        e.time_slots.forEach(slot => {
+      if (slots.length > 0) {
+        slots.forEach(slot => {
           const paxSlot = active
             .filter(b => b.booking_date === e.date && b.time_slot === slot)
             .reduce((s, b) => s + (b.passengers || 0), 0);
-          slotSpots[slot] = Math.max(0, e.spots - paxSlot);
+          slotSpots[slot] = Math.max(0, spots - paxSlot);
         });
 
-        const totalDaySpots = e.spots * e.time_slots.length;
+        const totalDaySpots = spots * slots.length;
         const paxDay = active
           .filter(b => b.booking_date === e.date)
           .reduce((s, b) => s + (b.passengers || 0), 0);
 
-        return { ...e, spotsLeft: Math.max(0, totalDaySpots - paxDay), slotSpots };
+        return { ...e, time_slots: slots, spots, spotsLeft: Math.max(0, totalDaySpots - paxDay), slotSpots };
       }
 
       const paxDay = active
         .filter(b => b.booking_date === e.date)
         .reduce((s, b) => s + (b.passengers || 0), 0);
 
-      return { ...e, spotsLeft: Math.max(0, e.spots - paxDay), slotSpots };
+      return { ...e, time_slots: slots, spots, spotsLeft: Math.max(0, spots - paxDay), slotSpots };
     });
 }
 
@@ -99,34 +109,37 @@ export function buildScheduleFromBookings(
   trip:     CatalogBoat,
   bookings: Array<{ booking_date: string; time_slot: string; passengers: number; status: string; trip_id: string }>,
 ): ScheduleData[] {
+  if (!trip) return [];
   const today  = new Date().toISOString().split('T')[0];
-  const active = bookings.filter(
+  const active = (bookings ?? []).filter(
     b => b.trip_id === trip.id &&
     ['confirmed', 'completed', 'concluido', 'pending', 'aguardando'].includes(b.status),
   );
 
   return (trip.schedule || [])
-    .filter(e => e.date >= today)
+    .filter(e => e?.date && e.date >= today)
     .map(e => {
+      const slots = Array.isArray(e.time_slots) ? e.time_slots : [];
+      const spots = Number.isFinite(e.spots) ? e.spots : 0;
       const slotSpots: Record<string, number> = {};
 
-      if (e.time_slots.length > 0) {
-        e.time_slots.forEach(slot => {
+      if (slots.length > 0) {
+        slots.forEach(slot => {
           const paxSlot = active
             .filter(b => b.booking_date === e.date && b.time_slot === slot)
             .reduce((s, b) => s + (b.passengers || 0), 0);
-          slotSpots[slot] = Math.max(0, e.spots - paxSlot);
+          slotSpots[slot] = Math.max(0, spots - paxSlot);
         });
-        const totalDaySpots = e.spots * e.time_slots.length;
+        const totalDaySpots = spots * slots.length;
         const paxDay = active
           .filter(b => b.booking_date === e.date)
           .reduce((s, b) => s + (b.passengers || 0), 0);
-        return { ...e, spotsLeft: Math.max(0, totalDaySpots - paxDay), slotSpots };
+        return { ...e, time_slots: slots, spots, spotsLeft: Math.max(0, totalDaySpots - paxDay), slotSpots };
       }
 
       const paxDay = active
         .filter(b => b.booking_date === e.date)
         .reduce((s, b) => s + (b.passengers || 0), 0);
-      return { ...e, spotsLeft: Math.max(0, e.spots - paxDay), slotSpots };
+      return { ...e, time_slots: slots, spots, spotsLeft: Math.max(0, spots - paxDay), slotSpots };
     });
 }

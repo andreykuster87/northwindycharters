@@ -8,9 +8,9 @@ import { fmtDate, STATUS_MAP, REJECT_REASONS } from './EventosAdminShared';
 interface Props {
   ev:         NauticEvent;
   onClose:    () => void;
-  onApprove:  () => void;
-  onAnalysis: (notes: string) => void;
-  onReject:   (reason: string) => void;
+  onApprove:  () => void | Promise<void>;
+  onAnalysis: (notes: string) => void | Promise<void>;
+  onReject:   (reason: string) => void | Promise<void>;
 }
 
 export function EventosAdminActionModal({ ev, onClose, onApprove, onAnalysis, onReject }: Props) {
@@ -18,8 +18,21 @@ export function EventosAdminActionModal({ ev, onClose, onApprove, onAnalysis, on
   const [notes,   setNotes]   = useState('');
   const [reason,  setReason]  = useState('');
   const [customR, setCustomR] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const finalReason = reason === 'Outro motivo' ? customR : reason;
+
+  const runAction = async (fn: () => void | Promise<void>) => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      await fn();
+    } catch {
+      alert('Não foi possível concluir a ação. Tente novamente.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#0a1628]/60 backdrop-blur-sm"
@@ -89,16 +102,19 @@ export function EventosAdminActionModal({ ev, onClose, onApprove, onAnalysis, on
               {/* Botões de acção — só para pending/analysis */}
               {(ev.status === 'pending' || ev.status === 'analysis') && (
                 <div className="grid grid-cols-3 gap-2 pt-2">
-                  <button onClick={onApprove}
-                    className="bg-green-600 hover:bg-green-500 text-white py-3 font-semibold text-xs uppercase transition-all flex flex-col items-center gap-1 shadow-md">
-                    <CheckCircle2 className="w-4 h-4" /> Aprovar
+                  <button onClick={() => runAction(onApprove)}
+                    disabled={submitting}
+                    className="bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 font-semibold text-xs uppercase transition-all flex flex-col items-center gap-1 shadow-md">
+                    <CheckCircle2 className="w-4 h-4" /> {submitting ? 'A processar…' : 'Aprovar'}
                   </button>
                   <button onClick={() => setMode('analysis')}
-                    className="bg-[#0a1628]/5 hover:bg-[#0a1628]/10 text-[#1a2b4a] py-3 font-semibold text-xs uppercase transition-all flex flex-col items-center gap-1">
+                    disabled={submitting}
+                    className="bg-[#0a1628]/5 hover:bg-[#0a1628]/10 disabled:opacity-50 disabled:cursor-not-allowed text-[#1a2b4a] py-3 font-semibold text-xs uppercase transition-all flex flex-col items-center gap-1">
                     <Eye className="w-4 h-4" /> Análise
                   </button>
                   <button onClick={() => setMode('reject')}
-                    className="bg-red-100 hover:bg-red-200 text-red-700 py-3 font-semibold text-xs uppercase transition-all flex flex-col items-center gap-1">
+                    disabled={submitting}
+                    className="bg-red-100 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed text-red-700 py-3 font-semibold text-xs uppercase transition-all flex flex-col items-center gap-1">
                     <XCircle className="w-4 h-4" /> Reprovar
                   </button>
                 </div>
@@ -127,10 +143,13 @@ export function EventosAdminActionModal({ ev, onClose, onApprove, onAnalysis, on
                   className="w-full bg-gray-50 border-2 border-gray-100 py-3 px-4 font-bold text-[#1a2b4a] text-sm focus:border-[#c9a96e] outline-none resize-none" />
               </div>
               <div className="flex gap-2">
-                <button onClick={() => setMode('view')} className="flex-1 border-2 border-gray-200 text-gray-500 py-3 font-semibold text-xs uppercase hover:border-[#c9a96e]">Voltar</button>
-                <button onClick={() => onAnalysis(notes)}
-                  className="flex-1 bg-[#0a1628] hover:bg-[#1a2b4a] text-white py-3 font-semibold text-xs uppercase transition-all shadow-md">
-                  Enviar para Análise
+                <button onClick={() => setMode('view')}
+                  disabled={submitting}
+                  className="flex-1 border-2 border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-500 py-3 font-semibold text-xs uppercase hover:border-[#c9a96e]">Voltar</button>
+                <button onClick={() => runAction(() => onAnalysis(notes))}
+                  disabled={submitting}
+                  className="flex-1 bg-[#0a1628] hover:bg-[#1a2b4a] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 font-semibold text-xs uppercase transition-all shadow-md">
+                  {submitting ? 'A enviar…' : 'Enviar para Análise'}
                 </button>
               </div>
             </div>
@@ -163,11 +182,13 @@ export function EventosAdminActionModal({ ev, onClose, onApprove, onAnalysis, on
                 </div>
               )}
               <div className="flex gap-2">
-                <button onClick={() => setMode('view')} className="flex-1 border-2 border-gray-200 text-gray-500 py-3 font-semibold text-xs uppercase hover:border-[#c9a96e]">Voltar</button>
-                <button onClick={() => finalReason && onReject(finalReason)}
-                  disabled={!finalReason}
-                  className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white py-3 font-semibold text-xs uppercase transition-all shadow-md">
-                  Reprovar Evento
+                <button onClick={() => setMode('view')}
+                  disabled={submitting}
+                  className="flex-1 border-2 border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-500 py-3 font-semibold text-xs uppercase hover:border-[#c9a96e]">Voltar</button>
+                <button onClick={() => finalReason && runAction(() => onReject(finalReason))}
+                  disabled={!finalReason || submitting}
+                  className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 font-semibold text-xs uppercase transition-all shadow-md">
+                  {submitting ? 'A reprovar…' : 'Reprovar Evento'}
                 </button>
               </div>
             </div>
