@@ -131,7 +131,7 @@ export async function refreshAll(): Promise<void> {
       });
     }
 
-    cache.companies     = get(2);
+    cache.companies     = get(2).map((r: any) => ({ ...r, setor: r.setor ?? '' }));
     cache.boats         = get(3).map((r: any) => ({ ...r, photos: r.photos ?? [], crew: r.crew ?? [] }));
     cache.trips         = get(4).map((r: any) => ({ ...r, photos: r.photos ?? [], schedule: r.schedule ?? [] }));
     // JOIN removido da query — enriquece bookings com trip do cache (sem transferência duplicada)
