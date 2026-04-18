@@ -1,13 +1,12 @@
 // src/components/shared/EventosMural.tsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Mural Público: eventos aprovados + fórum da comunidade.
+// Mural Público: eventos aprovados.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useMemo } from 'react';
-import { Search, CalendarDays, MessageSquare } from 'lucide-react';
-import { getPublicEvents, type NauticEvent } from '../../lib/localStore';
+import { Search } from 'lucide-react';
+import { getPublicEvents } from '../../lib/localStore';
 import { TIPO_EMOJI } from './EventosMuralShared';
 import { EventCard } from './EventCard';
-import { ForumTab, type ForumUser } from './ForumTab';
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
@@ -19,20 +18,17 @@ interface Props {
   clientName?:   string;
   clientPhone?:  string;
   actionSlot?:   React.ReactNode;
-  currentUser?:  ForumUser;
 }
 
 export function EventosMural({
   title = 'Mural Público',
-  subtitle = 'Eventos náuticos e fórum da comunidade',
+  subtitle = 'Eventos náuticos da comunidade',
   emptyMessage = 'Nenhum evento disponível no momento.',
   clientId,
   clientName,
   clientPhone,
   actionSlot,
-  currentUser,
 }: Props) {
-  const [muralTab,     setMuralTab]     = useState<'eventos' | 'forum'>('forum');
   const [search,       setSearch]       = useState('');
   const [filterTipo,   setFilterTipo]   = useState('');
   const [filterCidade, setFilterCidade] = useState('');
@@ -68,30 +64,8 @@ export function EventosMural({
         </div>
       )}
 
-      {/* Tabs Eventos / Fórum */}
-      <div className="flex gap-1 bg-gray-100 p-1">
-        {([
-          ['forum',   'Fórum',   MessageSquare],
-          ['eventos', 'Eventos', CalendarDays],
-        ] as const).map(([key, label, Icon]) => (
-          <button
-            key={key}
-            onClick={() => setMuralTab(key)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-bold uppercase tracking-wider transition-all ${
-              muralTab === key ? 'bg-white text-[#1a2b4a] shadow-sm' : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Aba Eventos ── */}
-      {muralTab === 'eventos' && (
-        <>
-          {/* Filtros */}
-          <div className="bg-white border-2 border-gray-100 p-3 space-y-2.5">
+      {/* Filtros */}
+      <div className="bg-white border-2 border-gray-100 p-3 space-y-2.5">
             <div className="relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" />
               <input value={search} onChange={e => setSearch(e.target.value)}
@@ -141,24 +115,17 @@ export function EventosMural({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filtered.map(ev => (
-                <EventCard
-                  key={ev.id}
-                  ev={ev}
-                  clientId={clientId}
-                  clientName={clientName}
-                  clientPhone={clientPhone}
-                />
-              ))}
-            </div>
-          )}
-        </>
-      )}
-
-      {/* ── Aba Fórum ── */}
-      {muralTab === 'forum' && (
-        <ForumTab currentUser={currentUser} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filtered.map(ev => (
+            <EventCard
+              key={ev.id}
+              ev={ev}
+              clientId={clientId}
+              clientName={clientName}
+              clientPhone={clientPhone}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

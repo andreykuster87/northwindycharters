@@ -73,7 +73,6 @@ export function EventosAdminTab({ role, sailorId, sailorName }: Props) {
       <EventosMural
         title="Mural de Eventos"
         subtitle="Eventos náuticos aprovados para a comunidade"
-        currentUser={sailorId ? { id: sailorId, name: sailorName ?? 'Tripulante', type: 'sailor' } : undefined}
       />
     );
   }

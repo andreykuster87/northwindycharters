@@ -15,7 +15,7 @@ export type AdminTabKey =
   | 'sol' | 'clientes' | 'mensagens' | 'financeiro'
   | 'eventos' | 'candidatos' | 'marketplace';
 
-export type SailorTabKey = 'perfil' | 'amigos' | 'reservas' | 'frota' | 'passeios' | 'cancelamentos' | 'mensagens' | 'eventos' | 'empresa' | 'marketplace';
+export type SailorTabKey = 'perfil' | 'reservas' | 'frota' | 'passeios' | 'cancelamentos' | 'mensagens' | 'eventos' | 'empresa' | 'marketplace' | 'configuracoes';
 
 export type TabKey = AdminTabKey | SailorTabKey;
 

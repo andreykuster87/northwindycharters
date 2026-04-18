@@ -120,9 +120,9 @@ export function AdminDashboardSidebar({
       {tabs.map(t => {
         const Icon   = t.icon;
         const active = activeTab === t.key;
-        const isPerfil   = t.key === 'perfil';
+        const isPerfil   = false;
         const isClientes = t.key === 'clientes' && isAdmin;
-        const hasSubTabs = isPerfil || isClientes;
+        const hasSubTabs = isClientes;
         const isExpanded = active && !collapsed.has(t.key);
         return (
           <div key={t.key}>

@@ -115,6 +115,8 @@ export interface Client {
   created_at:       string;
   profile_photo?:   string | null;
   username?:        string;
+  endereco?:        string;
+  album?:           string[];
 }
 
 export interface Boat {

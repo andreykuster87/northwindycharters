@@ -219,16 +219,25 @@ export function ComunidadeTab({ onGoToProfile, onOpenApplication, applicationSta
         </div>
       )}
 
-      {/* CTA */}
-      <div className="bg-white border border-gray-100 p-4 flex items-center justify-between gap-3" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-        <div>
-          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Documentação em dia?</p>
-          <p className="text-xs font-medium text-gray-500 mt-0.5">Atualize seu perfil para ser encontrado pelas empresas</p>
+      {/* Banner — Faça parte da comunidade (movido de "Informações" do Perfil) */}
+      <div className="bg-[#0a1628] p-4 flex items-start gap-3 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 0,transparent 60px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 0,transparent 60px)' }} />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/60 to-transparent" />
+        <div className="w-9 h-9 bg-[#c9a96e]/15 border border-[#c9a96e]/30 flex items-center justify-center flex-shrink-0 mt-0.5 relative">
+          <Anchor className="w-4 h-4 text-[#c9a96e]" />
         </div>
-        <button onClick={onGoToProfile}
-          className="border border-[#c9a96e] text-[#c9a96e] hover:bg-[#c9a96e] hover:text-[#0a1628] px-4 py-2.5 font-semibold text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5 flex-shrink-0">
-          <CheckCircle2 className="w-3 h-3" /> Perfil
-        </button>
+        <div className="flex-1 min-w-0 relative">
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Faça parte da comunidade</p>
+          <p className="text-xs font-medium text-white/60 mt-1 leading-relaxed">
+            Para fazer parte da comunidade, insira os documentos necessários e fique visível para empresas náuticas.
+          </p>
+          <button
+            onClick={onOpenApplication}
+            className="mt-3 border border-[#c9a96e] text-[#c9a96e] hover:bg-[#c9a96e] hover:text-[#0a1628] px-4 py-2 font-semibold text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5">
+            <CheckCircle2 className="w-3 h-3" /> Inserir Documentos
+          </button>
+        </div>
       </div>
 
     </div>
