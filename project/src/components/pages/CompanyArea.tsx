@@ -9,6 +9,7 @@ import {
   CheckCircle2, MessageSquare, Waves, Send,
   Plus, ChevronDown, ChevronUp, Search, X, Check, UserPlus,
   Inbox, BookOpen, AlertCircle, Camera, Image, Trash2, Briefcase, Store,
+  Lock,
 } from 'lucide-react';
 import { getCompanies, updateCompany, refreshAll, getSailors, getClients, type Company } from '../../lib/localStore';
 import { uploadDoc } from '../../lib/storage';
@@ -26,7 +27,10 @@ import { FinanceiroTab }     from '../company/FinanceiroTab';
 import { SuporteTab }        from '../company/SuporteTab';
 import { CompanySearchCard } from '../shared/CompanySearchCard';
 import { CompanyProfileView } from './CompanyProfileView';
+import { SailorProfileView }  from './SailorProfileView';
 import { MarketplaceTab }     from '../shared/MarketplaceTab';
+import { ProfileSearch }      from '../admin/ProfileSearch';
+import type { Sailor, Client } from '../../lib/localStore';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -86,6 +90,7 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
   const [isLoading, setIsLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [viewingCompany, setViewingCompany] = useState<Company | null>(null);
+  const [viewingSailor,  setViewingSailor]  = useState<Sailor | null>(null);
 
   useEffect(() => {
     refreshAll().then(() => {
@@ -150,12 +155,27 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
     setMobileMenuOpen(false);
   }
 
+  if (viewingSailor) {
+    return (
+      <SailorProfileView
+        sailor={viewingSailor}
+        onBack={() => setViewingSailor(null)}
+        onOpenSailor={s => setViewingSailor(s)}
+        onOpenClient={() => {}}
+        onOpenCompany={c => setViewingCompany(c)}
+      />
+    );
+  }
+
   // Se o utilizador clicou numa empresa nos resultados de busca, mostra o perfil dessa empresa
   if (viewingCompany) {
     return (
       <CompanyProfileView
         company={viewingCompany}
         onBack={() => setViewingCompany(null)}
+        onOpenSailor={s => setViewingSailor(s)}
+        onOpenClient={() => {}}
+        onOpenCompany={c => setViewingCompany(c)}
       />
     );
   }
@@ -180,6 +200,11 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
             </p>
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
+            <ProfileSearch
+              onOpenSailor={s => setViewingSailor(s)}
+              onOpenClient={() => {}}
+              onOpenCompany={c => setViewingCompany(c)}
+            />
             <button className="relative bg-white/5 hover:bg-white/10 p-2 transition-all" onClick={() => handleTabChange('mensagens')}>
               <Bell className="w-4 h-4 text-white" />
               {unread > 0 && (
@@ -237,7 +262,37 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
           {tab === 'destaques'    && <DestaquesTab    company={company} onViewCompany={setViewingCompany} />}
           {tab === 'frota'        && <FrotaTab        companyId={company.id} onToast={setToast} />}
           {tab === 'reservas'     && <ReservasTab companyId={company.id} />}
-          {tab === 'funcionarios' && <RHTab companyId={company.id} onToast={setToast} />}
+          {tab === 'funcionarios' && (
+            <div className="relative">
+              {/* Conteúdo do RH por baixo (desfocado) */}
+              <div className="pointer-events-none select-none blur-sm opacity-40">
+                <RHTab companyId={company.id} onToast={setToast} />
+              </div>
+              {/* Overlay de bloqueio */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-6">
+                <div className="bg-[#0a1628] border border-[#c9a96e]/30 rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
+                  <div className="w-16 h-16 bg-[#c9a96e]/10 border border-[#c9a96e]/30 rounded-full flex items-center justify-center mx-auto mb-5">
+                    <Lock className="w-7 h-7 text-[#c9a96e]" />
+                  </div>
+                  <h2 className="font-['Playfair_Display'] font-bold italic text-white text-xl mb-2">
+                    Módulo RH
+                  </h2>
+                  <p className="text-[#c9a96e] text-xs font-semibold uppercase tracking-widest mb-4">
+                    Em breve
+                  </p>
+                  <p className="text-white/50 text-sm leading-relaxed mb-6">
+                    A gestão de recursos humanos estará disponível numa futura actualização da plataforma.
+                  </p>
+                  <div className="border-t border-[#c9a96e]/15 pt-5">
+                    <p className="text-white/30 text-xs leading-relaxed">
+                      Interesse em acesso antecipado?<br />
+                      Contacte-nos através do <span className="text-[#c9a96e]/70 font-medium">Suporte</span>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {tab === 'mensagens'    && <MensagensTab    companyId={company.id} />}
           {tab === 'financeiro'   && <FinanceiroTab companyId={company.id} />}
           {tab === 'suporte'      && <SuporteTab      company={company} />}

@@ -48,6 +48,7 @@ import { KpiCard, type Auth, type TabKey, type TabDef, type ClientesSubTab } fro
 import { DossierSailor }       from '../shared/DossierSailor';
 import { DossierClient }       from '../shared/DossierClient';
 import { CompanyProfileView }  from '../pages/CompanyProfileView';
+import { ClientProfileView }   from '../pages/ClientProfileView';
 import { SailorProfileView, SailorProfileContent, VIEW_TABS, type ViewTab } from '../pages/SailorProfileView';
 import { CancelModal }      from '../modals/CancelModal';
 import { DeleteConfirmModal, type DeleteTarget } from '../modals/DeleteConfirmModal';
@@ -90,6 +91,7 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
   const [dossierClient,  setDossierClient]  = useState<Client | null>(null);
   const [viewingCompany, setViewingCompany] = useState<Company | null>(null);
   const [viewingSailorProfile, setViewingSailorProfile] = useState<Sailor | null>(null);
+  const [viewingClientProfile, setViewingClientProfile] = useState<Client | null>(null);
   const [cancelConfirm,  setCancelConfirm]  = useState<string | null>(null);
   const [deleteConfirm,  setDeleteConfirm]  = useState<DeleteTarget | null>(null);
   const [verifyModal,    setVerifyModal]    = useState<Client | null>(null);
@@ -247,7 +249,10 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
   // ── Definição de tabs ─────────────────────────────────────────────────────
 
   const candidatosBadge = getSailorApplications('pending').length;
-  const solBadge = pending.length + pendingClients.length + pendingBoats.length + pendingCompaniesCount + candidatosBadge;
+  const pendingDocsBadge = getSailors().reduce((acc, s) =>
+    acc + Object.values(s.pending_docs ?? {}).filter((d: any) => d.status === 'pending').length, 0
+  );
+  const solBadge = pending.length + pendingClients.length + pendingBoats.length + pendingCompaniesCount + candidatosBadge + pendingDocsBadge;
 
   const ADMIN_TABS: TabDef[] = [
     { key: 'reservas',      icon: Users,        label: 'Reservas',      short: 'Reservas' },
@@ -263,13 +268,12 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
 
   const SAILOR_TABS: TabDef[] = [
     { key: 'perfil',        icon: User,           label: 'Perfil Público',      short: 'Perfil'   },
+    { key: 'marketplace',   icon: Store,          label: 'Marketplace',         short: 'Market' },
     { key: 'reservas',      icon: Users,          label: 'Reservas',            short: 'Reservas' },
     { key: 'frota',         icon: Ship,           label: 'Minha Frota',         short: 'Frota' },
-    { key: 'eventos',       icon: CalendarDays,   label: 'Eventos',             short: 'Eventos' },
     { key: 'empresa',       icon: Building2,      label: 'Empresa',             short: 'Empresa', badge: empresaUnread > 0 ? empresaUnread : undefined },
-    { key: 'cancelamentos', icon: XCircle,  label: 'Cancelamentos', short: 'Cancels.' },
-    { key: 'mensagens',     icon: Bell,     label: 'Mensagens',     short: 'Msgs', badge: unreadMsgs > 0 ? unreadMsgs : undefined },
-    { key: 'marketplace',   icon: Store,    label: 'Marketplace',   short: 'Market' },
+    { key: 'cancelamentos', icon: XCircle,        label: 'Cancelamentos',       short: 'Cancels.' },
+    { key: 'mensagens',     icon: Bell,           label: 'Mensagens',           short: 'Msgs', badge: unreadMsgs > 0 ? unreadMsgs : undefined },
   ];
 
   const ALL_TABS    = isAdmin ? ADMIN_TABS : SAILOR_TABS;
@@ -533,6 +537,9 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
           <CompanyProfileView
             company={viewingCompany}
             onBack={() => setViewingCompany(null)}
+            onOpenSailor={s => setViewingSailorProfile(s)}
+            onOpenClient={c => setViewingClientProfile(c)}
+            onOpenCompany={c => setViewingCompany(c)}
           />
         </div>
       )}
@@ -543,6 +550,22 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
           <SailorProfileView
             sailor={viewingSailorProfile}
             onBack={() => setViewingSailorProfile(null)}
+            onOpenSailor={s => setViewingSailorProfile(s)}
+            onOpenClient={c => setViewingClientProfile(c)}
+            onOpenCompany={c => setViewingCompany(c)}
+          />
+        </div>
+      )}
+
+      {/* ── Perfil público do passageiro (overlay full-screen) ── */}
+      {viewingClientProfile && (
+        <div className="fixed inset-0 z-[200] overflow-y-auto bg-gray-50">
+          <ClientProfileView
+            client={viewingClientProfile}
+            onBack={() => setViewingClientProfile(null)}
+            onOpenSailor={s => setViewingSailorProfile(s)}
+            onOpenClient={c => setViewingClientProfile(c)}
+            onOpenCompany={c => setViewingCompany(c)}
           />
         </div>
       )}

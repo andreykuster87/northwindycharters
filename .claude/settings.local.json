@@ -10,7 +10,15 @@
       "Bash(echo \"EXIT: $?\")",
       "mcp__26b236b4-6d6b-446f-a0c7-c3dca3d58d25__deploy_to_vercel",
       "Bash(npx vercel:*)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "mcp__bbafcbcf-da34-4a37-9bb3-8e48e29d0d62__execute_sql",
+      "Bash(netstat -ano)",
+      "Bash(dir \"C:\\\\Users\\\\andre\\\\OneDrive\\\\Área de Trabalho\\\\extraido\\\\project\")",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(node \"C:\\\\Users\\\\andre\\\\OneDrive\\\\Área de Trabalho\\\\extraido\\\\project\\\\node_modules\\\\typescript\\\\bin\\\\tsc\" --noEmit --project \"C:\\\\Users\\\\andre\\\\OneDrive\\\\Área de Trabalho\\\\extraido\\\\project\\\\tsconfig.app.json\")",
+      "Bash(vercel --version)",
+      "Bash(vercel deploy:*)",
+      "mcp__26b236b4-6d6b-446f-a0c7-c3dca3d58d25__list_deployments"
     ]
   }
 }

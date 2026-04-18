@@ -2,18 +2,21 @@
 // Perfil público read-only de um tripulante — design NorthWindy.
 // Dados sensíveis omitidos (email, telefone, NIF, nº de documento).
 // isOwner=true habilita aba de documentos com todos os docs + botão "Incluir".
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import {
   ArrowLeft, Waves, User, FileText, Briefcase,
   MapPin, Globe, Image as ImageIcon, ChevronRight,
   CheckCircle2, AlertTriangle, XCircle, Clock,
   Award, Languages, Anchor, CalendarDays, PlusCircle, Upload, X, Eye, RefreshCw,
-  Building2,
+  Building2, Users, Navigation, ShoppingBag,
 } from 'lucide-react';
 import { uploadDoc } from '../../lib/storage';
-import { updateSailor, getSailors, getCompanies, refreshAll, type Sailor } from '../../lib/localStore';
+import { updateSailor, getSailors, getCompanies, getTrips, refreshAll, type Sailor, type Client, type Trip } from '../../lib/localStore';
 import { STCW_CERTS, FUNCOES_MARITIMAS } from '../../constants/sailorConstants';
+import { applyDateMask } from '../../utils/sailorHelpers';
 import { findCompanyForSailorDB } from '../../lib/rh';
+import { ProfileSearch } from '../admin/ProfileSearch';
+import type { Company } from '../../lib/store/companies';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -71,25 +74,64 @@ function canRenew(validade?: string): boolean {
 }
 
 interface DocCardProps {
-  label:      string;
-  validade?:  string;
-  numero?:    string;
-  status?:    DocStatus;
-  docUrl?:    string | null;
-  isOwner?:   boolean;
-  onClick?:   () => void;
+  label:          string;
+  validade?:      string;
+  numero?:        string;
+  status?:        DocStatus;
+  pendingStatus?: 'pending' | 'approved' | 'rejected';
+  docUrl?:        string | null;
+  isOwner?:       boolean;
+  onClick?:       () => void;
 }
 
-function DocCard({ label, validade, numero, status: forcedStatus, docUrl, isOwner, onClick }: DocCardProps) {
-  const st  = forcedStatus ?? docStatus(validade);
+function DocCard({ label, validade, numero, status: forcedStatus, pendingStatus, docUrl, isOwner, onClick }: DocCardProps) {
+  const isPending = pendingStatus === 'pending';
+  const st  = isPending ? 'pending' : (forcedStatus ?? docStatus(validade));
   const cfg = STATUS_CFG[st];
   const Icon = cfg.icon;
   const clickable = isOwner && !!docUrl;
+
+  if (isPending) {
+    return (
+      <div
+        onClick={clickable ? onClick : undefined}
+        className={`bg-amber-50 border-2 border-amber-300 p-4 flex items-start gap-3 transition-all ${
+          clickable ? 'cursor-pointer hover:bg-amber-100' : ''
+        }`}
+      >
+        <div className="w-9 h-9 bg-amber-200/60 flex items-center justify-center flex-shrink-0 mt-0.5">
+          <Clock className="w-4 h-4 text-amber-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-amber-900 text-sm uppercase leading-tight">{label}</p>
+          <div className="flex flex-col gap-0.5 mt-1">
+            {numero && <p className="text-[10px] font-semibold text-amber-700">Nº: {numero}</p>}
+            {validade && <p className="text-[10px] font-semibold text-amber-700">Validade: {fmtDate(validade)}</p>}
+            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide mt-0.5">
+              ⏳ Em análise pelo admin — aguarde
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {clickable && (
+            <span className="flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-1 border border-amber-400 bg-amber-100 text-amber-700">
+              <Eye className="w-3 h-3" /> Ver
+            </span>
+          )}
+          <span className={`flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-1 border ${cfg.cls}`}>
+            <Icon className="w-3 h-3" />
+            {cfg.label}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       onClick={clickable ? onClick : undefined}
       className={`bg-white border-2 border-[#0a1628]/5 p-4 flex items-start gap-3 transition-all ${
-        clickable ? 'cursor-pointer hover:border-[#c9a96e]/40 hover:shadow-sm' : 'hover:border-[#c9a96e]/20'
+        clickable ? 'cursor-pointer hover:border-[#c9a96e]/40 hover:shadow-sm' : ''
       }`}
     >
       <div className="w-9 h-9 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -98,14 +140,8 @@ function DocCard({ label, validade, numero, status: forcedStatus, docUrl, isOwne
       <div className="flex-1 min-w-0">
         <p className="font-bold text-[#1a2b4a] text-sm uppercase leading-tight">{label}</p>
         <div className="flex flex-col gap-1 mt-0.5">
-          {numero && (
-            <p className="text-[10px] font-semibold text-gray-400">
-              Nº: {numero}
-            </p>
-          )}
-          <p className="text-[10px] font-semibold text-gray-400">
-            Validade: {fmtDate(validade)}
-          </p>
+          {numero && <p className="text-[10px] font-semibold text-gray-400">Nº: {numero}</p>}
+          <p className="text-[10px] font-semibold text-gray-400">Validade: {fmtDate(validade)}</p>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
@@ -275,12 +311,31 @@ interface IncluirDocModalProps {
 }
 
 function IncluirDocModal({ label, docKey, sailorId, onClose, onSuccess }: IncluirDocModalProps) {
-  const [file,     setFile]     = useState<File | null>(null);
-  const [validade, setValidade] = useState('');
-  const [numero,   setNumero]   = useState('');
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState('');
+  const [file,       setFile]       = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [validade,   setValidade]   = useState('');
+  const [numero,     setNumero]     = useState('');
+  const [loading,    setLoading]    = useState(false);
+  const [error,      setError]      = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+
+  function handleFileChange(f: File) {
+    setFile(f);
+    setError('');
+    // Gera preview apenas para imagens
+    if (f.type.startsWith('image/')) {
+      const url = URL.createObjectURL(f);
+      setPreviewUrl(prev => { if (prev) URL.revokeObjectURL(prev); return url; });
+    } else {
+      setPreviewUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
+    }
+  }
+
+  // Limpa a object URL ao desmontar
+  useEffect(() => {
+    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit() {
     if (!file)        { setError('Selecione um arquivo.'); return; }
@@ -348,16 +403,32 @@ function IncluirDocModal({ label, docKey, sailorId, onClose, onSuccess }: Inclui
             </label>
             <div
               onClick={() => fileRef.current?.click()}
-              className={`border-2 border-dashed cursor-pointer py-6 flex flex-col items-center gap-2 transition-all ${
+              className={`border-2 border-dashed cursor-pointer transition-all overflow-hidden ${
                 file ? 'border-[#c9a96e]/50 bg-[#c9a96e]/5' : 'border-gray-200 hover:border-[#c9a96e]/40'
               }`}>
-              <Upload className="w-6 h-6 text-gray-300" />
-              <p className="text-xs font-semibold text-gray-400">
-                {file ? file.name : 'Clique para selecionar'}
-              </p>
-              <p className="text-[10px] text-gray-300">PDF, JPG ou PNG — máx. 4MB</p>
+              {previewUrl ? (
+                <div className="relative">
+                  <img
+                    src={previewUrl}
+                    alt="Preview do documento"
+                    className="w-full max-h-52 object-contain bg-gray-50"
+                  />
+                  <div className="absolute bottom-0 inset-x-0 bg-black/50 px-3 py-1.5 flex items-center gap-2">
+                    <p className="text-[10px] font-semibold text-white truncate flex-1">{file?.name}</p>
+                    <span className="text-[9px] text-white/70 flex-shrink-0">Clique para trocar</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="py-6 flex flex-col items-center gap-2">
+                  <Upload className="w-6 h-6 text-gray-300" />
+                  <p className="text-xs font-semibold text-gray-400">
+                    {file ? file.name : 'Clique para selecionar'}
+                  </p>
+                  <p className="text-[10px] text-gray-300">PDF, JPG ou PNG — máx. 4MB</p>
+                </div>
+              )}
               <input ref={fileRef} type="file" accept="image/*,.pdf" className="hidden"
-                onChange={e => { const f = e.target.files?.[0]; if (f) { setFile(f); setError(''); } }} />
+                onChange={e => { const f = e.target.files?.[0]; if (f) handleFileChange(f); }} />
             </div>
           </div>
 
@@ -367,8 +438,10 @@ function IncluirDocModal({ label, docKey, sailorId, onClose, onSuccess }: Inclui
               Validade <span className="text-red-500">*</span>
             </label>
             <input
-              type="text" placeholder="DD/MM/AAAA"
-              value={validade} onChange={e => setValidade(e.target.value)}
+              type="text" inputMode="numeric" placeholder="DD/MM/AAAA"
+              value={validade}
+              onChange={e => setValidade(applyDateMask(e.target.value))}
+              maxLength={10}
               className="w-full bg-gray-50 border border-gray-200 py-3 px-4 font-medium text-[#1a2b4a] focus:border-[#c9a96e] outline-none transition-all text-sm"
             />
           </div>
@@ -417,6 +490,12 @@ function IncluirDocModal({ label, docKey, sailorId, onClose, onSuccess }: Inclui
   );
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function currency(v: number) {
+  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(v);
+}
+
 // ── Constantes de disponibilidade ────────────────────────────────────────────
 
 const DISP_OPTIONS = [
@@ -433,9 +512,55 @@ const DISP_OPTIONS = [
 
 // ── Tab: Perfil ───────────────────────────────────────────────────────────────
 
+// ── TripCard ──────────────────────────────────────────────────────────────────
+
+function TripCard({ trip }: { trip: Trip }) {
+  return (
+    <div className="bg-white border-2 border-[#0a1628]/5 overflow-hidden hover:border-[#c9a96e]/30 transition-all">
+      {trip.cover_photo && (
+        <div className="h-36 overflow-hidden">
+          <img src={trip.cover_photo} alt={trip.boat_name} className="w-full h-full object-cover" />
+        </div>
+      )}
+      <div className="p-4 space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <p className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-sm leading-tight uppercase flex-1">
+            {trip.boat_name}
+          </p>
+          <span className="text-xs font-bold text-[#c9a96e] flex-shrink-0">
+            {trip.valor_por_pessoa > 0 ? `${currency(trip.valor_por_pessoa)}/pax` : 'Consultar'}
+          </span>
+        </div>
+        {trip.descricao && (
+          <p className="text-xs text-gray-500 font-semibold leading-relaxed line-clamp-2">{trip.descricao}</p>
+        )}
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          <span className="flex items-center gap-1 bg-[#0a1628]/5 text-[#1a2b4a] font-semibold text-[10px] px-2 py-1">
+            <Anchor className="w-3 h-3" /> {trip.boat_type}
+          </span>
+          <span className="flex items-center gap-1 bg-[#0a1628]/5 text-[#1a2b4a] font-semibold text-[10px] px-2 py-1">
+            <Clock className="w-3 h-3" /> {trip.duracao}
+          </span>
+          <span className="flex items-center gap-1 bg-[#0a1628]/5 text-[#1a2b4a] font-semibold text-[10px] px-2 py-1">
+            <Users className="w-3 h-3" /> {trip.capacity} pax
+          </span>
+          {trip.marina_saida && (
+            <span className="flex items-center gap-1 bg-[#0a1628]/5 text-[#1a2b4a] font-semibold text-[10px] px-2 py-1">
+              <Navigation className="w-3 h-3" /> {trip.marina_saida}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Tab: Perfil ───────────────────────────────────────────────────────────────
+
 function PerfilTab({ sailor, isOwner, onUpdated }: { sailor: Sailor; isOwner?: boolean; onUpdated?: () => void }) {
   const album: string[] = sailor.album ?? [];
   const bio = sailor.outras_informacoes;
+  const trips = useMemo(() => getTrips(sailor.id), [sailor.id]);
 
   // ── Empresa em que o tripulante está no RH ───────────────────────────────
   const [companyInfo, setCompanyInfo] = useState<{ company: any; cargo: string } | null>(null);
@@ -560,34 +685,6 @@ function PerfilTab({ sailor, isOwner, onUpdated }: { sailor: Sailor; isOwner?: b
               )}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Galeria de fotos */}
-      {(album.length > 0 || isOwner) && (
-        <div className="bg-white border-2 border-[#0a1628]/5 p-5">
-          <SectionLabel><ImageIcon className="w-3.5 h-3.5" /> Fotos</SectionLabel>
-          <div className="grid grid-cols-3 gap-2">
-            {album.slice(0, 9).map((url, i) => (
-              <div key={i} className="overflow-hidden aspect-square border border-gray-100">
-                <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-              </div>
-            ))}
-            {isOwner && album.length < 9 && (
-              <button
-                onClick={() => photoInputRef.current?.click()}
-                disabled={uploadingPhoto}
-                className="aspect-square border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1.5 hover:border-[#c9a96e]/50 hover:bg-[#c9a96e]/5 transition-all disabled:opacity-50"
-              >
-                {uploadingPhoto
-                  ? <span className="text-[10px] font-semibold text-gray-400">Enviando…</span>
-                  : <><PlusCircle className="w-5 h-5 text-gray-300" /><span className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Adicionar</span></>
-                }
-              </button>
-            )}
-          </div>
-          <input ref={photoInputRef} type="file" accept="image/*" className="hidden"
-            onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); e.target.value = ''; }} />
         </div>
       )}
 
@@ -780,6 +877,52 @@ function PerfilTab({ sailor, isOwner, onUpdated }: { sailor: Sailor; isOwner?: b
           )}
         </div>
       )}
+
+      {/* Passeios Oferecidos */}
+      {trips.length > 0 && (
+        <div className="bg-white border-2 border-[#0a1628]/5 overflow-hidden">
+          <div className="px-5 pt-5 pb-3 border-b-2 border-[#0a1628]/5">
+            <SectionLabel><Anchor className="w-3.5 h-3.5" /> Passeios Oferecidos</SectionLabel>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {trips.map(trip => <TripCard key={trip.id} trip={trip} />)}
+          </div>
+          <div className="px-5 py-2.5 border-t border-gray-100 flex items-center justify-between">
+            <span className="text-[9px] text-gray-300 uppercase tracking-wider">
+              {trips.length} passeio{trips.length > 1 ? 's' : ''} disponível{trips.length > 1 ? 'is' : ''}
+            </span>
+            <Anchor className="w-3 h-3 text-gray-200" />
+          </div>
+        </div>
+      )}
+
+      {/* Galeria de fotos */}
+      {(album.length > 0 || isOwner) && (
+        <div className="bg-white border-2 border-[#0a1628]/5 p-5">
+          <SectionLabel><ImageIcon className="w-3.5 h-3.5" /> Fotos</SectionLabel>
+          <div className="grid grid-cols-3 gap-2">
+            {album.slice(0, 9).map((url, i) => (
+              <div key={i} className="overflow-hidden aspect-square border border-gray-100">
+                <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              </div>
+            ))}
+            {isOwner && album.length < 9 && (
+              <button
+                onClick={() => photoInputRef.current?.click()}
+                disabled={uploadingPhoto}
+                className="aspect-square border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1.5 hover:border-[#c9a96e]/50 hover:bg-[#c9a96e]/5 transition-all disabled:opacity-50"
+              >
+                {uploadingPhoto
+                  ? <span className="text-[10px] font-semibold text-gray-400">Enviando…</span>
+                  : <><PlusCircle className="w-5 h-5 text-gray-300" /><span className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Adicionar</span></>
+                }
+              </button>
+            )}
+          </div>
+          <input ref={photoInputRef} type="file" accept="image/*" className="hidden"
+            onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); e.target.value = ''; }} />
+        </div>
+      )}
     </div>
   );
 }
@@ -950,15 +1093,7 @@ function DocumentosTab({ sailor, isOwner, onDocAdded }: DocumentosTabProps) {
 
             const cadernetaCard = (() => {
               if (d.present) return (
-                <div>
-                  {d.pendingStatus === 'pending' && (
-                    <div className="bg-amber-50 border-2 border-amber-200 p-3 mb-2 flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-amber-600" />
-                      <p className="text-xs font-semibold text-amber-600">Em revisão pelo admin</p>
-                    </div>
-                  )}
-                  <DocCard label={d.label} validade={d.validade} numero={d.numero} docUrl={d.docUrl} isOwner={isOwner} onClick={() => setViewingDoc(d)} />
-                </div>
+                <DocCard label={d.label} validade={d.validade} numero={d.numero} pendingStatus={d.pendingStatus} docUrl={d.docUrl} isOwner={isOwner} onClick={() => setViewingDoc(d)} />
               );
               if (!isOwner) return null;
               return (
@@ -985,15 +1120,7 @@ function DocumentosTab({ sailor, isOwner, onDocAdded }: DocumentosTabProps) {
                   </p>
                   {stcwDocs.map((sd, si) => {
                     if (sd.present) return (
-                      <div key={si}>
-                        {sd.pendingStatus === 'pending' && (
-                          <div className="bg-amber-50 border-2 border-amber-200 p-2 mb-1 flex items-center gap-2">
-                            <Clock className="w-3 h-3 text-amber-600" />
-                            <p className="text-[10px] font-semibold text-amber-600">Em revisão</p>
-                          </div>
-                        )}
-                        <DocCard key={si} label={sd.label} validade={sd.validade} numero={sd.numero} docUrl={sd.docUrl} isOwner={isOwner} onClick={() => setViewingDoc(sd)} />
-                      </div>
+                      <DocCard key={si} label={sd.label} validade={sd.validade} numero={sd.numero} pendingStatus={sd.pendingStatus} docUrl={sd.docUrl} isOwner={isOwner} onClick={() => setViewingDoc(sd)} />
                     );
                     if (!isOwner) return null;
                     return (
@@ -1018,22 +1145,16 @@ function DocumentosTab({ sailor, isOwner, onDocAdded }: DocumentosTabProps) {
           // ── Outros documentos ─────────────────────────────────────────────────
           if (d.present) {
             return (
-              <div key={i}>
-                {d.pendingStatus === 'pending' && (
-                  <div className="bg-amber-50 border-2 border-amber-200 p-3 mb-2 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-600" />
-                    <p className="text-xs font-semibold text-amber-600">Em revisão pelo admin</p>
-                  </div>
-                )}
-                <DocCard
-                  label={d.label}
-                  validade={d.validade}
-                  numero={d.numero}
-                  docUrl={d.docUrl}
-                  isOwner={isOwner}
-                  onClick={() => setViewingDoc(d)}
-                />
-              </div>
+              <DocCard
+                key={i}
+                label={d.label}
+                validade={d.validade}
+                numero={d.numero}
+                pendingStatus={d.pendingStatus}
+                docUrl={d.docUrl}
+                isOwner={isOwner}
+                onClick={() => setViewingDoc(d)}
+              />
             );
           }
 
@@ -1182,13 +1303,41 @@ function ExperienciaTab({ sailor }: { sailor: Sailor }) {
   );
 }
 
+// ── Tab: Loja ─────────────────────────────────────────────────────────────────
+
+function LojaTab({ sailor }: { sailor: Sailor }) {
+  const trips = useMemo(() => getTrips(sailor.id), [sailor.id]);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="font-['Playfair_Display'] font-bold text-2xl text-[#1a2b4a]">Loja</h2>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-0.5">Passeios e serviços oferecidos</p>
+      </div>
+
+      {trips.length === 0 ? (
+        <div className="bg-white border-2 border-dashed border-gray-200 py-16 text-center">
+          <Anchor className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+          <p className="font-bold text-gray-300 uppercase text-sm">Sem passeios disponíveis</p>
+          <p className="text-xs font-semibold text-gray-300 mt-1">Este tripulante ainda não tem passeios publicados.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {trips.map(trip => <TripCard key={trip.id} trip={trip} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Componente Principal ──────────────────────────────────────────────────────
 
-export type ViewTab = 'perfil' | 'documentos';
+export type ViewTab = 'perfil' | 'documentos' | 'loja';
 
 export const VIEW_TABS: { key: ViewTab; icon: React.ElementType; label: string; short: string }[] = [
-  { key: 'perfil',     icon: User,     label: 'Perfil',     short: 'Perfil' },
-  { key: 'documentos', icon: FileText, label: 'Documentos', short: 'Docs'   },
+  { key: 'perfil',     icon: User,       label: 'Perfil',     short: 'Perfil' },
+  { key: 'loja',       icon: ShoppingBag, label: 'Loja',       short: 'Loja'   },
+  { key: 'documentos', icon: FileText,   label: 'Documentos', short: 'Docs'   },
 ];
 
 // ── SailorProfileContent — conteúdo inline (sem navbar/sidebar próprios) ──────
@@ -1219,19 +1368,22 @@ export function SailorProfileContent({ sailor, subTab, isOwner, onDocAdded }: Sa
   return (
     <>
       {subTab === 'perfil'     && <PerfilTab     sailor={localSailor} isOwner={isOwner} onUpdated={handleDocAdded} />}
+      {subTab === 'loja'       && <LojaTab       sailor={localSailor} />}
       {subTab === 'documentos' && <DocumentosTab sailor={localSailor} isOwner={isOwner} onDocAdded={handleDocAdded} />}
     </>
   );
 }
 
 interface SailorProfileViewProps {
-  sailor:    Sailor;
-  onBack:    () => void;
-  isOwner?:  boolean;
+  sailor:         Sailor;
+  onBack:         () => void;
+  isOwner?:       boolean;
+  onOpenSailor?:  (s: Sailor)  => void;
+  onOpenClient?:  (c: Client)  => void;
+  onOpenCompany?: (c: Company) => void;
 }
 
-// ── Tipo para itens do sino ───────────────────────────────────────────────────
-export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileViewProps) {
+export function SailorProfileView({ sailor, onBack, isOwner, onOpenSailor, onOpenClient, onOpenCompany }: SailorProfileViewProps) {
   const [tab,         setTab]         = useState<ViewTab>('perfil');
   const [localSailor, setLocalSailor] = useState<Sailor>(sailor);
 
@@ -1262,11 +1414,20 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
               {localSailor.profile_number}{funcao ? ` · ${funcao}` : ''}{isOwner ? ' · Meu perfil público' : ''}
             </p>
           </div>
-          <button onClick={onBack}
-            className="bg-white/5 hover:bg-red-600/80 px-4 py-2 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition-all flex-shrink-0 border border-white/10">
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Voltar</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {(onOpenSailor || onOpenClient || onOpenCompany) && (
+              <ProfileSearch
+                onOpenSailor={onOpenSailor ?? (() => {})}
+                onOpenClient={onOpenClient ?? (() => {})}
+                onOpenCompany={onOpenCompany ?? (() => {})}
+              />
+            )}
+            <button onClick={onBack}
+              className="bg-white/5 hover:bg-red-600/80 px-4 py-2 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition-all flex-shrink-0 border border-white/10">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Voltar</span>
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -1331,6 +1492,7 @@ export function SailorProfileView({ sailor, onBack, isOwner }: SailorProfileView
         {/* ── MAIN CONTENT ── */}
         <main className="flex-1 min-w-0 px-4 py-6 pb-24 md:pb-6 overflow-hidden">
           {tab === 'perfil'     && <PerfilTab     sailor={localSailor} isOwner={isOwner} onUpdated={handleDocAdded} />}
+          {tab === 'loja'       && <LojaTab       sailor={localSailor} />}
           {tab === 'documentos' && <DocumentosTab sailor={localSailor} isOwner={isOwner} onDocAdded={handleDocAdded} />}
         </main>
       </div>

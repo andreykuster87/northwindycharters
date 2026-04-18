@@ -1,14 +1,16 @@
 // src/components/pages/CompanyProfileView.tsx
 // Perfil público read-only de uma empresa — design NorthWindy.
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   ArrowLeft, Star, CalendarDays, Building2, MapPin, Phone,
   Mail, Globe, Waves, Instagram, Linkedin, Facebook, ExternalLink,
   ChevronRight, CalendarX, Users, Clock, ChevronDown, ChevronUp,
-  ShoppingBag, Briefcase, Image as ImageIcon,
+  ShoppingBag, Briefcase, Image as ImageIcon, Anchor, Navigation,
 } from 'lucide-react';
-import { getPublicEvents, getJobsByCompany, type NauticEvent, type JobOffer } from '../../lib/localStore';
+import { getPublicEvents, getJobsByCompany, getTrips, type NauticEvent, type JobOffer, type Sailor, type Client, type Trip } from '../../lib/localStore';
+import { loadStaff } from '../../lib/rh';
 import type { Company } from '../../lib/store/companies';
+import { ProfileSearch } from '../admin/ProfileSearch';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -47,6 +49,52 @@ function agendaFmtDay(str: string) {
   } catch { return ''; }
 }
 
+// ── Trip Card ─────────────────────────────────────────────────────────────────
+
+function CompanyTripCard({ trip }: { trip: Trip }) {
+  return (
+    <div className="bg-white border-2 border-[#0a1628]/5 overflow-hidden hover:border-[#c9a96e]/30 transition-all">
+      {trip.cover_photo && (
+        <div className="h-32 overflow-hidden">
+          <img src={trip.cover_photo} alt={trip.boat_name} className="w-full h-full object-cover" />
+        </div>
+      )}
+      <div className="p-4 space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-sm leading-tight uppercase truncate">
+              {trip.boat_name}
+            </p>
+            <p className="text-[10px] font-semibold text-gray-400 mt-0.5">{trip.sailor_name}</p>
+          </div>
+          <span className="text-xs font-bold text-[#c9a96e] flex-shrink-0">
+            {trip.valor_por_pessoa > 0 ? `${currency(trip.valor_por_pessoa)}/pax` : 'Consultar'}
+          </span>
+        </div>
+        {trip.descricao && (
+          <p className="text-xs text-gray-500 font-semibold leading-relaxed line-clamp-2">{trip.descricao}</p>
+        )}
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          <span className="flex items-center gap-1 bg-[#0a1628]/5 text-[#1a2b4a] font-semibold text-[10px] px-2 py-1">
+            <Anchor className="w-3 h-3" /> {trip.boat_type}
+          </span>
+          <span className="flex items-center gap-1 bg-[#0a1628]/5 text-[#1a2b4a] font-semibold text-[10px] px-2 py-1">
+            <Clock className="w-3 h-3" /> {trip.duracao}
+          </span>
+          <span className="flex items-center gap-1 bg-[#0a1628]/5 text-[#1a2b4a] font-semibold text-[10px] px-2 py-1">
+            <Users className="w-3 h-3" /> {trip.capacity} pax
+          </span>
+          {trip.marina_saida && (
+            <span className="flex items-center gap-1 bg-[#0a1628]/5 text-[#1a2b4a] font-semibold text-[10px] px-2 py-1">
+              <Navigation className="w-3 h-3" /> {trip.marina_saida}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Section label ─────────────────────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -67,6 +115,15 @@ function PerfilPublicoTab({ company }: { company: Company }) {
     () => getPublicEvents().filter(e => e.company_id === company.id),
     [company.id]
   );
+
+  const [companyTrips, setCompanyTrips] = useState<Trip[]>([]);
+  useEffect(() => {
+    loadStaff(company.id).then(staff => {
+      const sailorIds = new Set(staff.map(m => m.id));
+      const trips = getTrips().filter(t => sailorIds.has(t.sailor_id));
+      setCompanyTrips(trips);
+    }).catch(() => {});
+  }, [company.id]);
 
   const socials = [
     { icon: Instagram, href: company.instagram, label: 'Instagram', color: 'hover:border-pink-300 hover:text-pink-700' },
@@ -161,6 +218,24 @@ function PerfilPublicoTab({ company }: { company: Company }) {
               {companyEvents.length} evento{companyEvents.length > 1 ? 's' : ''} publicado{companyEvents.length > 1 ? 's' : ''}
             </span>
             <CalendarDays className="w-3 h-3 text-gray-200" />
+          </div>
+        </div>
+      )}
+
+      {/* Passeios da Frota */}
+      {companyTrips.length > 0 && (
+        <div className="bg-white border-2 border-[#0a1628]/5 overflow-hidden">
+          <div className="px-5 pt-5 pb-3 border-b-2 border-[#0a1628]/5">
+            <SectionLabel><Anchor className="w-3.5 h-3.5" /> Passeios da Frota</SectionLabel>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {companyTrips.map(trip => <CompanyTripCard key={trip.id} trip={trip} />)}
+          </div>
+          <div className="px-5 py-2.5 border-t border-gray-100 flex items-center justify-between">
+            <span className="text-[9px] text-gray-300 uppercase tracking-wider">
+              {companyTrips.length} passeio{companyTrips.length > 1 ? 's' : ''} disponível{companyTrips.length > 1 ? 'is' : ''}
+            </span>
+            <Anchor className="w-3 h-3 text-gray-200" />
           </div>
         </div>
       )}
@@ -315,18 +390,60 @@ function MuralTab({ company }: { company: Company }) {
 
 // ── Tab: Lojas ────────────────────────────────────────────────────────────────
 
-function LojasTab() {
+function LojasTab({ company }: { company: Company }) {
+  const events = useMemo(
+    () => getPublicEvents().filter(e => e.company_id === company.id),
+    [company.id]
+  );
+
+  const [trips, setTrips] = useState<Trip[]>([]);
+  useEffect(() => {
+    loadStaff(company.id).then(staff => {
+      const sailorIds = new Set(staff.map(m => m.id));
+      setTrips(getTrips().filter(t => sailorIds.has(t.sailor_id)));
+    }).catch(() => {});
+  }, [company.id]);
+
+  const hasContent = events.length > 0 || trips.length > 0;
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-['Playfair_Display'] font-bold text-2xl text-[#1a2b4a]">Lojas</h2>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-0.5">Produtos e serviços da empresa</p>
+        <h2 className="font-['Playfair_Display'] font-bold text-2xl text-[#1a2b4a]">Loja</h2>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-0.5">Produtos e serviços oferecidos</p>
       </div>
-      <div className="bg-white border-2 border-dashed border-gray-200 py-20 text-center">
-        <ShoppingBag className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-        <p className="font-bold text-gray-300 uppercase text-sm">Em breve</p>
-        <p className="text-xs font-semibold text-gray-300 mt-1">A loja estará disponível em breve.</p>
-      </div>
+
+      {!hasContent && (
+        <div className="bg-white border-2 border-dashed border-gray-200 py-20 text-center">
+          <ShoppingBag className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+          <p className="font-bold text-gray-300 uppercase text-sm">Sem produtos disponíveis</p>
+          <p className="text-xs font-semibold text-gray-300 mt-1">Esta empresa ainda não tem passeios ou eventos publicados.</p>
+        </div>
+      )}
+
+      {/* Passeios da Frota */}
+      {trips.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] flex items-center gap-1.5">
+            <Anchor className="w-3.5 h-3.5" /> Passeios Náuticos
+          </p>
+          <div className="grid grid-cols-1 gap-3">
+            {trips.map(trip => <CompanyTripCard key={trip.id} trip={trip} />)}
+          </div>
+        </div>
+      )}
+
+      {/* Eventos e Passeios */}
+      {events.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] flex items-center gap-1.5">
+            <CalendarDays className="w-3.5 h-3.5" /> Eventos e Passeios
+          </p>
+          <div className="space-y-3">
+            {events.map(ev => <EventoCard key={ev.id} ev={ev} />)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -457,11 +574,14 @@ const VIEW_TABS: { key: ViewTab; icon: React.ElementType; label: string; short: 
 ];
 
 interface CompanyProfileViewProps {
-  company: Company;
-  onBack:  () => void;
+  company:        Company;
+  onBack:         () => void;
+  onOpenSailor?:  (s: Sailor)  => void;
+  onOpenClient?:  (c: Client)  => void;
+  onOpenCompany?: (c: Company) => void;
 }
 
-export function CompanyProfileView({ company, onBack }: CompanyProfileViewProps) {
+export function CompanyProfileView({ company, onBack, onOpenSailor, onOpenClient, onOpenCompany }: CompanyProfileViewProps) {
   const [tab, setTab] = useState<ViewTab>('perfil');
 
   return (
@@ -480,11 +600,20 @@ export function CompanyProfileView({ company, onBack }: CompanyProfileViewProps)
               {company.profile_number} · {company.setor.split(',')[0].trim()}
             </p>
           </div>
-          <button onClick={onBack}
-            className="bg-white/5 hover:bg-red-600/80 px-4 py-2 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition-all flex-shrink-0 border border-white/10">
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Voltar</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {(onOpenSailor || onOpenClient || onOpenCompany) && (
+              <ProfileSearch
+                onOpenSailor={onOpenSailor ?? (() => {})}
+                onOpenClient={onOpenClient ?? (() => {})}
+                onOpenCompany={onOpenCompany ?? (() => {})}
+              />
+            )}
+            <button onClick={onBack}
+              className="bg-white/5 hover:bg-red-600/80 px-4 py-2 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition-all flex-shrink-0 border border-white/10">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Voltar</span>
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -531,7 +660,7 @@ export function CompanyProfileView({ company, onBack }: CompanyProfileViewProps)
         <main className="flex-1 min-w-0 px-4 py-6 pb-24 md:pb-6 overflow-hidden">
           {tab === 'perfil'   && <PerfilPublicoTab company={company} />}
           {tab === 'mural'    && <MuralTab company={company} />}
-          {tab === 'lojas'    && <LojasTab />}
+          {tab === 'lojas'    && <LojasTab company={company} />}
           {tab === 'trabalhe' && <TrabalheTab company={company} />}
         </main>
       </div>

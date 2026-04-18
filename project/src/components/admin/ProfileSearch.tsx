@@ -169,7 +169,7 @@ export function ProfileSearch({ onOpenSailor, onOpenClient, onOpenCompany }: Pro
   }
 
   return (
-    <div ref={containerRef} className="relative flex-1 max-w-xs hidden md:block">
+    <div ref={containerRef} className="relative flex-1 max-w-sm hidden md:block">
       {/* Input */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30 pointer-events-none" />
@@ -217,7 +217,7 @@ export function ProfileSearch({ onOpenSailor, onOpenClient, onOpenCompany }: Pro
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusDot(r.status)}`} />
-                  <p className="font-bold text-white text-xs truncate">{r.name}</p>
+                  <p className="font-bold text-white text-xs">{r.name}</p>
                   {r.profile_number && (
                     <span className="text-[9px] font-semibold text-[#c9a96e]/60 flex-shrink-0">
                       #{parseInt(r.profile_number, 10)}
