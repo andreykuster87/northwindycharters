@@ -307,7 +307,7 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
         onOpenCompanyDossier={(c: Company) => setViewingCompany(c)}
       />
 
-      <div className="flex flex-1 max-w-7xl mx-auto w-full">
+      <div className="flex flex-1 max-w-6xl mx-auto w-full">
 
         <AdminDashboardSidebar
           isAdmin={isAdmin} isSailor={isSailor}

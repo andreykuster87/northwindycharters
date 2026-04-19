@@ -28,12 +28,7 @@ export function ClientProfileView({ client, onBack, currentUserId, currentUserTy
             <Waves className="w-5 h-5 text-[#c9a96e]" />
             <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline text-white">NorthWindy</span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-white text-sm truncate uppercase">{client.name}</p>
-            <p className="text-[#c9a96e]/60 text-[10px] font-semibold hidden sm:block">
-              {client.profile_number} · Passageiro
-            </p>
-          </div>
+          <div className="flex-1" />
           {canAddFriend && (
             <FriendButton
               myId={currentUserId!} myType={currentUserType!}
@@ -50,38 +45,24 @@ export function ClientProfileView({ client, onBack, currentUserId, currentUserTy
       </nav>
 
       {/* ── CONTENT ── */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 space-y-6">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 space-y-6">
 
         {/* Hero */}
         <div className="bg-[#0a1628] p-6 text-white relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.04]"
             style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 0,transparent 60px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 0,transparent 60px)' }} />
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/60 to-transparent" />
-          <div className="relative flex items-center gap-5">
-            <div className="w-24 h-24 overflow-hidden border border-[#c9a96e]/40 flex-shrink-0 bg-white/10 flex items-center justify-center">
-              {client.profile_photo
-                ? <img src={client.profile_photo} alt={client.name} className="w-full h-full object-cover" />
-                : <User className="w-12 h-12 text-[#c9a96e]/60" />
-              }
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#c9a96e] mb-1">
-                {client.profile_number}
-              </p>
-              <h1 className="font-['Playfair_Display'] font-bold text-2xl leading-tight truncate">{client.name}</h1>
-              <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                {!client.blocked && (
-                  <span className="bg-[#c9a96e]/15 border border-[#c9a96e]/30 text-[#c9a96e] text-[10px] font-semibold px-2.5 py-0.5 flex items-center gap-1">
-                    <CheckCircle2 className="w-2.5 h-2.5" /> Verificado
-                  </span>
-                )}
-                {client.country_name && (
-                  <span className="bg-white/10 text-white/70 text-[10px] font-medium px-2.5 py-0.5 flex items-center gap-1">
-                    <MapPin className="w-2.5 h-2.5" /> {client.country_name}
-                  </span>
-                )}
-              </div>
-            </div>
+          <div className="relative flex items-center gap-1.5 flex-wrap">
+            {!client.blocked && (
+              <span className="bg-[#c9a96e]/15 border border-[#c9a96e]/30 text-[#c9a96e] text-[10px] font-semibold px-2.5 py-0.5 flex items-center gap-1">
+                <CheckCircle2 className="w-2.5 h-2.5" /> Verificado
+              </span>
+            )}
+            {client.country_name && (
+              <span className="bg-white/10 text-white/70 text-[10px] font-medium px-2.5 py-0.5 flex items-center gap-1">
+                <MapPin className="w-2.5 h-2.5" /> {client.country_name}
+              </span>
+            )}
           </div>
         </div>
 

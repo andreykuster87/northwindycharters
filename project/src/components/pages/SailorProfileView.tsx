@@ -439,6 +439,27 @@ function PerfilTab({ sailor, isOwner, onUpdated }: { sailor: Sailor; isOwner?: b
   const album: string[] = sailor.album ?? [];
   const bio = sailor.outras_informacoes;
 
+  // ── Biografia editável (apenas owner) ────────────────────────────────────
+  const [editingBio, setEditingBio] = useState(false);
+  const [bioDraft,   setBioDraft]   = useState<string>(bio ?? '');
+  const [savingBio,  setSavingBio]  = useState(false);
+
+  async function saveBio() {
+    const trimmed = bioDraft.trim();
+    setSavingBio(true);
+    try {
+      await updateSailor(sailor.id, { outras_informacoes: trimmed || undefined });
+      onUpdated?.();
+      setEditingBio(false);
+    } catch (err) { console.error('[bio save]', err); }
+    finally { setSavingBio(false); }
+  }
+
+  function cancelBio() {
+    setBioDraft(bio ?? '');
+    setEditingBio(false);
+  }
+
   // ── Empresa em que o tripulante está no RH ───────────────────────────────
   const [companyInfo, setCompanyInfo] = useState<{ company: any; cargo: string } | null>(null);
   useEffect(() => {
@@ -594,10 +615,59 @@ function PerfilTab({ sailor, isOwner, onUpdated }: { sailor: Sailor; isOwner?: b
       )}
 
       {/* Biografia */}
-      {bio && (
+      {(bio || isOwner) && (
         <div className="bg-white border-2 border-[#0a1628]/5 p-5">
-          <SectionLabel>📋 Sobre</SectionLabel>
-          <p className="text-sm text-gray-600 font-semibold leading-relaxed">{bio}</p>
+          <div className="flex items-center justify-between mb-3">
+            <SectionLabel>📋 Biografia</SectionLabel>
+            {isOwner && !editingBio && (
+              <button
+                onClick={() => { setBioDraft(bio ?? ''); setEditingBio(true); }}
+                className="text-[10px] font-semibold text-[#c9a96e] hover:text-[#1a2b4a] uppercase tracking-wider transition-colors"
+              >
+                {bio ? 'Editar' : '+ Adicionar'}
+              </button>
+            )}
+          </div>
+
+          {editingBio ? (
+            <div className="space-y-2">
+              <textarea
+                value={bioDraft}
+                onChange={e => setBioDraft(e.target.value.slice(0, 1000))}
+                rows={5}
+                placeholder="Escreva a sua biografia — experiência, interesses, o que procura…"
+                className="w-full border border-gray-200 px-3 py-2 text-sm text-[#1a2b4a] font-semibold leading-relaxed outline-none focus:border-[#c9a96e] bg-white resize-none"
+                autoFocus
+              />
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">
+                  {bioDraft.length}/1000
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={cancelBio}
+                    disabled={savingBio}
+                    className="px-3 py-1.5 border border-gray-200 text-[10px] font-bold text-gray-500 hover:border-gray-300 uppercase tracking-wider transition-all disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={saveBio}
+                    disabled={savingBio}
+                    className="px-3 py-1.5 bg-[#0a1628] text-[#c9a96e] text-[10px] font-bold hover:bg-[#1a2b4a] uppercase tracking-wider transition-all disabled:opacity-50"
+                  >
+                    {savingBio ? 'A guardar…' : 'Guardar'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : bio ? (
+            <p className="text-sm text-gray-600 font-semibold leading-relaxed whitespace-pre-wrap">{bio}</p>
+          ) : (
+            <p className="text-sm text-gray-400 font-semibold italic">
+              Ainda não adicionou uma biografia. Clique em "+ Adicionar" para escrever sobre si.
+            </p>
+          )}
         </div>
       )}
 
@@ -1261,12 +1331,7 @@ export function SailorProfileView({ sailor, onBack, isOwner, currentUserId, curr
             <Waves className="w-5 h-5 text-[#c9a96e]" />
             <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline text-white">NorthWindy</span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-white text-sm truncate uppercase">{localSailor.name}</p>
-            <p className="text-[#c9a96e]/60 text-[10px] font-semibold hidden sm:block">
-              {localSailor.profile_number}{funcao ? ` · ${funcao}` : ''}{isOwner ? ' · Meu perfil público' : ''}
-            </p>
-          </div>
+          <div className="flex-1" />
           {/* Botão de amizade na navbar (mobile) */}
           {canAddFriend && (
             <FriendButton
@@ -1284,45 +1349,20 @@ export function SailorProfileView({ sailor, onBack, isOwner, currentUserId, curr
       </nav>
 
       {/* ── CONTENT AREA ── */}
-      <div className="flex flex-1 max-w-6xl mx-auto w-full">
+      <div className="flex flex-1 max-w-6xl mx-auto w-full px-4">
 
         {/* ── SIDEBAR (desktop) ── */}
-        <aside className="hidden md:flex flex-col w-56 flex-shrink-0 py-6 pl-4 pr-3 gap-0">
-          {/* Mini card do tripulante */}
-          <div className="bg-white border-2 border-[#0a1628]/5 p-4 mb-4 shadow-sm">
-            <div className="w-14 h-14 border-2 border-[#c9a96e]/20 overflow-hidden bg-[#0a1628]/5 flex items-center justify-center mx-auto mb-3">
-              {localSailor.profile_photo
-                ? <img src={localSailor.profile_photo} alt={localSailor.name} className="w-full h-full object-cover" />
-                : <User className="w-7 h-7 text-[#c9a96e]/40" />
-              }
+        <aside className="hidden md:flex flex-col w-56 flex-shrink-0 py-6 pr-3 gap-0">
+          {/* Mini card removido — apenas botão de amizade */}
+          {canAddFriend && (
+            <div className="bg-white border-2 border-[#0a1628]/5 p-4 mb-4 shadow-sm">
+              <FriendButton
+                myId={currentUserId!} myType={currentUserType!}
+                theirId={localSailor.id} theirType="sailor"
+                friendships={friendships} onAction={loadFriendships}
+              />
             </div>
-            <p className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-sm text-center uppercase leading-tight">{localSailor.name}</p>
-            <p className="text-[10px] font-semibold text-[#c9a96e] text-center mt-1">{localSailor.profile_number}</p>
-            {funcao && (
-              <p className="text-[10px] font-semibold text-gray-400 text-center mt-0.5 truncate">{funcao}</p>
-            )}
-            {localSailor.verified && (
-              <div className="flex items-center justify-center gap-1 mt-2">
-                <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wide">Verificado</span>
-              </div>
-            )}
-            {isOwner && (
-              <div className="mt-2 pt-2 border-t border-gray-100">
-                <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-wide text-center">Meu Perfil Público</p>
-              </div>
-            )}
-            {/* Botão de amizade no sidebar */}
-            {canAddFriend && (
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <FriendButton
-                  myId={currentUserId!} myType={currentUserType!}
-                  theirId={localSailor.id} theirType="sailor"
-                  friendships={friendships} onAction={loadFriendships}
-                />
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Nav items */}
           <div className="bg-white border-2 border-[#0a1628]/5 overflow-hidden shadow-sm">
@@ -1346,7 +1386,7 @@ export function SailorProfileView({ sailor, onBack, isOwner, currentUserId, curr
         </aside>
 
         {/* ── MAIN CONTENT ── */}
-        <main className="flex-1 min-w-0 px-4 py-6 pb-24 md:pb-6 overflow-hidden">
+        <main className="flex-1 min-w-0 md:pl-3 py-6 pb-24 md:pb-6 overflow-hidden">
           {tab === 'perfil'     && <PerfilTab     sailor={localSailor} isOwner={isOwner} onUpdated={handleDocAdded} />}
           {tab === 'documentos' && <DocumentosTab sailor={localSailor} isOwner={isOwner} onDocAdded={handleDocAdded} />}
         </main>

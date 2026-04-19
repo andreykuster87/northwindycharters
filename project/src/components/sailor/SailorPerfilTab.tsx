@@ -153,7 +153,7 @@ export function SailorPerfilTab({
           { key: 'forum',       label: 'Fórum',        icon: MessageSquare },
           { key: 'amigos',      label: 'Amigos',       icon: Users },
           { key: 'fotos',       label: 'Fotos',        icon: ImageIcon },
-          { key: 'informacoes', label: 'Informações',  icon: Info },
+          { key: 'informacoes', label: 'Biografia',     icon: Info },
         ] as { key: SubTab; label: string; icon: any }[]).map(({ key, label, icon: Icon }) => (
           <button
             key={key}

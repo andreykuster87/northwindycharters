@@ -47,7 +47,7 @@ export function AdminDashboardNavbar({
     onOpenSailor:  s => onOpenSailorDossier?.(s),
     onOpenClient:  c => onOpenClientDossier?.(c),
     onOpenCompany: c => onOpenCompanyDossier?.(c),
-    maxWidthClass: 'max-w-7xl',
+    maxWidthClass: 'max-w-6xl',
   });
 
   function handleBellClick() {
@@ -63,9 +63,9 @@ export function AdminDashboardNavbar({
 
   return (
     <nav className="bg-[#0a1628] text-white px-4 py-3 sticky top-0 z-40 shadow-xl border-b border-[#c9a96e]/10">
-      <div className="flex items-center gap-3 max-w-7xl mx-auto">
+      <div className="flex items-center gap-3 max-w-6xl mx-auto">
 
-        {/* Logo + badge de role + (sailor) avatar+nome */}
+        {/* Logo + role */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <Waves className="w-5 h-5 text-[#c9a96e] flex-shrink-0" />
           <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline flex-shrink-0">NorthWindy</span>
@@ -78,17 +78,6 @@ export function AdminDashboardNavbar({
             <span className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold uppercase tracking-[0.12em] px-2 py-0.5 flex-shrink-0">
               Tripulante
             </span>
-          )}
-          {isSailor && sailorData && (
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 overflow-hidden flex-shrink-0 border border-[#c9a96e]/30 bg-[#1a2b4a] flex items-center justify-center">
-                {sailorPhoto
-                  ? <img src={sailorPhoto} alt="" className="w-full h-full object-cover" />
-                  : <span className="text-[#c9a96e] font-bold text-[10px]">{sailorData.name.charAt(0).toUpperCase()}</span>
-                }
-              </div>
-              <p className="font-['Playfair_Display'] font-bold text-white text-sm truncate hidden md:block">{sailorData.name}</p>
-            </div>
           )}
         </div>
 

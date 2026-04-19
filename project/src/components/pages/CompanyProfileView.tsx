@@ -84,32 +84,15 @@ function PerfilPublicoTab({ company }: { company: Company }) {
     <div className="space-y-6">
 
       {/* Banner hero */}
-      <div className="bg-[#0a1628] p-6 flex items-center gap-5">
-        <div className="w-20 h-20 flex-shrink-0 border-2 border-[#c9a96e]/30 overflow-hidden bg-[#1a2b4a] flex items-center justify-center">
-          {profilePhoto
-            ? <img src={profilePhoto} alt={company.nome_fantasia} className="w-full h-full object-cover" />
-            : <Building2 className="w-10 h-10 text-[#c9a96e]/40" />
-          }
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">
-            {company.profile_number}
-          </p>
-          <h2 className="font-['Playfair_Display'] font-bold text-white text-xl leading-tight truncate mt-0.5">
-            {company.nome_fantasia}
-          </h2>
-          <p className="text-white/50 text-xs font-semibold truncate">{company.razao_social}</p>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {company.setor.split(',').slice(0, 2).map(s => (
-              <span key={s} className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold uppercase px-2 py-0.5 tracking-wide">
-                {s.trim()}
-              </span>
-            ))}
-            <span className="bg-white/10 text-white/60 text-[9px] font-semibold px-2 py-0.5 flex items-center gap-1">
-              <MapPin className="w-2.5 h-2.5" /> {company.cidade}
-            </span>
-          </div>
-        </div>
+      <div className="bg-[#0a1628] p-6 flex items-center gap-2 flex-wrap">
+        {company.setor.split(',').slice(0, 2).map(s => (
+          <span key={s} className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold uppercase px-2 py-0.5 tracking-wide">
+            {s.trim()}
+          </span>
+        ))}
+        <span className="bg-white/10 text-white/60 text-[9px] font-semibold px-2 py-0.5 flex items-center gap-1">
+          <MapPin className="w-2.5 h-2.5" /> {company.cidade}
+        </span>
       </div>
 
       {/* Sobre */}
@@ -480,12 +463,7 @@ export function CompanyProfileView({ company, onBack, currentUserId, currentUser
             <Waves className="w-5 h-5 text-[#c9a96e]" />
             <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline text-white">NorthWindy</span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-white text-sm truncate uppercase">{company.nome_fantasia}</p>
-            <p className="text-[#c9a96e]/60 text-[10px] font-semibold hidden sm:block">
-              {company.profile_number} · {company.setor.split(',')[0].trim()}
-            </p>
-          </div>
+          <div className="flex-1" />
           {canAddFriend && (
             <FriendButton
               myId={currentUserId!} myType={currentUserType!}
@@ -502,31 +480,20 @@ export function CompanyProfileView({ company, onBack, currentUserId, currentUser
       </nav>
 
       {/* ── CONTENT AREA ── */}
-      <div className="flex flex-1 max-w-6xl mx-auto w-full">
+      <div className="flex flex-1 max-w-6xl mx-auto w-full px-4">
 
         {/* ── SIDEBAR (desktop) ── */}
-        <aside className="hidden md:flex flex-col w-56 flex-shrink-0 py-6 pl-4 pr-3 gap-0">
-          {/* Mini card da empresa */}
-          <div className="bg-white border-2 border-[#0a1628]/5 p-4 mb-4 shadow-sm">
-            <div className="w-14 h-14 border-2 border-[#c9a96e]/20 overflow-hidden bg-[#0a1628]/5 flex items-center justify-center mx-auto mb-3">
-              {(company as any).profile_photo
-                ? <img src={(company as any).profile_photo} alt={company.nome_fantasia} className="w-full h-full object-cover" />
-                : <Building2 className="w-7 h-7 text-[#c9a96e]/40" />
-              }
+        <aside className="hidden md:flex flex-col w-56 flex-shrink-0 py-6 pr-3 gap-0">
+          {/* Mini card removido — apenas botão de amizade */}
+          {canAddFriend && (
+            <div className="bg-white border-2 border-[#0a1628]/5 p-4 mb-4 shadow-sm">
+              <FriendButton
+                myId={currentUserId!} myType={currentUserType!}
+                theirId={company.id} theirType="company"
+                friendships={friendships} onAction={loadFriendships}
+              />
             </div>
-            <p className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-sm text-center uppercase leading-tight">{company.nome_fantasia}</p>
-            <p className="text-[10px] font-semibold text-[#c9a96e] text-center mt-1">{company.profile_number}</p>
-            <p className="text-[10px] font-semibold text-gray-400 text-center mt-0.5 truncate">{company.cidade}, {company.pais_nome}</p>
-            {canAddFriend && (
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <FriendButton
-                  myId={currentUserId!} myType={currentUserType!}
-                  theirId={company.id} theirType="company"
-                  friendships={friendships} onAction={loadFriendships}
-                />
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Nav items */}
           <div className="bg-white border-2 border-[#0a1628]/5 overflow-hidden shadow-sm">
@@ -550,7 +517,7 @@ export function CompanyProfileView({ company, onBack, currentUserId, currentUser
         </aside>
 
         {/* ── MAIN CONTENT ── */}
-        <main className="flex-1 min-w-0 px-4 py-6 pb-24 md:pb-6 overflow-hidden">
+        <main className="flex-1 min-w-0 md:pl-3 py-6 pb-24 md:pb-6 overflow-hidden">
           {tab === 'perfil'   && <PerfilPublicoTab company={company} />}
           {tab === 'mural'    && <MuralTab company={company} />}
           {tab === 'lojas'    && <LojasTab />}
