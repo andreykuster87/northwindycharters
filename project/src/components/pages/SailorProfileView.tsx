@@ -1459,12 +1459,7 @@ export function SailorProfileView({ sailor, onBack, isOwner, currentUserId, curr
             <Waves className="w-5 h-5 text-[#c9a96e]" />
             <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline text-white">NorthWindy</span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-white text-sm truncate uppercase">{localSailor.name}</p>
-            <p className="text-[#c9a96e]/60 text-[10px] font-semibold hidden sm:block">
-              {localSailor.profile_number}{funcao ? ` · ${funcao}` : ''}{isOwner ? ' · Meu perfil público' : ''}
-            </p>
-          </div>
+          <div className="flex-1" />
           {/* Botão de amizade na navbar (mobile) */}
           {canAddFriend && (
             <FriendButton
@@ -1482,7 +1477,7 @@ export function SailorProfileView({ sailor, onBack, isOwner, currentUserId, curr
       </nav>
 
       {/* ── CONTENT AREA ── */}
-      <div className="flex flex-1 max-w-6xl mx-auto w-full">
+      <div className="flex flex-1 max-w-6xl mx-auto w-full px-4">
 
         {/* ── SIDEBAR (desktop) ── */}
         <aside className="hidden md:flex flex-col w-56 flex-shrink-0 py-6 pl-4 pr-3 gap-0">

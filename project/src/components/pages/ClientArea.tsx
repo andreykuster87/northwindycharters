@@ -223,21 +223,13 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
       {/* ── NAVBAR ── */}
       <nav className="bg-[#0a1628] text-white px-4 py-3 sticky top-0 z-40 shadow-xl border-b border-[#c9a96e]/10">
         <div className="flex items-center gap-3 max-w-6xl mx-auto">
-          {/* Logo + role + avatar */}
+          {/* Logo + role */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <Waves className="w-5 h-5 text-[#c9a96e]/60 flex-shrink-0" />
             <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline flex-shrink-0">NorthWindy</span>
             <span className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold uppercase px-2 py-0.5 tracking-wider flex-shrink-0">
               Passageiro
             </span>
-            <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 border-2 border-white/20">
-              {profilePhoto
-                ? <img src={profilePhoto} alt="" className="w-full h-full object-cover" />
-                : <div className="w-full h-full bg-white/20 flex items-center justify-center font-black text-[10px]">
-                    {(auth.userName || 'U').substring(0, 2).toUpperCase()}
-                  </div>
-              }
-            </div>
           </div>
 
           {/* Busca global de perfis — centralizada + botão filtros avançados */}
@@ -276,23 +268,29 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
       <div className="flex flex-1 max-w-6xl mx-auto w-full">
 
         {/* ── SIDEBAR desktop (≥ md) ── */}
-        <aside className="hidden md:flex flex-col gap-1 w-52 flex-shrink-0 py-6 pl-4 pr-2">
+        <aside className="hidden md:flex flex-col gap-1 w-56 flex-shrink-0 py-6 pr-2">
           {/* Mini perfil card */}
           <div className="bg-white border border-gray-100 p-4 mb-3 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/40 to-transparent" />
-            <div
-              className="w-14 h-14 overflow-hidden border border-[#c9a96e]/30 mx-auto mb-2 cursor-pointer group relative"
-              onClick={() => document.getElementById('sidebar-photo-input')?.click()}
-            >
-              {profilePhoto
-                ? <img src={profilePhoto} alt="" className="w-full h-full object-cover" />
-                : <div className="w-full h-full bg-[#0a1628] text-[#c9a96e] flex items-center justify-center font-bold text-lg">
-                    {(auth.userName || 'U').substring(0, 2).toUpperCase()}
-                  </div>
-              }
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Camera className="w-4 h-4 text-white" />
+            <div className="relative mx-auto w-fit mb-2">
+              <div
+                className="w-14 h-14 overflow-hidden border border-[#c9a96e]/30 bg-[#0a1628] flex items-center justify-center cursor-pointer group relative"
+                onClick={() => document.getElementById('sidebar-photo-input')?.click()}
+              >
+                {profilePhoto
+                  ? <img src={profilePhoto} alt="" className="w-full h-full object-cover" />
+                  : <span className="text-[#c9a96e] font-bold text-xl">{(auth.userName || 'U').charAt(0).toUpperCase()}</span>
+                }
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera className="w-4 h-4 text-white" />
+                </div>
               </div>
+              <button
+                onClick={() => document.getElementById('sidebar-photo-input')?.click()}
+                className="absolute -bottom-1.5 -right-1.5 w-6 h-6 bg-[#c9a96e] hover:bg-[#b8934a] flex items-center justify-center shadow-md transition-all"
+              >
+                <Camera className="w-3 h-3 text-[#0a1628]" />
+              </button>
               <input id="sidebar-photo-input" type="file" accept="image/*" className="hidden"
                 onChange={e => {
                   const f = e.target.files?.[0];

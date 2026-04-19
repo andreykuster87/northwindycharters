@@ -67,12 +67,7 @@ export function ClientProfileView({ client, onBack, currentUserId, currentUserTy
             <Waves className="w-5 h-5 text-[#c9a96e]" />
             <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline text-white">NorthWindy</span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-white text-sm truncate uppercase">{client.name}</p>
-            <p className="text-[#c9a96e]/60 text-[10px] font-semibold hidden sm:block">
-              {client.profile_number} · Passageiro
-            </p>
-          </div>
+          <div className="flex-1" />
           {canAddFriend && (
             <FriendButton
               myId={currentUserId!} myType={currentUserType!}
@@ -89,7 +84,8 @@ export function ClientProfileView({ client, onBack, currentUserId, currentUserTy
       </nav>
 
       {/* ── CONTENT ── */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 space-y-4">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 space-y-6">
+
 
         <div>
           <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-1">Passageiro</p>

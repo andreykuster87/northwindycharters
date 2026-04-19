@@ -234,12 +234,6 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
             <Waves className="w-5 h-5 text-[#c9a96e]/60 flex-shrink-0" />
             <span className="font-['Playfair_Display'] font-bold italic text-base hidden sm:inline flex-shrink-0">NorthWindy</span>
             <span className="bg-[#c9a96e]/15 text-[#c9a96e] text-[9px] font-semibold uppercase px-2 py-0.5 tracking-wider flex-shrink-0">Empresa</span>
-            <div className="min-w-0 hidden md:block">
-              <p className="font-['Playfair_Display'] font-bold text-white text-sm truncate">{company.nome_fantasia}</p>
-              <p className="text-white/40 text-[10px] font-medium truncate">
-                {company.profile_number} · {company.setor.split(',')[0]}
-              </p>
-            </div>
           </div>
           <div className="flex-1 flex justify-center min-w-0">
             <div className="flex items-center gap-1.5 w-full max-w-xs">
@@ -283,16 +277,17 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
       <div className="flex flex-1 max-w-6xl mx-auto w-full">
 
         {/* ── SIDEBAR (desktop ≥ md) ── */}
-        <aside className="hidden md:flex flex-col gap-1 w-52 flex-shrink-0 py-6 pl-4 pr-2">
-          <div className="bg-white border border-gray-100 p-4 mb-3" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
-            <div className="w-12 h-12 bg-[#0a1628] flex items-center justify-center mx-auto mb-3">
-              <Building2 className="w-5 h-5 text-[#c9a96e]" />
+        <aside className="hidden md:flex flex-col gap-1 w-56 flex-shrink-0 py-6 pr-2">
+          <div className="bg-white border border-gray-100 p-4 mb-3 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/40 to-transparent" />
+            <div className="w-14 h-14 bg-[#0a1628] flex items-center justify-center mx-auto mb-2">
+              <Building2 className="w-6 h-6 text-[#c9a96e]" />
             </div>
-            <p className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xs text-center leading-tight">{company.nome_fantasia}</p>
-            <p className="text-[10px] font-medium text-gray-400 text-center mt-0.5">{company.profile_number}</p>
-            <div className="mt-3 pt-2 border-t border-gray-50 flex items-center justify-center gap-1.5">
+            <p className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xs text-center leading-tight truncate">{company.nome_fantasia}</p>
+            <p className="text-[10px] font-medium text-[#c9a96e] text-center mt-0.5 tracking-[0.1em] uppercase">{company.profile_number}</p>
+            <div className="mt-2 pt-2 border-t border-gray-50 flex items-center justify-center gap-1">
               <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-              <p className="text-[9px] font-semibold text-green-600 uppercase tracking-wider">Activa</p>
+              <p className="text-[9px] font-semibold text-green-600 uppercase tracking-wide">Activa</p>
             </div>
           </div>
           {SIDEBAR_TABS.map(t => {
@@ -320,7 +315,7 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
         </aside>
 
         {/* ── MAIN CONTENT ── */}
-        <main className="flex-1 min-w-0 px-4 py-4 pb-24 md:pb-6 md:pr-4 md:py-6 overflow-hidden">
+        <main className="flex-1 min-w-0 px-4 py-4 pb-24 md:pb-6 md:py-6 overflow-hidden">
           {tab === 'eventos'         && <EventosEmpresaTab company={company} />}
           {tab === 'passeioseventos' && <PasseiosEventosTab company={company} onToast={setToast} />}
           {tab === 'destaques'       && auth.companyId && (

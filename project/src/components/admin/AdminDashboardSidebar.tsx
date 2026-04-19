@@ -1,7 +1,7 @@
 // src/components/admin/AdminDashboardSidebar.tsx
 // Sidebar desktop (≥ md): card de perfil (sailor ou admin) + lista de tabs.
 import { useState } from 'react';
-import { ShieldCheck, ChevronRight, ChevronDown, Camera, Users, Building2, Ship } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, ChevronRight, ChevronDown, Camera, Users, Building2, Ship } from 'lucide-react';
 import type { Sailor } from '../../lib/localStore';
 import type { TabDef, TabKey, ClientesSubTab } from './AdminDashboardShared';
 import { VIEW_TABS, type ViewTab } from '../pages/SailorProfileView';
@@ -54,11 +54,11 @@ export function AdminDashboardSidebar({
   }
 
   return (
-    <aside className="hidden md:flex flex-col gap-1 w-56 flex-shrink-0 py-6 pl-4 pr-2">
+    <aside className="hidden md:flex flex-col gap-1 w-56 flex-shrink-0 py-6 pr-2">
 
       {/* Card de perfil — sailor */}
       {isSailor && sailorData && (
-        <div className="bg-white border border-gray-100 p-4 mb-3" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="bg-white border border-gray-100 p-4 mb-3 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/40 to-transparent" />
           <div className="relative mx-auto w-fit mb-2">
             <div
@@ -93,7 +93,7 @@ export function AdminDashboardSidebar({
           <p className="text-[10px] font-medium text-[#c9a96e] text-center mt-0.5 tracking-[0.1em] uppercase">{sailorData.profile_number}</p>
           <div className="mt-2 pt-2 border-t border-gray-50 flex items-center justify-center gap-1">
             {sailorData.verified
-              ? <><ShieldCheck className="w-2.5 h-2.5 text-green-500" /><p className="text-[9px] font-semibold text-green-600 uppercase tracking-wide">Verificado</p></>
+              ? <><CheckCircle2 className="w-2.5 h-2.5 text-green-500" /><p className="text-[9px] font-semibold text-green-600 uppercase tracking-wide">Verificado</p></>
               : <p className="text-[9px] font-semibold text-amber-600 uppercase tracking-wide">⏳ Pendente</p>
             }
           </div>
@@ -104,10 +104,10 @@ export function AdminDashboardSidebar({
       {isAdmin && (
         <div className="bg-white border border-gray-100 p-4 mb-3 relative" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/40 to-transparent" />
-          <div className="w-12 h-12 bg-[#0a1628] flex items-center justify-center mx-auto mb-2">
+          <div className="w-14 h-14 bg-[#0a1628] flex items-center justify-center mx-auto mb-2">
             <ShieldCheck className="w-6 h-6 text-[#c9a96e]" />
           </div>
-          <p className="font-['Playfair_Display'] font-bold italic text-[#1a2b4a] text-xs text-center">Administrador</p>
+          <p className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xs text-center leading-tight truncate">Administrador</p>
           <p className="text-[10px] font-medium text-[#c9a96e] text-center mt-0.5 tracking-[0.1em] uppercase">NorthWindy</p>
           <div className="mt-2 pt-2 border-t border-gray-50 flex items-center justify-center gap-1">
             <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
