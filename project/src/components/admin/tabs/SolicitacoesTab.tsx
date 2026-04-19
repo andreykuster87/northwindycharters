@@ -1,16 +1,21 @@
 // src/components/admin/tabs/SolicitacoesTab.tsx
 import { useState, useRef } from 'react';
-import { ShieldCheck, Anchor, Users, XCircle, Check, Ship, Building2, FileText, UserCheck } from 'lucide-react';
+import { ShieldCheck, Anchor, Users, XCircle, Check, Ship, Building2, FileText, UserCheck, CalendarDays, ChevronDown } from 'lucide-react';
 import {
   resolveDocUrl,
   type Sailor, type Client, type Boat,
   getSailorApplications,
   getSailors, updateSailor,
+  getClients, updateClient,
+  getEvents, getPendingEvents, approveEvent, rejectEvent, setEventAnalysis,
+  type NauticEvent, type EventStatus,
 } from '../../../lib/localStore';
 import {
   getPendingCompanies, approveCompany, rejectCompany,
   type Company,
 } from '../../../lib/localStore';
+import { fmtDate, STATUS_MAP } from './EventosAdminShared';
+import { EventosAdminActionModal } from './EventosAdminActionModal';
 import { DocImage, DOC_TYPE_LABELS } from '../../shared/adminHelpers';
 import { DossierBoat } from '../../shared/DossierBoat';
 import { CandidatosTab } from './CandidatosTab';
@@ -57,7 +62,7 @@ interface SolicitacoesTabProps {
   pendingClients:  Client[];
   pendingBoats?:   Boat[];
   sailors?:        Sailor[];
-  initialSub?:     'profissionais' | 'usuarios' | 'embarcacoes' | 'empresas' | 'tripulacao' | 'documentos';
+  initialSub?:     'profissionais' | 'usuarios' | 'embarcacoes' | 'empresas' | 'tripulacao' | 'documentos' | 'eventos';
   onOpenSailorDossier: (sailor: Sailor) => void;
   onVerifyClient:  (client: Client) => void;
   onRejectSailor:  (sailor: Sailor, reasons: string[]) => void;
@@ -337,7 +342,7 @@ export function SolicitacoesTab({
   onOpenSailorDossier, onVerifyClient, onRejectSailor,
   onApproveBoat, onRejectBoat, onDataChange,
 }: SolicitacoesTabProps) {
-  const [sub, setSub] = useState<'profissionais' | 'usuarios' | 'embarcacoes' | 'empresas' | 'documentos'>(
+  const [sub, setSub] = useState<'profissionais' | 'usuarios' | 'embarcacoes' | 'empresas' | 'documentos' | 'tripulacao' | 'eventos'>(
     (initialSub === 'tripulacao' ? 'profissionais' : initialSub) || 'profissionais'
   );
   const prevInitialSub = useRef(initialSub);
@@ -353,6 +358,15 @@ export function SolicitacoesTab({
   // Empresas — carregadas do store local (reactive: forçar re-render com key)
   const [companiesKey,   setCompaniesKey]   = useState(0);
   const pendingCompanies = getPendingCompanies();
+
+  // Eventos
+  const [eventosKey,    setEventosKey]    = useState(0);
+  const [activeEvent,   setActiveEvent]   = useState<NauticEvent | null>(null);
+  const [filterStatus,  setFilterStatus]  = useState<EventStatus | ''>('pending');
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const allEvents     = getEvents();
+  const pendingEvents = getPendingEvents();
+  const filteredEvents = filterStatus ? allEvents.filter(e => e.status === filterStatus) : allEvents;
 
   function toggleReason(key: string) {
     setRejectReasons(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
@@ -375,13 +389,18 @@ export function SolicitacoesTab({
     acc + Object.values(s.pending_docs ?? {}).filter(d => d.status === 'pending').length, 0
   );
 
+  // Clients with pending address changes
+  const clientsWithPendingAddr = getClients().filter(c => (c as any).pending_address_status === 'pending');
+  const totalDocsBadge = pendingDocsBadge + clientsWithPendingAddr.length;
+
   const tabs = [
-    ['profissionais', 'Profissionais', Anchor,     pendingSailors.length,   'bg-yellow-500'],
-    ['usuarios',      'Usuários',      Users,      pendingClients.length,   'bg-amber-400'],
-    ['embarcacoes',   'Embarcações',   Ship,       pendingBoats.length,     'bg-[#0a1628]'],
-    ['empresas',      'Empresas',      Building2,  pendingCompanies.length, 'bg-amber-600'],
-    ['tripulacao',    'Tripulação',    UserCheck,  candidatosPendentes,     'bg-teal-600'],
-    ['documentos',    'Documentos',    FileText,   pendingDocsBadge,        'bg-blue-600'],
+    ['profissionais', 'Profissionais', Anchor,        pendingSailors.length,   'bg-yellow-500'],
+    ['usuarios',      'Usuários',      Users,         pendingClients.length,   'bg-amber-400'],
+    ['embarcacoes',   'Embarcações',   Ship,          pendingBoats.length,     'bg-[#0a1628]'],
+    ['empresas',      'Empresas',      Building2,     pendingCompanies.length, 'bg-amber-600'],
+    ['tripulacao',    'Tripulação',    UserCheck,     candidatosPendentes,     'bg-teal-600'],
+    ['documentos',    'Documentos',    FileText,      totalDocsBadge,          'bg-blue-600'],
+    ['eventos',       'Eventos',       CalendarDays,  pendingEvents.length,    'bg-purple-600'],
   ] as const;
 
   return (
@@ -677,6 +696,184 @@ export function SolicitacoesTab({
                   );
                 })}
               </div>
+            )}
+
+            {/* ── Alterações de endereço de clientes ── */}
+            {clientsWithPendingAddr.length > 0 && (
+              <div className="space-y-4 mt-6">
+                <p className="text-xs font-semibold text-[#c9a96e] uppercase tracking-[0.15em] flex items-center gap-2">
+                  <span className="w-2 h-2 bg-[#c9a96e] inline-block" />
+                  Alterações de Endereço — Passageiros
+                </p>
+                {clientsWithPendingAddr.map(c => {
+                  const cl = c as any;
+                  return (
+                    <div key={cl.id} className="bg-white border-2 border-[#c9a96e]/30 overflow-hidden">
+                      <div className="bg-[#0a1628] px-6 py-4 flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white/10 flex items-center justify-center font-bold text-white text-lg flex-shrink-0">
+                          {cl.name?.substring(0, 2).toUpperCase() || '??'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-white uppercase truncate">{cl.name}</p>
+                          <p className="text-xs font-bold text-[#c9a96e] truncate">{cl.email}</p>
+                        </div>
+                        <span className="bg-[#c9a96e]/20 text-[#c9a96e] text-[10px] font-semibold px-2 py-0.5 flex-shrink-0">
+                          Endereço pendente
+                        </span>
+                      </div>
+                      <div className="p-5 space-y-3">
+                        {/* endereço atual */}
+                        {(cl.address || cl.city) && (
+                          <div>
+                            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Endereço atual</p>
+                            <p className="text-sm text-gray-600">{[cl.address, cl.postal_code, cl.city].filter(Boolean).join(', ')}</p>
+                          </div>
+                        )}
+                        {/* endereço proposto */}
+                        <div>
+                          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Novo endereço proposto</p>
+                          <p className="text-sm font-semibold text-[#1a2b4a]">{[cl.pending_address, cl.pending_postal_code, cl.pending_city].filter(Boolean).join(', ')}</p>
+                          {cl.pending_address_submitted_at && (
+                            <p className="text-[10px] text-gray-400 mt-0.5">
+                              Submetido em: {new Date(cl.pending_address_submitted_at).toLocaleString('pt-PT')}
+                            </p>
+                          )}
+                        </div>
+                        {/* comprovante */}
+                        {cl.pending_address_proof && (
+                          <div>
+                            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Comprovante de residência</p>
+                            <img src={cl.pending_address_proof} alt="comprovante" className="max-h-48 border border-gray-200 object-contain" />
+                          </div>
+                        )}
+                        {/* actions */}
+                        <div className="flex gap-3 pt-1">
+                          <button
+                            onClick={async () => {
+                              await updateClient(cl.id, {
+                                pending_address_status: 'rejected',
+                              } as any);
+                              setDocsKey(k => k + 1);
+                              onDataChange?.();
+                            }}
+                            className="flex-1 border-2 border-red-200 text-red-600 hover:bg-red-50 py-3 font-semibold text-xs uppercase transition-all flex items-center justify-center gap-1">
+                            <XCircle className="w-3.5 h-3.5" /> Rejeitar
+                          </button>
+                          <button
+                            onClick={async () => {
+                              await updateClient(cl.id, {
+                                address:                cl.pending_address,
+                                city:                   cl.pending_city,
+                                postal_code:            cl.pending_postal_code,
+                                pending_address:        null,
+                                pending_city:           null,
+                                pending_postal_code:    null,
+                                pending_address_proof:  null,
+                                pending_address_status: 'approved',
+                                pending_address_submitted_at: null,
+                              } as any);
+                              setDocsKey(k => k + 1);
+                              onDataChange?.();
+                            }}
+                            className="flex-1 bg-green-600 hover:bg-green-500 text-white py-3 font-semibold text-xs uppercase transition-all flex items-center justify-center gap-1 shadow-md">
+                            <ShieldCheck className="w-3.5 h-3.5" /> Aprovar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Eventos ── */}
+        {sub === 'eventos' && (
+          <div className="space-y-4" key={eventosKey}>
+            {/* Filtros */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Pendentes — sempre visível */}
+              <button onClick={() => setFilterStatus('pending')}
+                className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold border-2 transition-all ${
+                  filterStatus === 'pending' ? 'bg-[#0a1628] text-white border-[#0a1628]' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-[#c9a96e]/30'
+                }`}>
+                ⏳ Pendentes
+                {pendingEvents.length > 0 && (
+                  <span className={`text-[9px] font-bold w-4 h-4 flex items-center justify-center ${filterStatus === 'pending' ? 'bg-white text-[#0a1628]' : 'bg-amber-500 text-white'}`}>
+                    {pendingEvents.length}
+                  </span>
+                )}
+              </button>
+
+              {/* Toggle mais filtros */}
+              <button onClick={() => setShowMoreFilters(v => !v)}
+                className="flex items-center gap-1 px-3 py-2 text-xs font-semibold border-2 border-gray-100 bg-gray-50 text-gray-400 hover:border-[#c9a96e]/30 transition-all">
+                {showMoreFilters ? '▲' : '▼'} Outros filtros
+              </button>
+
+              {/* Filtros adicionais colapsáveis */}
+              {showMoreFilters && (
+                <div className="flex gap-2 flex-wrap">
+                  {[
+                    { v: '' as const,         l: 'Todos' },
+                    { v: 'analysis' as const, l: '🔍 Em Análise' },
+                    { v: 'approved' as const, l: '✅ Aprovados' },
+                    { v: 'rejected' as const, l: '❌ Reprovados' },
+                  ].map(({ v, l }) => (
+                    <button key={l} onClick={() => setFilterStatus(v)}
+                      className={`px-3 py-2 text-xs font-semibold border-2 transition-all ${
+                        filterStatus === v ? 'bg-[#0a1628] text-white border-[#0a1628]' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-[#c9a96e]/30'
+                      }`}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Lista */}
+            {filteredEvents.length === 0 ? (
+              <div className="bg-white p-16 text-center border-2 border-dashed border-gray-200">
+                <div className="text-5xl mb-4">📅</div>
+                <p className="text-gray-400 font-semibold uppercase text-lg">Nenhum evento encontrado</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredEvents.map(ev => {
+                  const statusInfo = STATUS_MAP[ev.status];
+                  return (
+                    <button key={ev.id} onClick={() => setActiveEvent(ev)}
+                      className="w-full text-left bg-white border-2 border-gray-100 px-4 py-4 flex items-center gap-3 hover:border-[#c9a96e]/30 transition-all group">
+                      <div className="w-10 h-10 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0 text-lg">
+                        {ev.cover_emoji || '📌'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-[#1a2b4a] text-sm truncate">{ev.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 ${statusInfo.cls}`}>
+                            {statusInfo.label}
+                          </span>
+                          <span className="text-xs font-bold text-gray-400 truncate">{ev.company_name}</span>
+                          <span className="text-xs font-bold text-gray-400">· {fmtDate(ev.date)}</span>
+                        </div>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-gray-300 group-hover:text-[#c9a96e] transition-colors flex-shrink-0" />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Modal de acção */}
+            {activeEvent && (
+              <EventosAdminActionModal
+                ev={activeEvent}
+                onClose={() => { setActiveEvent(null); setEventosKey(k => k + 1); onDataChange?.(); }}
+                onApprove={async () => { await approveEvent(activeEvent.id); setActiveEvent(null); setEventosKey(k => k + 1); onDataChange?.(); }}
+                onAnalysis={async notes => { await setEventAnalysis(activeEvent.id, notes); setActiveEvent(null); setEventosKey(k => k + 1); onDataChange?.(); }}
+                onReject={async reason => { await rejectEvent(activeEvent.id, reason); setActiveEvent(null); setEventosKey(k => k + 1); onDataChange?.(); }}
+              />
             )}
           </div>
         )}

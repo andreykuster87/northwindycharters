@@ -14,17 +14,19 @@ import { EventosMural }       from './EventosMural';
 import { PasseiosTab }        from '../client/PasseiosTab';
 import { loadTrips }          from '../../utils/clientHelpers';
 import type { Company }       from '../../lib/localStore';
+import type { CatalogBoat }  from '../../utils/clientHelpers';
 
 type SubTab = 'passeios' | 'eventos' | 'embarcacoes' | 'escolas' | 'ofertas' | 'acessorios' | 'pecas';
 
 export type MarketplaceRole = 'admin' | 'sailor' | 'company' | 'client' | null;
 
 interface Props {
-  role:        MarketplaceRole;
-  company?:    Company;
-  sailorId?:   string;
-  userName?:   string;
-  initialTab?: SubTab;
+  role:          MarketplaceRole;
+  company?:      Company;
+  sailorId?:     string;
+  userName?:     string;
+  initialTab?:   SubTab;
+  onSelectBoat?: (boat: CatalogBoat, date?: string, slot?: string) => void;
 }
 
 const SUB_TABS: { key: SubTab; icon: React.ElementType; label: string; short: string }[] = [
@@ -37,7 +39,7 @@ const SUB_TABS: { key: SubTab; icon: React.ElementType; label: string; short: st
   { key: 'pecas',       icon: Wrench,         label: 'Peças e Motores',   short: 'Peças'       },
 ];
 
-export function MarketplaceTab({ role, company, sailorId, userName, initialTab }: Props) {
+export function MarketplaceTab({ role, company, sailorId, userName, initialTab, onSelectBoat }: Props) {
   const [subTab, setSubTab] = useState<SubTab>(initialTab ?? 'passeios');
 
   const ofertasRole = role === 'client' ? null : (role as 'admin' | 'sailor' | 'company' | null);
@@ -84,7 +86,7 @@ export function MarketplaceTab({ role, company, sailorId, userName, initialTab }
       <div className="h-px bg-gray-100" />
 
       {/* Conteúdo da sub-aba */}
-      {subTab === 'passeios'    && <PasseiosTab allBoats={allBoats} onSelect={() => {}} />}
+      {subTab === 'passeios'    && <PasseiosTab allBoats={allBoats} onSelect={onSelectBoat ?? (() => {})} />}
       {subTab === 'eventos'     && <EventosMural />}
       {subTab === 'embarcacoes' && <NegocieTab role={role} />}
       {subTab === 'escolas'     && <EscolasNauticasTab role={role} />}

@@ -115,6 +115,19 @@ export interface Client {
   created_at:       string;
   profile_photo?:   string | null;
   username?:        string;
+  client_login?:    string;
+  client_password?: string;
+  // endereço atual
+  address?:         string | null;
+  city?:            string | null;
+  postal_code?:     string | null;
+  // alteração de endereço pendente
+  pending_address?:           string | null;
+  pending_city?:              string | null;
+  pending_postal_code?:       string | null;
+  pending_address_proof?:     string | null;
+  pending_address_status?:    'pending' | 'approved' | 'rejected' | null;
+  pending_address_submitted_at?: string | null;
 }
 
 export interface Boat {

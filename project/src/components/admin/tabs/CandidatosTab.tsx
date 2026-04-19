@@ -408,6 +408,7 @@ function ApplicationCard({
 // ── CandidatosTab (exported) ───────────────────────────────────────────────────
 export function CandidatosTab({ onDataChange }: { onDataChange?: () => void }) {
   const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [selected, setSelected] = useState<SailorApplication | null>(null);
   const [approveResult, setApproveResult] = useState<{ login: string; password: string; name: string } | null>(null);
 
@@ -429,26 +430,44 @@ export function CandidatosTab({ onDataChange }: { onDataChange?: () => void }) {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="font-['Playfair_Display'] font-bold text-lg text-[#1a2b4a] uppercase">Candidatos a Tripulação</h2>
-        <p className="text-xs text-gray-400 font-bold mt-0.5">Passageiros que solicitaram ingresso como tripulante</p>
-      </div>
-
       {/* Filtros */}
-      <div className="flex flex-wrap gap-2">
-        {([
-          ['pending',  `⏳ Pendentes (${pending})`],
-          ['approved', '✅ Aprovados'],
-          ['rejected', '❌ Recusados'],
-          ['all',      '📋 Todos'],
-        ] as const).map(([key, label]) => (
-          <button key={key} onClick={() => setFilter(key)}
-            className={`px-3 py-1.5 text-xs font-semibold uppercase transition-all border-2 ${
-              filter === key ? 'bg-[#0a1628] text-white border-[#0a1628]' : 'bg-white text-[#1a2b4a] border-gray-100 hover:border-[#c9a96e]/30'
-            }`}>
-            {label}
-          </button>
-        ))}
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Pendentes — sempre visível */}
+        <button onClick={() => setFilter('pending')}
+          className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold border-2 transition-all ${
+            filter === 'pending' ? 'bg-[#0a1628] text-white border-[#0a1628]' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-[#c9a96e]/30'
+          }`}>
+          ⏳ Pendentes
+          {pending > 0 && (
+            <span className={`text-[9px] font-bold w-4 h-4 flex items-center justify-center ${filter === 'pending' ? 'bg-white text-[#0a1628]' : 'bg-amber-500 text-white'}`}>
+              {pending}
+            </span>
+          )}
+        </button>
+
+        {/* Toggle mais filtros */}
+        <button onClick={() => setShowMoreFilters(v => !v)}
+          className="flex items-center gap-1 px-3 py-2 text-xs font-semibold border-2 border-gray-100 bg-gray-50 text-gray-400 hover:border-[#c9a96e]/30 transition-all">
+          {showMoreFilters ? '▲' : '▼'} Outros filtros
+        </button>
+
+        {/* Filtros adicionais colapsáveis */}
+        {showMoreFilters && (
+          <div className="flex gap-2 flex-wrap">
+            {([
+              ['approved', '✅ Aprovados'],
+              ['rejected', '❌ Recusados'],
+              ['all',      '📋 Todos'],
+            ] as const).map(([key, label]) => (
+              <button key={key} onClick={() => setFilter(key)}
+                className={`px-3 py-2 text-xs font-semibold border-2 transition-all ${
+                  filter === key ? 'bg-[#0a1628] text-white border-[#0a1628]' : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-[#c9a96e]/30'
+                }`}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {apps.length === 0 ? (

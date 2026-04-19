@@ -20,7 +20,7 @@ import {
   getMessages, markAllMessagesRead,
   notifyBookingStatusChange,
   sendWelcomeMessage, getCompanies, refreshAll, isInitialized,
-  getSailorApplications,
+  getSailorApplications, getPendingEvents,
   type Sailor, type Client, type Boat, type Trip, type Booking, type Message,
 } from '../../lib/localStore';
 import { uploadDoc } from '../../lib/storage';
@@ -67,7 +67,7 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
   const [clients,       setClients]       = useState<Client[]>([]);
   const [boats,         setBoats]         = useState<Boat[]>([]);
   const [pendingBoats,  setPendingBoats]  = useState<Boat[]>([]);
-  const [solInitialSub, setSolInitialSub] = useState<'profissionais'|'usuarios'|'embarcacoes'|'empresas'|'tripulacao'|'documentos'>('profissionais');
+  const [solInitialSub, setSolInitialSub] = useState<'profissionais'|'usuarios'|'embarcacoes'|'empresas'|'tripulacao'|'documentos'|'eventos'>('profissionais');
   const [trips,         setTrips]         = useState<Trip[]>([]);
   const [bookings,      setBookings]      = useState<Booking[]>([]);
   const [sailorMsgs,    setSailorMsgs]    = useState<Message[]>([]);
@@ -78,6 +78,9 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
 
   // Sub-tab dentro de "Clientes" (admin)
   const [clientesSubTab, setClientesSubTab] = useState<ClientesSubTab>('usuarios');
+
+  // Sub-tab dentro de "Passeios e Eventos" (admin)
+  const [passeiosEventosSubTab, setPasseiosEventosSubTab] = useState<'passeios' | 'eventos'>('passeios');
 
   // Modais de criação
   const [showBoatModal, setShowBoatModal] = useState(false);
@@ -246,15 +249,15 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
 
   // ── Definição de tabs ─────────────────────────────────────────────────────
 
-  const candidatosBadge = getSailorApplications('pending').length;
-  const solBadge = pending.length + pendingClients.length + pendingBoats.length + pendingCompaniesCount + candidatosBadge;
+  const candidatosBadge  = getSailorApplications('pending').length;
+  const pendingEventsBadge = getPendingEvents().length;
+  const solBadge = pending.length + pendingClients.length + pendingBoats.length + pendingCompaniesCount + candidatosBadge + pendingEventsBadge;
 
   const ADMIN_TABS: TabDef[] = [
-    { key: 'reservas',      icon: Users,        label: 'Reservas',      short: 'Reservas' },
     { key: 'sol',           icon: UserCheck,    label: 'Solicitações',  short: 'Solicit.', badge: solBadge > 0 ? solBadge : undefined },
-    { key: 'passeios',      icon: Compass,      label: 'Passeios',      short: 'Passeios' },
+    { key: 'passeios-eventos', icon: Compass,   label: 'Passeios e Eventos', short: 'Passe./Ev.' },
+    { key: 'reservas',      icon: Users,        label: 'Reservas',      short: 'Reservas' },
     { key: 'clientes',      icon: Users,        label: 'Clientes',      short: 'Clientes' },
-    { key: 'eventos',       icon: CalendarDays, label: 'Eventos',       short: 'Eventos' },
     { key: 'financeiro',    icon: DollarSign,   label: 'Financeiro',    short: 'Finanças' },
     { key: 'cancelamentos', icon: XCircle,  label: 'Cancelamentos', short: 'Cancels.' },
     { key: 'mensagens',     icon: Bell,     label: 'Mensagens',     short: 'Msgs' },
@@ -380,7 +383,37 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
               onBoatsChange={setBoats}
               onSendToVerification={() => { loadData(); setSolInitialSub('embarcacoes'); setTab('sol'); }} />
           )}
-          {tab === 'passeios' && (
+          {tab === 'passeios-eventos' && isAdmin && (
+            <div>
+              {/* Sub-tabs */}
+              <div className="flex gap-1 mb-5 bg-gray-100 p-1">
+                {([
+                  { key: 'passeios' as const, label: 'Passeios', icon: Compass },
+                  { key: 'eventos'  as const, label: 'Eventos',  icon: CalendarDays },
+                ] as const).map(t => {
+                  const Icon = t.icon;
+                  const active = passeiosEventosSubTab === t.key;
+                  return (
+                    <button key={t.key} onClick={() => setPasseiosEventosSubTab(t.key)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition-all ${
+                        active ? 'bg-[#0a1628] text-white shadow' : 'text-gray-500 hover:text-[#1a2b4a]'
+                      }`}>
+                      <Icon className="w-3.5 h-3.5" />
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {passeiosEventosSubTab === 'passeios' && (
+                <PasseiosTab trips={trips} bookings={bookings}
+                  role={auth?.role ?? null} onGoToFrota={() => setTab('frota')} onTripsChange={setTrips} />
+              )}
+              {passeiosEventosSubTab === 'eventos' && (
+                <EventosAdminTab role={auth?.role ?? null} />
+              )}
+            </div>
+          )}
+          {tab === 'passeios' && !isAdmin && (
             <PasseiosTab trips={trips} bookings={bookings}
               role={auth?.role ?? null} onGoToFrota={() => setTab('frota')} onTripsChange={setTrips} />
           )}
@@ -450,7 +483,7 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
           {tab === 'financeiro' && isAdmin && (
             <FinanceiroTab bookings={bookings} sailors={sailors} trips={trips} boats={boats} role={auth?.role ?? null} />
           )}
-          {tab === 'eventos' && (
+          {tab === 'eventos' && !isAdmin && (
             <EventosAdminTab role={auth?.role ?? null} />
           )}
           {tab === 'empresa' && isSailor && auth?.sailorId && (

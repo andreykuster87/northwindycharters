@@ -118,7 +118,7 @@ function App() {
   );
 
   if (auth.isAuthenticated && auth.role === 'client')
-    return <Suspense fallback={areaFallback}><ClientArea auth={auth} onLogout={() => { logout(); loadPublicTrips(); }} /></Suspense>;
+    return <Suspense fallback={areaFallback}><ClientArea auth={auth} onLogout={() => { logout(); loadPublicTrips(); }} onSelectBoat={handleSelectBoat} /></Suspense>;
   if (auth.isAuthenticated && auth.role === 'company')
     return <Suspense fallback={areaFallback}><CompanyArea auth={auth} onLogout={() => { logout(); loadPublicTrips(); }} /></Suspense>;
   if (auth.isAuthenticated && (auth.role === 'admin' || auth.role === 'sailor'))
@@ -154,7 +154,7 @@ function App() {
       <Route path="/faq"        element={<FAQPage        onBack={() => navigate('/')} />} />
       <Route path="/ofertas-de-trabalho"  element={<OfertasTrabalhoPage    onBack={() => navigate('/')} />} />
       <Route path="/negocie-embarcacoes"  element={<NegocieEmbarcacoesPage onBack={() => navigate('/')} />} />
-      <Route path="/marketplace"          element={<MarketplacePage         onBack={() => navigate('/')} />} />
+      <Route path="/marketplace"          element={<MarketplacePage         onBack={() => navigate('/')} onSelectBoat={(boat, date, slot) => { navigate('/'); setTimeout(() => handleSelectBoat(boat, date, slot), 100); }} />} />
       <Route path="*" element={
         <div className="min-h-screen bg-white">
           <style>{`

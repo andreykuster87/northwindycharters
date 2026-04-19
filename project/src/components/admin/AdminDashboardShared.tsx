@@ -13,7 +13,8 @@ export interface Auth {
 export type AdminTabKey =
   | 'reservas' | 'frota' | 'passeios' | 'cancelamentos'
   | 'sol' | 'clientes' | 'mensagens' | 'financeiro'
-  | 'eventos' | 'candidatos' | 'marketplace';
+  | 'eventos' | 'candidatos' | 'marketplace'
+  | 'passeios-eventos';
 
 export type SailorTabKey = 'perfil' | 'reservas' | 'frota' | 'passeios' | 'cancelamentos' | 'mensagens' | 'eventos' | 'empresa' | 'marketplace';
 

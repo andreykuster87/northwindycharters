@@ -48,7 +48,7 @@ const TABS: { key: TabKey; icon: React.ElementType; label: string; short: string
 
 // ══ COMPONENTE PRINCIPAL ═══════════════════════════════════════════════════════
 
-export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () => void }) {
+export function ClientArea({ auth, onLogout, onSelectBoat }: { auth: AuthState; onLogout: () => void; onSelectBoat?: (boat: any, date?: string, slot?: string) => void }) {
   const [tab,          setTab]          = useState<TabKey>('perfil');
   const [searchOpen,   setSearchOpen]   = useState(false);
   const [clientData,   setClientData]   = useState<any>(() => getClients().find(c => c.id === auth.clientId) || null);
@@ -634,7 +634,7 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
               applicationStatus={existingApp?.status}
             />
           )}
-          {tab === 'marketplace'  && <MarketplaceTab role="client" />}
+          {tab === 'marketplace'  && <MarketplaceTab role="client" onSelectBoat={onSelectBoat} />}
         </main>
       </div>
 

@@ -4,8 +4,11 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { LOGO_SRC } from '../../assets';
 import { MarketplaceTab } from '../shared/MarketplaceTab';
 
+import type { CatalogBoat } from '../../utils/clientHelpers';
+
 interface Props {
-  onBack: () => void;
+  onBack:          () => void;
+  onSelectBoat?:   (boat: CatalogBoat, date?: string, slot?: string) => void;
 }
 
 type SubTab = 'passeios' | 'eventos' | 'embarcacoes' | 'escolas' | 'ofertas' | 'acessorios' | 'pecas';
@@ -69,7 +72,7 @@ const CATEGORIES: {
   },
 ];
 
-export function MarketplacePage({ onBack }: Props) {
+export function MarketplacePage({ onBack, onSelectBoat }: Props) {
   const [activeCategory, setActiveCategory] = useState<SubTab | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -242,7 +245,7 @@ export function MarketplacePage({ onBack }: Props) {
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
               Todas as categorias
             </button>
-            <MarketplaceTab role={null} initialTab={activeCategory} />
+            <MarketplaceTab role={null} initialTab={activeCategory} onSelectBoat={onSelectBoat} />
           </div>
         </div>
       )}
