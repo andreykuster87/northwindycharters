@@ -39,7 +39,7 @@ export function ComunidadeTab({ onGoToProfile, onOpenApplication, applicationSta
       {/* Header */}
       <div>
         <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-1">Oportunidades</p>
-        <h2 className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xl">Faça parte da comunidade</h2>
+        <h2 className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xl">Faça parte da tripulação marítima</h2>
         <div className="w-8 h-px bg-[#c9a96e] mt-2" />
       </div>
 
@@ -228,9 +228,9 @@ export function ComunidadeTab({ onGoToProfile, onOpenApplication, applicationSta
           <Anchor className="w-4 h-4 text-[#c9a96e]" />
         </div>
         <div className="flex-1 min-w-0 relative">
-          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Faça parte da comunidade</p>
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Faça parte da tripulação marítima</p>
           <p className="text-xs font-medium text-white/60 mt-1 leading-relaxed">
-            Para fazer parte da comunidade, insira os documentos necessários e fique visível para empresas náuticas.
+            Para fazer parte da tripulação marítima, insira os documentos necessários e fique visível para empresas náuticas.
           </p>
           <button
             onClick={onOpenApplication}

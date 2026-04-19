@@ -135,6 +135,27 @@ export function BookingDetailModal({ booking, onClose }: { booking: Booking; onC
             </div>
           )}
 
+          {booking.status === 'cancelado' && (
+            <div className="bg-red-50 border-2 border-red-100 p-4 space-y-3">
+              <div>
+                <p className="text-[9px] font-semibold text-red-400 uppercase tracking-[0.15em] mb-1">⚠️ Motivo do Cancelamento</p>
+                <p className="font-bold text-red-800 text-sm">
+                  {(booking as any).cancel_reason || 'Não informado'}
+                </p>
+              </div>
+              {booking.customer_phone && (
+                <a
+                  href={`https://wa.me/${booking.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent('Olá ' + (booking.customer_name || '') + '! Entramos em contacto sobre o cancelamento da sua reserva na NorthWindy.')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-400 text-white py-2.5 font-semibold text-xs uppercase transition-all"
+                >
+                  📲 WhatsApp — {booking.customer_phone}
+                </a>
+              )}
+            </div>
+          )}
+
           <div className="bg-[#0a1628] p-4 flex items-center justify-between">
             <p className="text-[#c9a96e] text-xs font-semibold uppercase">Total da Reserva</p>
             <p className="text-white font-bold text-xl">{fmt(booking.total_price)}</p>

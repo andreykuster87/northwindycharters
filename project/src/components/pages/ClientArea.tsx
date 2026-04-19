@@ -42,10 +42,10 @@ import { useAdvancedSearch }  from '../shared/AdvancedSearchPanel';
 type TabKey = 'perfil' | 'reservas' | 'marketplace' | 'mensagens' | 'configuracoes' | 'comunidade';
 
 const TABS: { key: TabKey; icon: React.ElementType; label: string; short: string }[] = [
-  { key: 'perfil',        icon: User,          label: 'Perfil',                      short: 'Perfil'     },
+  { key: 'perfil',        icon: User,          label: 'Perfil Público',              short: 'Perfil'     },
   { key: 'marketplace',   icon: Store,         label: 'Marketplace',                 short: 'Market'     },
   { key: 'reservas',      icon: BookOpen,      label: 'Reservas e Cancelamentos',    short: 'Reservas'   },
-  { key: 'comunidade',    icon: Users,         label: 'Faça parte da comunidade',    short: 'Comunidade' },
+  { key: 'comunidade',    icon: Users,         label: 'Faça parte da tripulação marítima',    short: 'Tripulação' },
 ];
 
 // ══ COMPONENTE PRINCIPAL ═══════════════════════════════════════════════════════
@@ -180,27 +180,41 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
     return <CompanyProfileView company={viewingCompany} onBack={() => { setViewingCompany(null); closePanelAndClear(); }} currentUserId={auth.clientId} currentUserType="client" />;
   }
 
+  function handleOpenFriendProfile(otherId: string, otherType: 'sailor' | 'client' | 'company') {
+    console.log('[ClientArea.handleOpenFriendProfile]', { otherId, otherType });
+    if (otherType === 'sailor') {
+      const s = getSailors().find(x => x.id === otherId);
+      console.log('  → sailor lookup:', s ? s.name : 'NOT FOUND', 'total sailors:', getSailors().length);
+      if (s) {
+        setViewingClient(null);
+        setViewingSailor(s);
+      }
+    } else if (otherType === 'client') {
+      const c = getClients().find(x => x.id === otherId);
+      console.log('  → client lookup:', c ? c.name : 'NOT FOUND', 'total clients:', getClients().length);
+      if (c) {
+        setViewingSailor(null);
+        setViewingClient(c);
+      }
+    } else if (otherType === 'company') {
+      const c = getCompanies().find(x => x.id === otherId);
+      console.log('  → company lookup:', c ? c.nome_fantasia : 'NOT FOUND');
+      if (c) {
+        setViewingSailor(null);
+        setViewingClient(null);
+        setViewingCompany(c);
+      }
+    }
+  }
+
   // Se clicou num tripulante nos resultados, mostra o perfil completo
   if (viewingSailor) {
-    return <SailorProfileView sailor={viewingSailor} onBack={() => { setViewingSailor(null); closePanelAndClear(); }} currentUserId={auth.clientId} currentUserType="client" />;
+    return <SailorProfileView sailor={viewingSailor} onBack={() => { setViewingSailor(null); closePanelAndClear(); }} currentUserId={auth.clientId} currentUserType="client" currentUserName={clientData?.name} onOpenFriendProfile={handleOpenFriendProfile} />;
   }
 
   // Se clicou num amigo-passageiro, mostra o perfil público
   if (viewingClient) {
-    return <ClientProfileView client={viewingClient} onBack={() => setViewingClient(null)} currentUserId={auth.clientId ?? undefined} currentUserType="client" />;
-  }
-
-  function handleOpenFriendProfile(otherId: string, otherType: 'sailor' | 'client' | 'company') {
-    if (otherType === 'sailor') {
-      const s = getSailors().find(x => x.id === otherId);
-      if (s) setViewingSailor(s);
-    } else if (otherType === 'client') {
-      const c = getClients().find(x => x.id === otherId);
-      if (c) setViewingClient(c);
-    } else if (otherType === 'company') {
-      const c = getCompanies().find(x => x.id === otherId);
-      if (c) setViewingCompany(c);
-    }
+    return <ClientProfileView client={viewingClient} onBack={() => setViewingClient(null)} currentUserId={auth.clientId ?? undefined} currentUserType="client" currentUserName={clientData?.name} onOpenFriendProfile={handleOpenFriendProfile} />;
   }
 
   return (
@@ -370,6 +384,7 @@ export function ClientArea({ auth, onLogout }: { auth: AuthState; onLogout: () =
                 if (auth.clientId) updateClient(auth.clientId, { album: next });
               }}
               onOpenFriendProfile={handleOpenFriendProfile}
+              onClientChange={patch => setClientData((p: any) => ({ ...p, ...patch }))}
             />
           )}
           {tab === 'configuracoes' && (

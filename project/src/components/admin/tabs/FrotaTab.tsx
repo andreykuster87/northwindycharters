@@ -191,14 +191,18 @@ export function FrotaTab({
                 )}
               </div>
             )}
-
-            {/* Botão adicionar */}
-            <button onClick={onAddBoat}
-              className="bg-[#0a1628] text-white px-5 py-2.5 font-semibold uppercase text-xs hover:bg-[#0a1628]/90 transition-all flex items-center gap-2 flex-shrink-0">
-              <Plus className="w-4 h-4" /> Nova Embarcação
-            </button>
           </div>
         </div>
+
+        {/* Botão adicionar embarcação — centrado no painel */}
+        {boats.length > 0 && (
+          <div className="flex justify-center">
+            <button onClick={onAddBoat}
+              className="bg-[#0a1628] text-white px-6 py-3 font-semibold uppercase text-xs hover:bg-[#0a1628]/90 transition-all flex items-center gap-2">
+              <Plus className="w-4 h-4" /> Adicionar Embarcação
+            </button>
+          </div>
+        )}
 
         {/* Vazio */}
         {boats.length === 0 ? (

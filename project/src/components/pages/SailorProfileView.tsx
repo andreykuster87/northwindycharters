@@ -5,15 +5,17 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   ArrowLeft, Waves, User, FileText, Briefcase,
-  MapPin, Globe, Image as ImageIcon, ChevronRight,
+  MapPin, ChevronRight,
   CheckCircle2, AlertTriangle, XCircle, Clock,
-  Award, Languages, Anchor, CalendarDays, PlusCircle, Upload, X, Eye, RefreshCw,
-  Building2, Users,
+  Award, Anchor, CalendarDays, PlusCircle, Upload, X, Eye, RefreshCw,
+  Building2, Users, Image as ImageIcon, MessageSquare, Info, Star,
+  Languages,
 } from 'lucide-react';
 import { uploadDoc } from '../../lib/storage';
-import { updateSailor, getSailors, getCompanies, refreshAll, type Sailor } from '../../lib/localStore';
+import { updateSailor, getSailors, getClients, getCompanies, refreshAll, type Sailor } from '../../lib/localStore';
 import type { FriendProfileType } from '../../lib/localStore';
 import { FriendButton, AmigosTab, useFriendships } from '../shared/FriendComponents';
+import { ForumTab, type ForumUser } from '../shared/ForumTab';
 import { STCW_CERTS, FUNCOES_MARITIMAS } from '../../constants/sailorConstants';
 import { findCompanyForSailorDB } from '../../lib/rh';
 
@@ -436,8 +438,28 @@ const DISP_OPTIONS = [
 // ── Tab: Perfil ───────────────────────────────────────────────────────────────
 
 function PerfilTab({ sailor, isOwner, onUpdated }: { sailor: Sailor; isOwner?: boolean; onUpdated?: () => void }) {
-  const album: string[] = sailor.album ?? [];
   const bio = sailor.outras_informacoes;
+
+  // ── Biografia editável (apenas owner) ────────────────────────────────────
+  const [editingBio, setEditingBio] = useState(false);
+  const [bioDraft,   setBioDraft]   = useState<string>(bio ?? '');
+  const [savingBio,  setSavingBio]  = useState(false);
+
+  async function saveBio() {
+    const trimmed = bioDraft.trim();
+    setSavingBio(true);
+    try {
+      await updateSailor(sailor.id, { outras_informacoes: trimmed || undefined });
+      onUpdated?.();
+      setEditingBio(false);
+    } catch (err) { console.error('[bio save]', err); }
+    finally { setSavingBio(false); }
+  }
+
+  function cancelBio() {
+    setBioDraft(bio ?? '');
+    setEditingBio(false);
+  }
 
   // ── Empresa em que o tripulante está no RH ───────────────────────────────
   const [companyInfo, setCompanyInfo] = useState<{ company: any; cargo: string } | null>(null);
@@ -448,22 +470,6 @@ function PerfilTab({ sailor, isOwner, onUpdated }: { sailor: Sailor; isOwner?: b
       if (found) setCompanyInfo({ company: found, cargo: ref.cargo });
     });
   }, [sailor.id]);
-
-  // ── Upload de fotos ──────────────────────────────────────────────────────
-  const photoInputRef = useRef<HTMLInputElement>(null);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-
-  async function handlePhotoUpload(file: File) {
-    setUploadingPhoto(true);
-    try {
-      const url = await uploadDoc(file, 'sailors', `album-${sailor.id}`);
-      if (!url) return;
-      const current: string[] = sailor.album ?? [];
-      await updateSailor(sailor.id, { album: [...current, url] });
-      onUpdated?.();
-    } catch (err) { console.error('[album upload]', err); }
-    finally { setUploadingPhoto(false); }
-  }
 
   // ── Funções editáveis ────────────────────────────────────────────────────
   const rawFuncao = sailor.funcao;
@@ -565,97 +571,62 @@ function PerfilTab({ sailor, isOwner, onUpdated }: { sailor: Sailor; isOwner?: b
         </div>
       )}
 
-      {/* Galeria de fotos */}
-      {(album.length > 0 || isOwner) && (
+      {/* Biografia */}
+      {(bio || isOwner) && (
         <div className="bg-white border-2 border-[#0a1628]/5 p-5">
-          <SectionLabel><ImageIcon className="w-3.5 h-3.5" /> Fotos</SectionLabel>
-          <div className="grid grid-cols-3 gap-2">
-            {album.slice(0, 9).map((url, i) => (
-              <div key={i} className="overflow-hidden aspect-square border border-gray-100">
-                <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-              </div>
-            ))}
-            {isOwner && album.length < 9 && (
+          <div className="flex items-center justify-between mb-3">
+            <SectionLabel><User className="w-3.5 h-3.5" /> Biografia</SectionLabel>
+            {isOwner && !editingBio && (
               <button
-                onClick={() => photoInputRef.current?.click()}
-                disabled={uploadingPhoto}
-                className="aspect-square border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1.5 hover:border-[#c9a96e]/50 hover:bg-[#c9a96e]/5 transition-all disabled:opacity-50"
+                onClick={() => { setBioDraft(bio ?? ''); setEditingBio(true); }}
+                className="text-[10px] font-semibold text-[#c9a96e] hover:text-[#1a2b4a] uppercase tracking-wider transition-colors"
               >
-                {uploadingPhoto
-                  ? <span className="text-[10px] font-semibold text-gray-400">Enviando…</span>
-                  : <><PlusCircle className="w-5 h-5 text-gray-300" /><span className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Adicionar</span></>
-                }
+                {bio ? 'Editar' : '+ Adicionar'}
               </button>
             )}
           </div>
-          <input ref={photoInputRef} type="file" accept="image/*" className="hidden"
-            onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); e.target.value = ''; }} />
-        </div>
-      )}
 
-      {/* Biografia */}
-      {bio && (
-        <div className="bg-white border-2 border-[#0a1628]/5 p-5">
-          <SectionLabel>📋 Sobre</SectionLabel>
-          <p className="text-sm text-gray-600 font-semibold leading-relaxed">{bio}</p>
-        </div>
-      )}
-
-      {/* Informações + Experiência embarcado */}
-      <div className="bg-white border-2 border-[#0a1628]/5 p-5">
-        <SectionLabel><User className="w-3.5 h-3.5" /> Informações</SectionLabel>
-        <div className="space-y-3">
-          {([
-            { icon: Globe,     label: 'Nacionalidade', value: sailor.nacionalidade },
-            { icon: MapPin,    label: 'Localização',   value: (sailor as any).endereco || null },
-            { icon: Languages, label: 'Idioma',        value: sailor.language },
-          ] as { icon: React.ElementType; label: string; value: string | null | undefined }[])
-            .filter(r => r.value).map(r => (
-            <div key={r.label} className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
-                <r.icon className="w-3.5 h-3.5 text-[#c9a96e]" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">{r.label}</p>
-                <p className="text-sm font-bold text-[#1a2b4a] truncate">{r.value}</p>
-              </div>
-            </div>
-          ))}
-
-          {(sailor as any).experiencia_embarcado !== undefined && (
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0">
-                <Anchor className="w-3.5 h-3.5 text-[#c9a96e]" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Experiência embarcado</p>
-                <p className={`text-sm font-bold truncate ${(sailor as any).experiencia_embarcado ? 'text-emerald-600' : 'text-gray-400'}`}>
-                  {(sailor as any).experiencia_embarcado ? '✓ Sim, trabalhou embarcado' : '✗ Sem experiência embarcado'}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {(sailor as any).idiomas?.length > 0 && (
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-[#0a1628]/5 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Languages className="w-3.5 h-3.5 text-[#c9a96e]" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Idiomas falados</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {(sailor as any).idiomas.map((l: string) => (
-                    <span key={l} className="bg-[#0a1628] text-white text-[10px] font-semibold px-2.5 py-0.5">{l}</span>
-                  ))}
-                  {(sailor as any).idioma_outro && (
-                    <span className="bg-[#0a1628] text-white text-[10px] font-semibold px-2.5 py-0.5">{(sailor as any).idioma_outro}</span>
-                  )}
+          {editingBio ? (
+            <div className="space-y-2">
+              <textarea
+                value={bioDraft}
+                onChange={e => setBioDraft(e.target.value.slice(0, 1000))}
+                rows={5}
+                placeholder="Escreva a sua biografia — experiência, interesses, o que procura…"
+                className="w-full border border-gray-200 px-3 py-2 text-sm text-[#1a2b4a] font-semibold leading-relaxed outline-none focus:border-[#c9a96e] bg-white resize-none"
+                autoFocus
+              />
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">
+                  {bioDraft.length}/1000
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={cancelBio}
+                    disabled={savingBio}
+                    className="px-3 py-1.5 border border-gray-200 text-[10px] font-bold text-gray-500 hover:border-gray-300 uppercase tracking-wider transition-all disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={saveBio}
+                    disabled={savingBio}
+                    className="px-3 py-1.5 bg-[#0a1628] text-[#c9a96e] text-[10px] font-bold hover:bg-[#1a2b4a] uppercase tracking-wider transition-all disabled:opacity-50"
+                  >
+                    {savingBio ? 'A guardar…' : 'Guardar'}
+                  </button>
                 </div>
               </div>
             </div>
+          ) : bio ? (
+            <p className="text-sm text-gray-600 font-semibold leading-relaxed whitespace-pre-wrap">{bio}</p>
+          ) : (
+            <p className="text-sm text-gray-400 font-semibold italic">
+              Ainda não adicionou uma biografia. Clique em "+ Adicionar" para escrever sobre si.
+            </p>
           )}
         </div>
-      </div>
+      )}
 
       {/* ── Funções/Skills — editável para o owner ──────────────────────── */}
       {(funcoesList.length > 0 || isOwner) && (
@@ -780,6 +751,21 @@ function PerfilTab({ sailor, isOwner, onUpdated }: { sailor: Sailor; isOwner?: b
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Idiomas falados ────────────────────────────────────────────────── */}
+      {(((sailor as any).idiomas?.length ?? 0) > 0 || (sailor as any).idioma_outro) && (
+        <div className="bg-white border-2 border-[#0a1628]/5 p-5">
+          <SectionLabel><Languages className="w-3.5 h-3.5" /> Idiomas falados</SectionLabel>
+          <div className="flex flex-wrap gap-1.5">
+            {((sailor as any).idiomas ?? []).map((l: string) => (
+              <span key={l} className="bg-[#0a1628] text-white text-[10px] font-semibold px-2.5 py-1 uppercase tracking-wider">{l}</span>
+            ))}
+            {(sailor as any).idioma_outro && (
+              <span className="bg-[#0a1628] text-white text-[10px] font-semibold px-2.5 py-1 uppercase tracking-wider">{(sailor as any).idioma_outro}</span>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -1225,15 +1211,224 @@ export function SailorProfileContent({ sailor, subTab, isOwner, onDocAdded }: Sa
   );
 }
 
+// ── Painel público para terceiros ─────────────────────────────────────────────
+// Renderiza (rating banner + 4 subtabs: Fórum | Amigos | Fotos | Biografia).
+
+type PubSubTab = 'forum' | 'amigos' | 'fotos' | 'informacoes';
+
+function SailorPublicPanel({
+  sailor, currentUserId, currentUserType, currentUserName, onOpenFriendProfile,
+}: {
+  sailor:           Sailor;
+  currentUserId?:   string;
+  currentUserType?: FriendProfileType;
+  currentUserName?: string;
+  onOpenFriendProfile?: (otherId: string, otherType: FriendProfileType) => void;
+}) {
+  const [subTab, setSubTab] = useState<PubSubTab>('informacoes');
+  const { friendships: theirFriendships } = useFriendships(sailor.id);
+
+  const forumUser: ForumUser | undefined = currentUserId && currentUserType
+    ? { id: currentUserId, name: currentUserName || 'Usuário', type: currentUserType }
+    : undefined;
+
+  const theirAccepted = theirFriendships.filter(f => f.status === 'accepted');
+  const album = (sailor as any).album as string[] | undefined ?? [];
+  const bio   = sailor.outras_informacoes;
+
+  function friendDisplay(f: typeof theirAccepted[number]) {
+    const otherId   = f.requester_id === sailor.id ? f.recipient_id   : f.requester_id;
+    const otherType = f.requester_id === sailor.id ? f.recipient_type : f.requester_type;
+    let name = otherId;
+    let photo: string | null = null;
+    if (otherType === 'sailor') {
+      const s = getSailors().find(s => s.id === otherId);
+      if (s) { name = s.name; photo = s.profile_photo ?? null; }
+    } else if (otherType === 'client') {
+      const c = getClients().find(c => c.id === otherId);
+      if (c) { name = c.name; photo = c.profile_photo ?? null; }
+    } else if (otherType === 'company') {
+      const c = getCompanies().find(c => c.id === otherId);
+      if (c) { name = c.nome_fantasia; photo = (c as any).profile_photo ?? null; }
+    }
+    return { name, photo, otherId, otherType };
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-1">Tripulante</p>
+        <h2 className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xl">Perfil Público</h2>
+        <div className="w-8 h-px bg-[#c9a96e] mt-2" />
+      </div>
+
+      {/* Hero com banner de avaliação */}
+      <div className="bg-[#0a1628] p-5 text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 0,transparent 60px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 0,transparent 60px)' }} />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/60 to-transparent" />
+        <div className="relative flex items-center gap-4">
+          <div className="w-20 h-20 overflow-hidden border border-[#c9a96e]/40 flex-shrink-0 bg-white/10 flex items-center justify-center">
+            {sailor.profile_photo
+              ? <img src={sailor.profile_photo} alt={sailor.name} className="w-full h-full object-cover" />
+              : <User className="w-10 h-10 text-[#c9a96e]/60" />
+            }
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#c9a96e] mb-1">
+              {sailor.profile_number}
+            </p>
+            <h3 className="font-['Playfair_Display'] font-bold text-lg leading-tight truncate">{sailor.name}</h3>
+            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+              {sailor.blocked
+                ? <span className="bg-red-400/20 border border-red-400/40 text-red-200 text-[10px] font-semibold px-2.5 py-0.5">🚫 Bloqueada</span>
+                : sailor.verified && (
+                  <span className="bg-[#c9a96e]/15 border border-[#c9a96e]/30 text-[#c9a96e] text-[10px] font-semibold px-2.5 py-0.5 flex items-center gap-1">
+                    <CheckCircle2 className="w-2.5 h-2.5" /> Verificado
+                  </span>
+                )
+              }
+              {sailor.nacionalidade && (
+                <span className="bg-white/10 text-white/70 text-[10px] font-medium px-2.5 py-0.5">
+                  {sailor.nacionalidade}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-shrink-0 flex flex-col items-end gap-1">
+            <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Avaliação</p>
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map(i => (
+                <Star key={i} className="w-3 h-3 text-[#c9a96e]/30" />
+              ))}
+            </div>
+            <p className="text-[9px] font-medium text-white/50">Sem avaliações</p>
+          </div>
+        </div>
+      </div>
+
+      {/* SubTabs */}
+      <div className="flex border-b border-gray-200 overflow-x-auto">
+        {([
+          { key: 'forum',       label: 'Fórum',     icon: MessageSquare },
+          { key: 'amigos',      label: 'Amigos',    icon: Users         },
+          { key: 'fotos',       label: 'Fotos',     icon: ImageIcon     },
+          { key: 'informacoes', label: 'Biografia', icon: Info          },
+        ] as { key: PubSubTab; label: string; icon: any }[]).map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => setSubTab(key)}
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold transition-all border-b-2 -mb-px whitespace-nowrap ${
+              subTab === key
+                ? 'border-[#c9a96e] text-[#c9a96e]'
+                : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Fórum */}
+      {subTab === 'forum' && <ForumTab currentUser={forumUser} />}
+
+      {/* Amigos (read-only) */}
+      {subTab === 'amigos' && (
+        <div className="bg-white border-2 border-[#0a1628]/5 p-5">
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3 flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5" /> Amigos ({theirAccepted.length})
+          </p>
+          {theirAccepted.length === 0 ? (
+            <p className="text-sm text-gray-400 font-semibold italic">
+              Este tripulante ainda não possui amigos.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {theirAccepted.map(f => {
+                const { name, photo, otherId, otherType } = friendDisplay(f);
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => {
+                      console.log('[SailorPublicPanel] friend click', { otherId, otherType, hasHandler: !!onOpenFriendProfile });
+                      onOpenFriendProfile?.(otherId, otherType);
+                    }}
+                    className="bg-gray-50 border border-[#0a1628]/5 p-3 flex items-center gap-3 cursor-pointer hover:bg-[#c9a96e]/5 hover:border-[#c9a96e]/40 transition-all text-left w-full"
+                  >
+                    <div className="w-10 h-10 border border-[#c9a96e]/20 overflow-hidden bg-white flex items-center justify-center flex-shrink-0">
+                      {photo
+                        ? <img src={photo} alt={name} className="w-full h-full object-cover" />
+                        : <User className="w-5 h-5 text-[#c9a96e]/40" />}
+                    </div>
+                    <p className="font-bold text-[#1a2b4a] text-sm truncate uppercase flex-1">{name}</p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Fotos (read-only) */}
+      {subTab === 'fotos' && (
+        <section className="bg-white border-2 border-[#0a1628]/5 p-5">
+          <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3 flex items-center gap-1.5">
+            <ImageIcon className="w-3.5 h-3.5" /> Álbum
+          </p>
+          {album.length === 0 ? (
+            <div className="border-2 border-dashed border-gray-200 py-12 text-center">
+              <ImageIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+              <p className="text-xs font-bold text-gray-300 uppercase tracking-wider">Nenhuma foto compartilhada</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {album.map((url, i) => (
+                <div key={i} className="overflow-hidden" style={{ aspectRatio: '1/1' }}>
+                  <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Biografia + dados públicos do tripulante */}
+      {subTab === 'informacoes' && (
+        <>
+          <div className="bg-white border-2 border-[#0a1628]/5 p-5">
+            <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-3 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5" /> Biografia
+            </p>
+            {bio ? (
+              <p className="text-sm text-gray-600 font-semibold leading-relaxed whitespace-pre-wrap">{bio}</p>
+            ) : (
+              <p className="text-sm text-gray-400 font-semibold italic">
+                Este tripulante ainda não adicionou uma biografia.
+              </p>
+            )}
+          </div>
+          <PerfilTab sailor={sailor} isOwner={false} />
+        </>
+      )}
+    </div>
+  );
+}
+
 interface SailorProfileViewProps {
   sailor:           Sailor;
   onBack:           () => void;
   isOwner?:         boolean;
   currentUserId?:   string;
   currentUserType?: FriendProfileType;
+  currentUserName?: string;
+  onOpenFriendProfile?: (otherId: string, otherType: FriendProfileType) => void;
 }
 
-export function SailorProfileView({ sailor, onBack, isOwner, currentUserId, currentUserType }: SailorProfileViewProps) {
+export function SailorProfileView({ sailor, onBack, isOwner, currentUserId, currentUserType, currentUserName, onOpenFriendProfile }: SailorProfileViewProps) {
   const [tab,         setTab]         = useState<ViewTab>('perfil');
   const [localSailor, setLocalSailor] = useState<Sailor>(sailor);
   const { friendships, loadFriendships, pendingCount } = useFriendships(currentUserId);
@@ -1250,6 +1445,9 @@ export function SailorProfileView({ sailor, onBack, isOwner, currentUserId, curr
     : (localSailor as any).funcao;
 
   const canAddFriend = !isOwner && !!currentUserId && !!currentUserType && currentUserId !== localSailor.id;
+
+  const visibleTabs = isOwner ? VIEW_TABS : VIEW_TABS.filter(t => t.key !== 'documentos');
+  const effectiveTab: ViewTab = !isOwner && tab === 'documentos' ? 'perfil' : tab;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -1326,9 +1524,9 @@ export function SailorProfileView({ sailor, onBack, isOwner, currentUserId, curr
 
           {/* Nav items */}
           <div className="bg-white border-2 border-[#0a1628]/5 overflow-hidden shadow-sm">
-            {VIEW_TABS.map(t => {
+            {visibleTabs.map(t => {
               const Icon   = t.icon;
-              const active = tab === t.key;
+              const active = effectiveTab === t.key;
               return (
                 <button key={t.key} onClick={() => setTab(t.key)}
                   className={`w-full flex items-center gap-3 px-4 py-3.5 text-xs font-semibold uppercase tracking-wider transition-all border-b border-[#0a1628]/5 last:border-0 ${
@@ -1347,17 +1545,26 @@ export function SailorProfileView({ sailor, onBack, isOwner, currentUserId, curr
 
         {/* ── MAIN CONTENT ── */}
         <main className="flex-1 min-w-0 px-4 py-6 pb-24 md:pb-6 overflow-hidden">
-          {tab === 'perfil'     && <PerfilTab     sailor={localSailor} isOwner={isOwner} onUpdated={handleDocAdded} />}
-          {tab === 'documentos' && <DocumentosTab sailor={localSailor} isOwner={isOwner} onDocAdded={handleDocAdded} />}
+          {!isOwner && effectiveTab === 'perfil' && (
+            <SailorPublicPanel
+              sailor={localSailor}
+              currentUserId={currentUserId}
+              currentUserType={currentUserType}
+              currentUserName={currentUserName}
+              onOpenFriendProfile={onOpenFriendProfile}
+            />
+          )}
+          {isOwner && effectiveTab === 'perfil'                && <PerfilTab     sailor={localSailor} isOwner={isOwner} onUpdated={handleDocAdded} />}
+          {effectiveTab === 'documentos' && isOwner && <DocumentosTab sailor={localSailor} isOwner={isOwner} onDocAdded={handleDocAdded} />}
         </main>
       </div>
 
       {/* ── BOTTOM TAB BAR (mobile) ── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a1628] border-t border-[#c9a96e]/10 shadow-2xl">
         <div className="flex items-stretch h-16">
-          {VIEW_TABS.map(t => {
+          {visibleTabs.map(t => {
             const Icon   = t.icon;
-            const active = tab === t.key;
+            const active = effectiveTab === t.key;
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all relative ${

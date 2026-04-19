@@ -1,10 +1,10 @@
 // src/components/client/PerfilTab.tsx
 import { useRef, useState } from 'react';
-import { Camera, CheckCircle2, Users, Info, MessageSquare, Image as ImageIcon, Trash2, Plus } from 'lucide-react';
+import { Camera, CheckCircle2, Users, User, Info, MessageSquare, Image as ImageIcon, Trash2, Plus, Star } from 'lucide-react';
 import { AmigosTab, type FriendProfileType } from '../shared/FriendComponents';
 import { ForumTab, type ForumUser } from '../shared/ForumTab';
 import { pickPhoto } from '../shared/BoatRegPhotoAlbum';
-import type { Friendship } from '../../lib/localStore';
+import { updateClient, type Friendship } from '../../lib/localStore';
 
 interface Props {
   client:            any;
@@ -18,6 +18,7 @@ interface Props {
   album:             string[];
   onAlbumChange:     (next: string[]) => void;
   onOpenFriendProfile?: (otherId: string, otherType: FriendProfileType) => void;
+  onClientChange?:   (patch: Record<string, any>) => void;
 }
 
 type SubTab = 'forum' | 'amigos' | 'fotos' | 'informacoes';
@@ -25,11 +26,34 @@ type SubTab = 'forum' | 'amigos' | 'fotos' | 'informacoes';
 export function PerfilTab({
   client, profilePhoto, onPhotoChange, onOpenApplication,
   clientId, friendships, onRefreshFriends,
-  album, onAlbumChange, onOpenFriendProfile,
+  album, onAlbumChange, onOpenFriendProfile, onClientChange,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [subTab, setSubTab] = useState<SubTab>('amigos');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  // ── Biografia editável ───────────────────────────────────────────────────
+  const bio = client?.outras_informacoes as string | undefined;
+  const [editingBio, setEditingBio] = useState(false);
+  const [bioDraft,   setBioDraft]   = useState<string>(bio ?? '');
+  const [savingBio,  setSavingBio]  = useState(false);
+
+  async function saveBio() {
+    if (!clientId) return;
+    const trimmed = bioDraft.trim();
+    setSavingBio(true);
+    try {
+      await updateClient(clientId, { outras_informacoes: trimmed || undefined });
+      onClientChange?.({ outras_informacoes: trimmed || undefined });
+      setEditingBio(false);
+    } catch (err) { console.error('[bio save]', err); }
+    finally { setSavingBio(false); }
+  }
+
+  function cancelBio() {
+    setBioDraft(bio ?? '');
+    setEditingBio(false);
+  }
 
   function handleFile(file: File) {
     if (file.size > 4 * 1024 * 1024) { alert('Máximo 4MB'); return; }
@@ -132,6 +156,16 @@ export function PerfilTab({
                 {client.country_name || 'Portugal'}
               </span>
             </div>
+          </div>
+
+          <div className="flex-shrink-0 flex flex-col items-end gap-1">
+            <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Avaliação</p>
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map(i => (
+                <Star key={i} className="w-3 h-3 text-[#c9a96e]/30" />
+              ))}
+            </div>
+            <p className="text-[9px] font-medium text-white/50">Sem avaliações</p>
           </div>
         </div>
         {profilePhoto && (
@@ -236,9 +270,60 @@ export function PerfilTab({
 
       {/* Conteúdo: Biografia */}
       {subTab === 'informacoes' && (
-        <div className="bg-white border border-gray-100 p-6 text-center" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-          <Info className="w-6 h-6 text-gray-300 mx-auto mb-2" />
-          <p className="text-xs font-medium text-gray-400">A biografia ainda não foi preenchida.</p>
+        <div className="bg-white border-2 border-[#0a1628]/5 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5" /> Biografia
+            </p>
+            {!editingBio && (
+              <button
+                onClick={() => { setBioDraft(bio ?? ''); setEditingBio(true); }}
+                className="text-[10px] font-semibold text-[#c9a96e] hover:text-[#1a2b4a] uppercase tracking-wider transition-colors"
+              >
+                {bio ? 'Editar' : '+ Adicionar'}
+              </button>
+            )}
+          </div>
+
+          {editingBio ? (
+            <div className="space-y-2">
+              <textarea
+                value={bioDraft}
+                onChange={e => setBioDraft(e.target.value.slice(0, 1000))}
+                rows={5}
+                placeholder="Escreva a sua biografia — experiência, interesses, o que procura…"
+                className="w-full border border-gray-200 px-3 py-2 text-sm text-[#1a2b4a] font-semibold leading-relaxed outline-none focus:border-[#c9a96e] bg-white resize-none"
+                autoFocus
+              />
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">
+                  {bioDraft.length}/1000
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={cancelBio}
+                    disabled={savingBio}
+                    className="px-3 py-1.5 border border-gray-200 text-[10px] font-bold text-gray-500 hover:border-gray-300 uppercase tracking-wider transition-all disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={saveBio}
+                    disabled={savingBio}
+                    className="px-3 py-1.5 bg-[#0a1628] text-[#c9a96e] text-[10px] font-bold hover:bg-[#1a2b4a] uppercase tracking-wider transition-all disabled:opacity-50"
+                  >
+                    {savingBio ? 'A guardar…' : 'Guardar'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : bio ? (
+            <p className="text-sm text-gray-600 font-semibold leading-relaxed whitespace-pre-wrap">{bio}</p>
+          ) : (
+            <p className="text-sm text-gray-400 font-semibold italic">
+              Ainda não adicionou uma biografia. Clique em "+ Adicionar" para escrever sobre si.
+            </p>
+          )}
         </div>
       )}
     </div>

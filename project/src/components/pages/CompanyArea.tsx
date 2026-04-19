@@ -108,15 +108,16 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
   });
 
   function handleOpenFriendProfile(otherId: string, otherType: FriendProfileType) {
+    console.log('[CompanyArea.handleOpenFriendProfile]', { otherId, otherType });
     if (otherType === 'sailor') {
       const s = getSailors().find(x => x.id === otherId);
-      if (s) setViewingSailor(s);
+      if (s) { setViewingClient(null); setViewingCompany(null); setViewingSailor(s); }
     } else if (otherType === 'client') {
       const c = getClients().find(x => x.id === otherId);
-      if (c) setViewingClient(c);
+      if (c) { setViewingSailor(null); setViewingCompany(null); setViewingClient(c); }
     } else if (otherType === 'company') {
       const co = getCompanies().find(x => x.id === otherId);
-      if (co) setViewingCompany(co);
+      if (co) { setViewingSailor(null); setViewingClient(null); setViewingCompany(co); }
     }
   }
 
@@ -174,9 +175,11 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
   // Contador real de mensagens não lidas (sininho)
   const unread = getMessages(company.id).filter(m => !m.read).length;
 
+  // Mensagens e configurações já estão no navbar — ocultar do sidebar/bottom bar
+  const SIDEBAR_TABS = TABS.filter(t => t.key !== 'mensagens' && t.key !== 'configuracoes');
   // Primeiras 5 tabs ficam na bottom bar, o resto vai num "Mais"
-  const BOTTOM_TABS = TABS.slice(0, 5);
-  const MORE_TABS   = TABS.slice(5);
+  const BOTTOM_TABS = SIDEBAR_TABS.slice(0, 5);
+  const MORE_TABS   = SIDEBAR_TABS.slice(5);
 
   function handleTabChange(key: TabKey) {
     setTab(key);
@@ -201,6 +204,8 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
         onBack={() => setViewingSailor(null)}
         currentUserId={auth.companyId}
         currentUserType="company"
+        currentUserName={company?.nome_fantasia}
+        onOpenFriendProfile={handleOpenFriendProfile}
       />
     );
   }
@@ -211,6 +216,8 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
         onBack={() => setViewingClient(null)}
         currentUserId={auth.companyId}
         currentUserType="company"
+        currentUserName={company?.nome_fantasia}
+        onOpenFriendProfile={handleOpenFriendProfile}
       />
     );
   }
@@ -288,7 +295,7 @@ export function CompanyArea({ auth, onLogout }: { auth: AuthState; onLogout: () 
               <p className="text-[9px] font-semibold text-green-600 uppercase tracking-wider">Activa</p>
             </div>
           </div>
-          {TABS.map(t => {
+          {SIDEBAR_TABS.map(t => {
             const Icon   = t.icon;
             const active = tab === t.key;
             const badge  = t.key === 'amigos' && friendPendingCount > 0 ? friendPendingCount : 0;

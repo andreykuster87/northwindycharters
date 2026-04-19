@@ -117,6 +117,7 @@ export interface Client {
   username?:        string;
   endereco?:        string;
   album?:           string[];
+  outras_informacoes?: string;
 }
 
 export interface Boat {

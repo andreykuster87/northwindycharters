@@ -5,16 +5,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState } from 'react';
 import {
-  Users, Ship, Compass, ShieldCheck, XCircle,
+  Users, Ship, Compass, ShieldCheck,
   UserCheck, Bell, DollarSign, Building2,
   CalendarDays, Store, User, Settings as SettingsIcon,
+  Wrench, MessageCircle,
 } from 'lucide-react';
 import { MarketplaceTab } from '../shared/MarketplaceTab';
 import { useFriendships } from '../shared/FriendComponents';
 import { SailorPerfilTab } from '../sailor/SailorPerfilTab';
 import { SailorConfiguracoesTab } from '../sailor/SailorConfiguracoesTab';
 import { ClientProfileView } from '../pages/ClientProfileView';
-import { EmpresaFuncionarioTab } from '../company/EmpresaFuncionarioTab';
 import { loadEmpresaBell, markComunicadoSeen, type BellItem } from '../../lib/rh';
 import type { Company } from '../../lib/store/companies';
 import {
@@ -38,7 +38,6 @@ import { AdminDashboardBottomBar } from './AdminDashboardBottomBar';
 import { ReservasTab }      from './tabs/ReservasTab';
 import { FrotaTab }         from './tabs/FrotaTab';
 import { PasseiosTab }      from './tabs/PasseiosTab';
-import { CancelamentosTab } from './tabs/CancelamentosTab';
 import { SolicitacoesTab }  from './tabs/SolicitacoesTab';
 import { VerificadosTab }   from './tabs/VerificadosTab';
 import { ClientesTab }      from './tabs/ClientesTab';
@@ -58,7 +57,6 @@ import { DeleteConfirmModal, type DeleteTarget } from '../modals/DeleteConfirmMo
 import { BoatRegistrationModal } from '../modals/BoatRegistrationModal';
 import { CreateTripModal }       from '../modals/CreateTripModal';
 import { VerifyClientModal, ClientCredentialsModal } from './AdminVerifyClientModal';
-import { SailorSettingsModal }   from './SailorSettingsModal';
 
 // ── Componente principal ─────────────────────────────────────────────────────
 
@@ -84,7 +82,6 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
   const [showBoatModal, setShowBoatModal] = useState(false);
   const [showTripModal, setShowTripModal] = useState(false);
   const [tripBoat,      setTripBoat]      = useState<Boat | null>(null);
-  const [showSettings,  setShowSettings]  = useState(false);
 
   // Modais shared
   const [dossierSailor,  setDossierSailor]  = useState<Sailor | null>(null);
@@ -259,7 +256,6 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
     { key: 'clientes',      icon: Users,        label: 'Clientes',      short: 'Clientes' },
     { key: 'eventos',       icon: CalendarDays, label: 'Eventos',       short: 'Eventos' },
     { key: 'financeiro',    icon: DollarSign,   label: 'Financeiro',    short: 'Finanças' },
-    { key: 'cancelamentos', icon: XCircle,  label: 'Cancelamentos', short: 'Cancels.' },
     { key: 'mensagens',     icon: Bell,     label: 'Mensagens',     short: 'Msgs' },
     { key: 'marketplace',   icon: Store,    label: 'Marketplace',   short: 'Market' },
   ];
@@ -270,15 +266,18 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
     { key: 'frota',         icon: Ship,           label: 'Minha Frota',         short: 'Frota' },
     { key: 'eventos',       icon: CalendarDays,   label: 'Passeios e Eventos',  short: 'Pass./Ev.' },
     { key: 'empresa',       icon: Building2,      label: 'Empresa',             short: 'Empresa', badge: empresaUnread > 0 ? empresaUnread : undefined },
-    { key: 'cancelamentos', icon: XCircle,  label: 'Cancelamentos', short: 'Cancels.' },
     { key: 'mensagens',     icon: Bell,     label: 'Mensagens',     short: 'Msgs', badge: unreadMsgs > 0 ? unreadMsgs : undefined },
     { key: 'marketplace',   icon: Store,    label: 'Marketplace',   short: 'Market' },
     { key: 'configuracoes', icon: SettingsIcon, label: 'Configurações', short: 'Config' },
   ];
 
   const ALL_TABS    = isAdmin ? ADMIN_TABS : SAILOR_TABS;
-  const BOTTOM_TABS = ALL_TABS.slice(0, 5);
-  const MORE_TABS   = ALL_TABS.slice(5);
+  // Sailor: mensagens e configurações já estão no navbar — ocultar do sidebar/bottom bar
+  const SIDEBAR_TABS = isSailor
+    ? ALL_TABS.filter(t => t.key !== 'mensagens' && t.key !== 'configuracoes')
+    : ALL_TABS;
+  const BOTTOM_TABS = SIDEBAR_TABS.slice(0, 5);
+  const MORE_TABS   = SIDEBAR_TABS.slice(5);
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -291,7 +290,7 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
         unreadMsgs={unreadMsgs} empresaUnread={empresaUnread} solBadge={solBadge}
         bellItems={bellItems}
         onLogout={onLogout}
-        onSettings={() => setShowSettings(true)}
+        onSettings={() => handleTabChange('configuracoes')}
         onGoToMessages={() => handleTabChange('mensagens')}
         onGoToSol={() => handleTabChange('sol')}
         onGoToEmpresa={(itemId?: string) => {
@@ -312,7 +311,7 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
         <AdminDashboardSidebar
           isAdmin={isAdmin} isSailor={isSailor}
           sailorData={sailorData} sailorPhoto={sailorPhoto}
-          tabs={ALL_TABS} activeTab={tab}
+          tabs={SIDEBAR_TABS} activeTab={tab}
           onTabChange={handleTabChange}
           onPhotoChange={handleSailorPhoto}
           clientesSubTab={clientesSubTab}
@@ -402,9 +401,6 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
             <PasseiosTab trips={trips} bookings={bookings}
               role={auth?.role ?? null} onGoToFrota={() => setTab('frota')} onTripsChange={setTrips} />
           )}
-          {tab === 'cancelamentos' && (
-            <CancelamentosTab bookings={bookings} role={auth?.role ?? null} onReload={loadData} />
-          )}
           {tab === 'mensagens' && (
             <MensagensTab role={auth?.role ?? null} sailorMsgs={sailorMsgs} sailors={sailors} clients={clients} />
           )}
@@ -472,11 +468,36 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
             <EventosAdminTab role={auth?.role ?? null} sailorId={auth?.sailorId} sailorName={sailorData?.name ?? auth?.userName} />
           )}
           {tab === 'empresa' && isSailor && auth?.sailorId && (
-            <EmpresaFuncionarioTab
-              sailorId={auth.sailorId}
-              sailorName={auth.userName ?? sailorData?.name ?? 'Funcionário'}
-              onUnreadChange={setEmpresaUnread}
-            />
+            <div className="space-y-4">
+              <div>
+                <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em] mb-1">Área Profissional</p>
+                <h2 className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-xl">Empresa</h2>
+                <div className="w-8 h-px bg-[#c9a96e] mt-2" />
+              </div>
+
+              <div className="bg-white border border-amber-200 p-8 text-center relative overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(217,119,6,0.08)' }}>
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
+                <div className="w-14 h-14 bg-amber-50 border border-amber-200 mx-auto flex items-center justify-center mb-4">
+                  <Wrench className="w-6 h-6 text-amber-500" />
+                </div>
+                <p className="text-[10px] font-semibold text-amber-600 uppercase tracking-[0.15em] mb-2">Em construção</p>
+                <h3 className="font-['Playfair_Display'] font-bold text-[#1a2b4a] text-lg mb-2">
+                  Esta área está a ser preparada
+                </h3>
+                <p className="text-xs text-gray-500 max-w-md mx-auto mb-5">
+                  Estamos a finalizar a integração com as empresas. Entretanto, fale com o suporte para obter acesso antecipado.
+                </p>
+                <a
+                  href="https://wa.me/351910000000?text=Olá,%20gostaria%20de%20ter%20acesso%20à%20área%20de%20Empresa."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#0a1628] hover:bg-[#1a2b4a] text-white px-5 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  Falar com o suporte
+                </a>
+              </div>
+            </div>
           )}
           {tab === 'marketplace' && (
             <MarketplaceTab
@@ -541,10 +562,6 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
           onClose={() => { setShowTripModal(false); setTripBoat(null); }}
           onSuccess={() => { setTrips(auth?.sailorId ? getTrips(auth.sailorId) : getTrips()); setShowTripModal(false); setTripBoat(null); }} />
       )}
-      {showSettings && auth?.sailorId && (
-        <SailorSettingsModal sailorId={auth.sailorId} onClose={() => setShowSettings(false)} />
-      )}
-
       {/* ── Perfil público da empresa (overlay full-screen) ── */}
       {viewingCompany && (
         <div className="fixed inset-0 z-[200] overflow-y-auto bg-gray-50">
@@ -563,6 +580,18 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
             onBack={() => setViewingSailorProfile(null)}
             currentUserId={auth?.sailorId}
             currentUserType={auth?.sailorId ? 'sailor' : undefined}
+            onOpenFriendProfile={(otherId, otherType) => {
+              if (otherType === 'sailor') {
+                const s = sailors.find(x => x.id === otherId);
+                if (s) { setViewingClientProfile(null); setViewingSailorProfile(s); }
+              } else if (otherType === 'client') {
+                const c = clients.find(x => x.id === otherId);
+                if (c) { setViewingSailorProfile(null); setViewingClientProfile(c); }
+              } else if (otherType === 'company') {
+                const co = getCompanies().find(x => x.id === otherId);
+                if (co) { setViewingSailorProfile(null); setViewingClientProfile(null); setViewingCompany(co); }
+              }
+            }}
           />
         </div>
       )}
@@ -575,6 +604,18 @@ export function AdminDashboard({ auth, onLogout }: { auth: Auth | null; onLogout
             onBack={() => setViewingClientProfile(null)}
             currentUserId={auth?.sailorId}
             currentUserType={auth?.sailorId ? 'sailor' : undefined}
+            onOpenFriendProfile={(otherId, otherType) => {
+              if (otherType === 'sailor') {
+                const s = sailors.find(x => x.id === otherId);
+                if (s) { setViewingClientProfile(null); setViewingSailorProfile(s); }
+              } else if (otherType === 'client') {
+                const c = clients.find(x => x.id === otherId);
+                if (c) { setViewingSailorProfile(null); setViewingClientProfile(c); }
+              } else if (otherType === 'company') {
+                const co = getCompanies().find(x => x.id === otherId);
+                if (co) { setViewingSailorProfile(null); setViewingClientProfile(null); setViewingCompany(co); }
+              }
+            }}
           />
         </div>
       )}

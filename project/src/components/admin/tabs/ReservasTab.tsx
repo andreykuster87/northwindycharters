@@ -60,7 +60,7 @@ export function ReservasTab({
   const allDisplay       = filteredTrips
     ? bookings.filter(b => filteredTrips.some(t => t.id === b.trip_id))
     : bookings;
-  const displayBookings  = role === 'admin' ? allDisplay : allDisplay.filter(b => b.status !== 'cancelado');
+  const displayBookings  = allDisplay;
   const pg = usePagination(displayBookings, 20);
   const pendingBookings  = bookings.filter(b => b.status === 'pending');
 

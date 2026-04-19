@@ -1,6 +1,6 @@
 // src/components/company/CompanyPerfilTab.tsx
 import { useRef, useState } from 'react';
-import { Camera, CheckCircle2, Users, Info, MessageSquare, Image as ImageIcon, Trash2, Plus, MapPin, Building2, Search } from 'lucide-react';
+import { Camera, CheckCircle2, Users, Info, MessageSquare, Image as ImageIcon, Trash2, Plus, MapPin, Building2, Search, Star } from 'lucide-react';
 import { AmigosTab, type FriendProfileType } from '../shared/FriendComponents';
 import { ForumTab, type ForumUser } from '../shared/ForumTab';
 import { CompanySearchCard } from '../shared/CompanySearchCard';
@@ -142,6 +142,16 @@ export function CompanyPerfilTab({
               )}
             </div>
           </div>
+
+          <div className="flex-shrink-0 flex flex-col items-end gap-1">
+            <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Avaliação</p>
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map(i => (
+                <Star key={i} className="w-3 h-3 text-[#c9a96e]/30" />
+              ))}
+            </div>
+            <p className="text-[9px] font-medium text-white/50">Sem avaliações</p>
+          </div>
         </div>
       </div>
 
@@ -151,7 +161,7 @@ export function CompanyPerfilTab({
           { key: 'forum',       label: 'Fórum',        icon: MessageSquare },
           { key: 'amigos',      label: 'Amigos',       icon: Users },
           { key: 'fotos',       label: 'Fotos',        icon: ImageIcon },
-          { key: 'informacoes', label: 'Informações',  icon: Info },
+          { key: 'informacoes', label: 'Biografia',    icon: Info },
         ] as { key: SubTab; label: string; icon: any }[]).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -252,19 +262,6 @@ export function CompanyPerfilTab({
                 {bio || <span className="text-gray-300 italic">Sem descrição. Clique em Editar.</span>}
               </p>
             )}
-          </div>
-
-          {/* Setor e localização */}
-          <div className="bg-white border border-gray-100 p-4 space-y-2">
-            <p className="text-[10px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Dados da Empresa</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div><span className="text-gray-400">Razão Social:</span> <span className="font-semibold text-[#1a2b4a]">{company.razao_social}</span></div>
-              <div><span className="text-gray-400">Setor:</span> <span className="font-semibold text-[#1a2b4a]">{company.setor}</span></div>
-              <div><span className="text-gray-400">País:</span> <span className="font-semibold text-[#1a2b4a]">{company.pais_nome || company.pais}</span></div>
-              <div><span className="text-gray-400">Cidade:</span> <span className="font-semibold text-[#1a2b4a]">{company.cidade}</span></div>
-              {company.telefone && <div><span className="text-gray-400">Telefone:</span> <span className="font-semibold text-[#1a2b4a]">{company.telefone}</span></div>}
-              {company.email && <div><span className="text-gray-400">Email:</span> <span className="font-semibold text-[#1a2b4a]">{company.email}</span></div>}
-            </div>
           </div>
 
           {/* Procurar perfil público */}

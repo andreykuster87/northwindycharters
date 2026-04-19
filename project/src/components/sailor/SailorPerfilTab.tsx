@@ -1,6 +1,6 @@
 // src/components/sailor/SailorPerfilTab.tsx
 import { useRef, useState } from 'react';
-import { Camera, CheckCircle2, Users, Info, MessageSquare, Image as ImageIcon, Trash2, Plus } from 'lucide-react';
+import { Camera, CheckCircle2, Users, Info, MessageSquare, Image as ImageIcon, Trash2, Plus, Star } from 'lucide-react';
 import { AmigosTab, type FriendProfileType } from '../shared/FriendComponents';
 import { ForumTab, type ForumUser } from '../shared/ForumTab';
 import { pickPhoto } from '../shared/BoatRegPhotoAlbum';
@@ -77,8 +77,6 @@ export function SailorPerfilTab({
     ? { id: sailorId, name: sailor.name || 'Tripulante', type: 'sailor' }
     : undefined;
 
-  const funcao = sailor.funcao === 'Outro' ? (sailor.funcao_outro || 'Outro') : sailor.funcao;
-
   return (
     <div className="space-y-4">
       <div>
@@ -121,7 +119,7 @@ export function SailorPerfilTab({
 
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#c9a96e] mb-1">
-              {sailor.profile_number}{funcao ? ` · ${funcao}` : ''}
+              {sailor.profile_number}
             </p>
             <h3 className="font-['Playfair_Display'] font-bold text-lg leading-tight truncate">{sailor.name}</h3>
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
@@ -138,6 +136,16 @@ export function SailorPerfilTab({
               )}
             </div>
           </div>
+
+          <div className="flex-shrink-0 flex flex-col items-end gap-1">
+            <p className="text-[9px] font-semibold text-[#c9a96e] uppercase tracking-[0.15em]">Avaliação</p>
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map(i => (
+                <Star key={i} className="w-3 h-3 text-[#c9a96e]/30" />
+              ))}
+            </div>
+            <p className="text-[9px] font-medium text-white/50">Sem avaliações</p>
+          </div>
         </div>
         {profilePhoto && (
           <button onClick={() => { onPhotoChange(null); }}
@@ -153,7 +161,7 @@ export function SailorPerfilTab({
           { key: 'forum',       label: 'Fórum',        icon: MessageSquare },
           { key: 'amigos',      label: 'Amigos',       icon: Users },
           { key: 'fotos',       label: 'Fotos',        icon: ImageIcon },
-          { key: 'informacoes', label: 'Informações',  icon: Info },
+          { key: 'informacoes', label: 'Biografia',    icon: Info },
         ] as { key: SubTab; label: string; icon: any }[]).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
